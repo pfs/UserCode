@@ -46,10 +46,10 @@ def getDistsFrom(directory,keyFilter=''):
         if len(keyFilter)>0 and key.GetName()!='%s_%s'%(dirName,keyFilter) : continue
         obj=directory.Get(key.GetName())
         if not obj.InheritsFrom('TH1') : continue
-        if obj.GetName()==dirName : 
+        if obj.GetName()==dirName :
             obs=obj.Clone('data_obs')
             obs.SetDirectory(0)
-        else : 
+        else :
             newName=obj.GetName().split(dirName+'_')[-1]
             for token in ['+','-','*',' ','#','{','(',')','}','@']:
                 newName=newName.replace(token,'')
@@ -78,12 +78,12 @@ save distributions to file
 def saveToShapesFile(outFile,shapeColl,directory=''):
     fOut=ROOT.TFile.Open(outFile,'UPDATE')
     if len(directory)==0:
-        fOut.cd()     
+        fOut.cd()
     else:
         outDir=fOut.mkdir(directory)
         outDir.cd()
     for key in shapeColl:
-        #remove bin labels  
+        #remove bin labels
         shapeColl[key].GetXaxis().Clear()
 
         #convert to TH1D (projections are TH1D)
@@ -136,7 +136,7 @@ def main():
         cache=open(opt.wjets,'r')
         wjetsNorm=pickle.load(cache)
 
-    #prepare output directory 
+    #prepare output directory
     os.system('mkdir -p %s'%opt.output)
 
     anCat=''
@@ -163,7 +163,7 @@ def main():
         outFile='%s/shapes_%s.root'%(opt.output,cat)
         fOut=ROOT.TFile.Open(outFile,'RECREATE')
         fOut.Close()
-        
+
         #start the datacard
         datacard=open('%s/datacard_%s.dat'%(opt.output,cat),'w')
         datacard.write('#\n')
@@ -188,21 +188,21 @@ def main():
         datacard.write('\n')
         datacard.write('\t\t\t %15s '%'process')
         for sig in signalList: datacard.write('%15s'%sig)
-        for proc in exp: 
+        for proc in exp:
             if proc in signalList: continue
             datacard.write('%15s'%proc)
         datacard.write('\n')
         datacard.write('\t\t\t %15s'%'process')
         for i in xrange(0,len(signalList)) : datacard.write('%15s'%str(i+1-len(signalList)))
         i=0
-        for proc in exp: 
+        for proc in exp:
             if proc in signalList: continue
             i=i+1
             datacard.write('%15s'%str(i))
         datacard.write('\n')
         datacard.write('\t\t\t %15s'%'rate')
         for sig in signalList: datacard.write('%15s'%('%3.2f'%exp[sig].Integral()))
-        for proc in exp: 
+        for proc in exp:
             if proc in signalList: continue
             datacard.write('%15s'%('%3.2f'%exp[proc].Integral()))
         datacard.write('\n')
@@ -217,7 +217,7 @@ def main():
         expVarShapes=filterShapeList(expVarShapes,signalList,rawSignalList)
         nExpSysts=expVarShapes[signalList[0]].GetNbinsY()/2
         for isyst in xrange(1,nExpSysts+1):
-            
+
             #test which variations are significant
             bwList={}
             ybin=2*(isyst-1)+1
@@ -226,7 +226,7 @@ def main():
             for proc in exp:
 
                 if proc in expVarShapes:
-                    
+
                     systVarDown = expVarShapes[proc].GetYaxis().GetBinLabel(ybin)
                     systVarUp   = expVarShapes[proc].GetYaxis().GetBinLabel(ybin+1)
                     systVar     = systVarUp[:-2]
@@ -239,7 +239,7 @@ def main():
 
                     downShapes[proc] = downShapeH
                     upShapes[proc]   = upShapeH
-                    
+
             #test if at least one process has been white listed
             if len(upShapes)+len(downShapes)==0:
                 print '\t skipping',systVar,'for %s'%cat
@@ -250,13 +250,13 @@ def main():
             saveToShapesFile(outFile,upShapes,systVar+'Up')
 
             #write to datacard
-            datacard.write('%32s shape'%systVar)        
-            for sig in signalList: 
+            datacard.write('%32s shape'%systVar)
+            for sig in signalList:
                 if sig in bwList and bwList[sig]:
-                    datacard.write('%15s'%'1') 
+                    datacard.write('%15s'%'1')
                 else:
                     datacard.write('%15s'%'-')
-            for proc in exp: 
+            for proc in exp:
                 if proc in signalList: continue
                 if proc in bwList and bwList[proc] :
                     datacard.write('%15s'%'1')
@@ -292,12 +292,12 @@ def main():
             except:
                 entryTxt='%15s'%('%3.3f'%val)
 
-            for sig in signalList: 
+            for sig in signalList:
                 if (len(whiteList)==0 and not sig in blackList) or sig in whiteList:
                     datacard.write(entryTxt)
                 else:
                     datacard.write('%15s'%'-')
-            for proc in exp: 
+            for proc in exp:
                 if proc in signalList: continue
                 if (len(whiteList)==0 and not proc in blackList) or proc in whiteList:
                     datacard.write(entryTxt)
@@ -305,30 +305,30 @@ def main():
                     datacard.write('%15s'%'-')
             datacard.write('\n')
 
-        #generator level systematics 
+        #generator level systematics
         if systfIn is None: continue
         sampleSysts=[
 
             #ttbar modelling
             ('Mtop',            {'tbart'         : ['tbartm=169.5','tbartm=175.5'],  'tW':['tWm=169.5','tWm=175.5'] },                True ,  True, False),
-            ('ttPartonShower',  {'tbart'         : ['tbartscaledown','tbartscaleup']},                                                False , True, False),            
+            ('ttPartonShower',  {'tbart'         : ['tbartscaledown','tbartscaleup']},                                                False , True, False),
             #('NLOgenerator',    {'tbart'         : ['tbartaMCNLO']},                                                                  False,  True, False),
             ('Hadronizer',      {'tbart'         : ['tbartHerwig']},                                                                 False , True, True),
 
             #tWinterference
-            ('tWttinterf',       {'tW'            : ['tWDS']},                                                                        False , True, True),            
+            ('tWttinterf',       {'tW'            : ['tWDS']},                                                                        False , True, True),
 
             #QCD SCALES
-            ('tWscale',         {'tW'            : ['tWscaledown','tWscaleup']},                                                      False , True, False),            
+            ('tWscale',         {'tW'            : ['tWscaledown','tWscaleup']},                                                      False , True, False),
 
             #Madgraph W+jets
-            #('wFactScale',           { 'Wl': ['id3mur1muf0.5','id2mur1muf2'], 
-            #                           'Wc': ['id3mur1muf0.5','id2mur1muf2'], 
+            #('wFactScale',           { 'Wl': ['id3mur1muf0.5','id2mur1muf2'],
+            #                           'Wc': ['id3mur1muf0.5','id2mur1muf2'],
             #                           'Wb': ['id3mur1muf0.5','id2mur1muf2'] },  False, False),
-            #('wRenScale',            { 'Wl': ['id7mur0.5muf1','id4mur2muf1'],  
-            #                           'Wc': ['id7mur0.5muf1','id4mur2muf1'],  
+            #('wRenScale',            { 'Wl': ['id7mur0.5muf1','id4mur2muf1'],
+            #                           'Wc': ['id7mur0.5muf1','id4mur2muf1'],
             #                           'Wb': ['id7mur0.5muf1','id4mur2muf1'] },  False, False),
-            #('wCombScale',           { 'Wl': ['id9mur0.5muf0.5','id5mur2muf2'], 
+            #('wCombScale',           { 'Wl': ['id9mur0.5muf0.5','id5mur2muf2'],
             #                           'Wc': ['id9mur0.5muf0.5','id5mur2muf2'],
             #                           'Wb': ['id9mur0.5muf0.5','id5mur2muf2'] },  False, False),
 
@@ -351,7 +351,7 @@ def main():
 
             #prepare shapes and check if variation is significant
             downShapes, upShapes = {}, {}
-            
+
             for iproc in procsToApply:
 
                 nomH=exp[iproc]
@@ -380,7 +380,7 @@ def main():
 
                     downH = genVarShapes[ iproc ].ProjectionX('%s%sDown'%(iproc,systVar), ybinDown, ybinDown)
                     upH   = genVarShapes[ iproc ].ProjectionX('%s%sUp'%(iproc,systVar),   ybinUp,   ybinUp)
-                
+
                 # use do down/up x nom to generate the variation, then mirror it
                 if projectRelToNom:
                     ratioH=downH.Clone()
@@ -393,13 +393,13 @@ def main():
                         downH.SetBinContent(xbin, nomVal-varVal)
 
                 #normalize (shape only variation is considered)
-                if normalize : downH.Scale( nomH.Integral()/downH.Integral() ) 
+                if normalize : downH.Scale( nomH.Integral()/downH.Integral() )
                 if normalize : upH.Scale( nomH.Integral()/upH.Integral() )
 
                 #check if variation is meaningful
                 accept = acceptVariationForDataCard(nomH=nomH, upH=upH, downH=downH)
                 if not accept : continue
-                
+
                 #save
                 downShapes[iproc]=downH
                 upShapes[iproc]=upH
@@ -413,12 +413,12 @@ def main():
 
             #write to datacard
             datacard.write('%32s shape'%systVar)
-            for sig in signalList: 
+            for sig in signalList:
                 if sig in procsToApply and sig in upShapes:
                     datacard.write('%15s'%'1')
                 else:
                     datacard.write('%15s'%'-')
-            for proc in exp: 
+            for proc in exp:
                 if proc in signalList: continue
                 if proc in procsToApply and proc in upShapes:
                     datacard.write('%15s'%'1')
@@ -428,17 +428,17 @@ def main():
 
         #
         # QCD shapes
-        # 
+        #
         systName='MultiJetsShape%s%s'%(cat,anCat)
         qcdExp=exp['Multijetsdata'].Integral()
         if qcdExp>0 :
             datacard.write('%32s shape'%systName)
-            for sig in signalList: 
+            for sig in signalList:
                 if (len(whiteList)==0 and not sig in blackList) or sig in whiteList:
                     datacard.write(entryTxt)
                 else:
                     datacard.write('%15s'%'-')
-            for proc in exp: 
+            for proc in exp:
                 if proc in signalList: continue
                 if proc=='Multijetsdata':
                     datacard.write('%15s'%'1')
@@ -447,19 +447,19 @@ def main():
             datacard.write('\n')
 
             _,qcdShapesUp = getDistsFrom(directory=fIn.Get('%s_%s_QCD%sUp'%(opt.dist,cat,jetCat)))
-            qcdShapesUp['Multijetsdata'].Scale( qcdExp/qcdShapesUp['Multijetsdata'].Integral() ) 
+            qcdShapesUp['Multijetsdata'].Scale( qcdExp/qcdShapesUp['Multijetsdata'].Integral() )
             saveToShapesFile(outFile,qcdShapesUp,systName+'Up')
 
             _,qcdShapesDown = getDistsFrom(directory=fIn.Get('%s_%s_QCD%sDown'%(opt.dist,cat,jetCat)))
-            qcdShapesDown['Multijetsdata'].Scale( qcdExp/qcdShapesDown['Multijetsdata'].Integral() ) 
+            qcdShapesDown['Multijetsdata'].Scale( qcdExp/qcdShapesDown['Multijetsdata'].Integral() )
             saveToShapesFile(outFile,qcdShapesDown,systName+'Down')
 
         #all done
         datacard.close()
 
 
-"""                                                                                                                                                                                                               
-for execution from another script                                                                                                                                                                           
+"""
+for execution from another script
 """
 if __name__ == "__main__":
     sys.exit(main())

@@ -17,8 +17,9 @@ fi
 
 queue=8nh
 eosdir=/store/cmst3/user/psilva/LJets2015/8c1e7c9
-outdir=~/work/TopWidth
-wwwdir=~/www/TopWidth
+cnkdir=/store/cmst3/user/psilva/13TeV/Run2015
+outdir=~/CMSSW_7_6_3/src/TopLJets2015/TopAnalysis/output
+wwwdir=~/CMSSW_7_6_3/src/TopLJets2015/TopAnalysis/www
 lumi=2267.84
 
 RED='\e[31m'
@@ -40,7 +41,7 @@ case $WHAT in
 	cp test/index.php ${wwwdir}/sel
 	;;
     ANA )
-	python scripts/runTopWidthAnalysis.py -i ${outdir}/Chunks -o ${outdir}/analysis -q 8nh;
+	python scripts/runTopWidthAnalysis.py -i ${cnkdir}/ -o ${outdir}/analysis -q 8nh;
 	;;
     MERGE )
 	./scripts/mergeOutputs.py ${outdir}/analysis;
@@ -50,7 +51,7 @@ case $WHAT in
         ;;
     WWW )
         mkdir -p ${wwwdir}/ana
-        cp ${outdir}/plots/*.{png,pdf} ${wwwdir}/ana        
+        cp ${outdir}/analysis/plots/*.{png,pdf} ${wwwdir}/ana        
         cp test/index.php ${wwwdir}/ana
 	;;
 esac

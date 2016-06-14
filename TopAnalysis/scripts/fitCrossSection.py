@@ -13,7 +13,7 @@ POItitles={'r':'#mu=#sigma/#sigma_{th}',
 """
 common CMS label
 """
-def drawCMSlabel():
+def drawCMSlabel():        
     cmsLabel=ROOT.TLatex()
     cmsLabel.SetTextFont(42)
     cmsLabel.SetTextSize(0.035)
@@ -31,7 +31,7 @@ def prepareFitScript(datacard,POIs,unblind=False):
     fitScript=open(fitScriptUrl,'w')
 
     fitScript.write('cd %s\n'%baseDir)
-
+    
     fitScript.write('\n# convert datacard to workspace\n')
     fitScript.write('echo \"Converting datacard to workspace\"\n')
     fitScript.write('text2workspace.py %s -m 0 -o workspace.root\n' % os.path.basename(datacard))
@@ -50,13 +50,13 @@ def prepareFitScript(datacard,POIs,unblind=False):
             fitScript.write('echo \"Running MaxLikelihoodFit for r\"\n')
             fitScript.write('combine workspace.root -M MaxLikelihoodFit -t -1 --expectSignal=1 -m 0\n')
             fitScript.write('mv mlfit.root mlfit_exp.root\n')
-
+            
             fitScript.write('\n## impacts\n')
             fitScript.write('echo \"To compute expected impacts re-run runCombine.sh uncommenting the appropriate lines\n')
             fitScript.write('#combineTool.py -M Impacts -d workspace.root -m 0  -t -1 --expectSignal=1 --doInitialFit\n')
             fitScript.write('#combineTool.py -M Impacts -d workspace.root -m 0  -t -1 --expectSignal=1 --doFits\n')
             fitScript.write('#combineTool.py -M Impacts -d workspace.root -m 0 -o impacts.json\n')
-
+            
             fitScript.write('\n## toys\n')
             fitScript.write('echo \n"To run toys  re-run runCombine.sh uncommenting the appropriate lines\n')
             fitScript.write('#rscan=(0.9 1.0 1.1)\n')
@@ -67,7 +67,7 @@ def prepareFitScript(datacard,POIs,unblind=False):
             if unblind:
                 fitScript.write('combine workspace.root -M MaxLikelihoodFit -m 0\n')
                 fitScript.write('mv mlfit.root mlfit_obs.root\n')
-
+                            
         fitScript.write('\n## function of %s\n'%parameter)
         fitScript.write('echo \"Running likelihood scan for %s\"\n'%parameter)
         fitScript.write('combine workspace.root -M MultiDimFit -P %s -t -1 --expectSignal=1 --algo=grid --points=50 %s %s -m 0\n'%(parameter,rangeOpt,poiOpt))
@@ -88,17 +88,17 @@ def prepareFitScript(datacard,POIs,unblind=False):
             minPjVal=0.8 if POIs[j]=='r' else -2.0
             maxPjVal=1.2 if POIs[j]=='r' else +2.0
             rangeOpt='--setPhysicsModelParameterRanges %s=%f,%f:%s=%f,%f'%(POIs[i],minPiVal,maxPiVal,POIs[j],minPjVal,maxPjVal)
-
+            
             fitScript.write('## function of %s,%s\n'%(POIs[i],POIs[j]))
             fitScript.write('echo \"Running 2D likelihood scan for %s vs %s\"\n'%(POIs[i],POIs[j]))
-            fitScript.write('combine workspace.root -M MultiDimFit --redefineSignalPOIs %s,%s -P %s -P %s  -t -1 --expectSignal=1 --algo=grid --points=1000 %s -m 0\n'%(POIs[i],POIs[j],POIs[i],POIs[j],rangeOpt))
+            fitScript.write('combine workspace.root -M MultiDimFit --redefineSignalPOIs %s,%s -P %s -P %s  -t -1 --expectSignal=1 --algo=grid --points=1000 %s -m 0\n'%(POIs[i],POIs[j],POIs[i],POIs[j],rangeOpt)) 
             fitScript.write('mv higgsCombineTest.MultiDimFit.mH0.root  exp_plr_scan_%svs%s.root\n'%(POIs[i],POIs[j]))
             if unblind:
-                fitScript.write('combine workspace.root -M MultiDimFit --redefineSignalPOIs %s,%s -P %s -P %s --algo=grid --points=1000  %s -m 0\n'%(POIs[i],POIs[j],POIs[i],POIs[j],rangeOpt))
+                fitScript.write('combine workspace.root -M MultiDimFit --redefineSignalPOIs %s,%s -P %s -P %s --algo=grid --points=1000  %s -m 0\n'%(POIs[i],POIs[j],POIs[i],POIs[j],rangeOpt)) 
                 fitScript.write('mv higgsCombineTest.MultiDimFit.mH0.root obs_plr_scan_%svs%s.root\n'%(POIs[i],POIs[j]))
 
     fitScript.write('\ncd -\n')
-
+    
     fitScript.close()
     return fitScriptUrl
 
@@ -106,7 +106,7 @@ def prepareFitScript(datacard,POIs,unblind=False):
 Opens the output ROOT files from the fits and plots the results for comparison
 """
 def show1DLikelihoodScan(resultsSet,parameter='r',output='./'):
-
+   
     #likelihood scans
     nllGrs={}
     colors=[1, ROOT.kOrange-1,  ROOT.kRed+1, ROOT.kMagenta-9, ROOT.kBlue-7]
@@ -124,7 +124,7 @@ def show1DLikelihoodScan(resultsSet,parameter='r',output='./'):
             #if file not available continue
             fIn=ROOT.TFile.Open('%s/%s_%s.root' % (dir,f,parameter) )
             if not fIn : continue
-
+        
             #create new graph for the likelihood scan
             if not ftitle in nllGrs: nllGrs[ftitle]=[]
             nllGrs[ftitle].append(ROOT.TGraph())
@@ -190,12 +190,12 @@ def show1DLikelihoodScan(resultsSet,parameter='r',output='./'):
         cl.DrawLine(minParVal,delta,maxParVal,delta)
 
     drawCMSlabel()
-
+   
     c.Modified()
     c.Update()
     for ext in ['png','pdf','C']:
         c.SaveAs('%s/nll1dscan_%s.%s'%(output,parameter,ext))
-
+    
 """
 2D likelihood scan
 """
@@ -206,7 +206,7 @@ def show2DLikelihoodScan(resultsSet,parameters):
     c.SetLeftMargin(0.12)
     c.SetBottomMargin(0.1)
     c.SetRightMargin(0.05)
-
+    
     contours = array('d',[1.0,3.84])
 
 
@@ -232,7 +232,7 @@ def show2DLikelihoodScan(resultsSet,parameters):
             tree=fIn.Get('limit')
 
             for ll,ul,tag in [(1-0.99,1.0,'99cl')] : #(1-0.68,1.0,'68cl'),(1-0.95,1.0,'95cl'),(1-0.99,1.0,'99cl')]:
-                c.Clear()
+                c.Clear()    
                 nllGrs[ftitle].append( ROOT.ll2dContourPlot(tree,parameters[0],parameters[1],ll,ul) )
                 nllGrs[ftitle][-1].SetTitle(title)
                 nllGrs[ftitle][-1].SetLineStyle(lstyle)
@@ -243,7 +243,7 @@ def show2DLikelihoodScan(resultsSet,parameters):
                 nllGrs[ftitle][-1].SetLineColor(colors[ires-1])
                 nllGrs[ftitle][-1].SetLineWidth(2)
                 nllGrs[ftitle][-1].SetMarkerColor(colors[ires-1])
-
+                            
     #show 2D likelihood scan
     c=ROOT.TCanvas('c','c',500,500)
     c.SetTopMargin(0.05)
@@ -270,7 +270,7 @@ def show2DLikelihoodScan(resultsSet,parameters):
     for leg in allLegs: leg.Draw()
 
     drawCMSlabel()
-
+   
     c.Modified()
     c.Update()
     raw_input()
@@ -279,7 +279,7 @@ def show2DLikelihoodScan(resultsSet,parameters):
 compare prefit and postfit nuisances
 """
 def compareNuisances(resultsSet,output):
-
+   
     colors=[1, ROOT.kOrange,  ROOT.kRed+1, ROOT.kMagenta-9, ROOT.kBlue-7]
     ires=0
     frame=None
@@ -298,7 +298,7 @@ def compareNuisances(resultsSet,output):
         if frame is None:
             frame=ROOT.TH2F('frame',';N x #sigma_{pre-fit}',1,-3,3,npars,0,npars)
             frame.SetDirectory(0)
-
+            
             gr1s.SetMarkerStyle(1)
             gr1s.SetMarkerColor(19) #ROOT.kGreen-8)
             gr1s.SetLineColor(19) #ROOT.kGreen-8)
@@ -309,7 +309,7 @@ def compareNuisances(resultsSet,output):
             gr1s.SetPoint(2,1,npars)
             gr1s.SetPoint(3,1,0)
             gr1s.SetPoint(4,-1,0)
-
+            
             gr2s.SetMarkerStyle(1)
             gr2s.SetMarkerColor(18) #ROOT.kYellow-10)
             gr2s.SetLineColor(18) #ROOT.kYellow-10)
@@ -332,7 +332,7 @@ def compareNuisances(resultsSet,output):
         for ipar in range(npars):
             var=fit_s.floatParsFinal().at(ipar)
             pname=var.GetName()
-            if pname=='r':
+            if pname=='r': 
                 fitResSummary.append( (title,var.getVal(),var.getErrorHi(),var.getErrorLo()) )
                 continue
             np=postFitNuisGr[title].GetN()
@@ -365,13 +365,13 @@ def compareNuisances(resultsSet,output):
         postFitNuisGr[ftitle].Draw('p')
         leg.AddEntry(postFitNuisGr[ftitle],postFitNuisGr[ftitle].GetTitle(),'p')
     leg.Draw()
-
+    
     txt=ROOT.TLatex()
     txt.SetTextFont(42)
     txt.SetTextSize(0.025)
     txt.SetTextColor(ROOT.kGray+3)
     for delta,title in [(1.0,'-1#sigma'),(2,'+2#sigma'),(-1,'-1#sigma'),(-2,'-2#sigma')]:
-        txt.DrawLatex(delta-0.2,frame.GetYaxis().GetXmax()+0.5,title)
+        txt.DrawLatex(delta-0.2,frame.GetYaxis().GetXmax()+0.5,title)      
 
     drawCMSlabel()
     c.RedrawAxis()
@@ -388,12 +388,12 @@ def compareNuisances(resultsSet,output):
     for res in fitResSummary:
         print '%15s %3.3f +%3.3f/-%3.3f'% res
     print '-'*50
-
+        
 """
 main
 """
 def main():
-
+  
     #configuration
     usage = 'usage: %prog category1=datacard1 category2=datacard2 ....'
     parser = optparse.OptionParser(usage)
@@ -411,7 +411,7 @@ def main():
     ROOT.gStyle.SetOptStat(0)
     ROOT.gStyle.SetOptTitle(0)
     ROOT.gROOT.SetBatch(True) #False)
-
+       
     resultsSet=[]
     for newCat in args:
         cat,datacard=newCat.split('=')
@@ -420,9 +420,9 @@ def main():
             fitScriptUrl=prepareFitScript(datacard=datacard,POIs=POIs,unblind=opt.unblind)
             print 'Fit script for %s available at %s'%(cat,fitScriptUrl)
             os.system('sh %s'%fitScriptUrl)
-
+            
     compareNuisances(resultsSet=resultsSet,output=opt.output)
-
+    
     for parameter in POIs:
         show1DLikelihoodScan(resultsSet=resultsSet,parameter=parameter,output=opt.output)
 
@@ -432,8 +432,8 @@ def main():
     #for i in xrange(0,len(POIs)):
     #    for j in xrange(i+1,len(POIs)):
     #        show2DLikelihoodScan(resultsSet,parameters=[POIs[i],POIs[j]])
-
-
+    
+            
 
 """
 for execution from another script

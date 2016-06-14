@@ -54,7 +54,7 @@ void RunTopWidth(TString filename,
   puTrue->SetDirectory(0);
   puTrue->Scale(1./puTrue->Integral());
   TTree *t = (TTree*)f->Get("analysis/data");
-  attachToMiniEventTree(t,ev);
+  attachToMiniEventTree(t,ev,true);
   Int_t nentries(t->GetEntriesFast());
   t->GetEntry(0);
   bool requireEtriggerOnly(false);
@@ -167,16 +167,35 @@ void RunTopWidth(TString filename,
       for(int i=0; i<2; i++)
 	{
 	  TString pf(Form("l%d",i));	  
-	  allPlots[pf+"pt_"+tag]  = new TH1F(pf+"pt_"+tag,";Lepton p_{t} [GeV];Events",50,0,250);
-	  allPlots[pf+"eta_"+tag]  = new TH1F(pf+"eta_"+tag,";Lepton pseudo-rapidity;Events",50,0,2.5);
+	  for (int j=0; j<2; j++)
+            {
+              if(j==1) pf+= "b2";
+	      allPlots[pf+"pt_"+tag]  = new TH1F(pf+"pt_"+tag,";Lepton p_{t} [GeV];Events",50,0,250);
+	      allPlots[pf+"eta_"+tag]  = new TH1F(pf+"eta_"+tag,";Lepton pseudo-rapidity;Events",50,0,2.5);
+	    }
 	}
       allPlots["njets_"+tag]  = new TH1F("njets_"+tag,";Jet multiplicity;Events",5,0,5);
       allPlots["nbtags_"+tag]  = new TH1F("nbtags_"+tag,";b-tag multiplicity;Events",5,0,5);
       for(int i=0; i<6; i++)
 	{
 	  TString pf(Form("j%d",i));
-	  allPlots[pf+"pt_"+tag]  = new TH1F(pf+"pt_"+tag,";Jet transverse momentum [GeV];Events",50,0,250);
-	  allPlots[pf+"eta_"+tag]  = new TH1F(pf+"eta_"+tag,";Jet pseudo-rapidity;Events",50,0,4.7);
+	  for (int j=0; j<2; j++)
+	    {
+	      if(j==1) pf+= "b2";
+	      allPlots[pf+"pt_"+tag]  = new TH1F(pf+"pt_"+tag,";Jet transverse momentum [GeV];Events",50,0,250);
+	      allPlots[pf+"eta_"+tag]  = new TH1F(pf+"eta_"+tag,";Jet pseudo-rapidity;Events",50,0,4.7);
+	    }
+	}
+      for(int ibj=0; ibj<2; ibj++)
+	{
+	  for(int k=0; k<2; k++)
+	    {
+	      TString pf(Form("b%d",ibj));
+	      if(k>0) pf += "ch";
+	      allPlots[pf+"const_"+tag]     = new TH1F(pf+"const_"+tag,     ";Constituent multiplicity;Events",50,0,50);
+	      allPlots[pf+"pullm_"+tag]     = new TH1F(pf+"pullm_"+tag,     ";Pull magnitude;Events",20,0,0.05);
+	      allPlots[pf+"pullangle_"+tag]   = new TH1F(pf+"pullangle_"+tag,   ";Pull angle [rad];Events",20,-3.16,3.16);
+	    }
 	}
     }
   for (auto& it : allPlots)   { it.second->Sumw2(); it.second->SetDirectory(0); }
@@ -198,12 +217,12 @@ void RunTopWidth(TString filename,
 	  allPlots["puwgtctr"]->Fill(1.,puWeight);
 	}
 
-      //select 1 good lepton
+      //select good leptons
       std::vector<int> tightLeptons,looseLeptons;
       for(int il=0; il<ev.nl; il++)
 	{
 	  bool passTightKin(ev.l_pt[il]>30 && fabs(ev.l_eta[il])<2.1);
-	  bool passLooseKin(ev.l_pt[il]>10 && fabs(ev.l_eta[il])<2.5);
+	  bool passLooseKin(ev.l_pt[il]>20 && fabs(ev.l_eta[il])<2.5);
 	  bool passTightId(ev.l_id[il]==13 ? (ev.l_pid[il]>>1)&0x1  : (ev.l_pid[il]>>2)&0x1);
 	  float relIso(ev.l_relIso[il]);
 	  bool passTightIso( ev.l_id[il]==13 ? relIso<0.15 : (ev.l_pid[il]>>1)&0x1 );
@@ -269,6 +288,8 @@ void RunTopWidth(TString filename,
       //select jets
       std::vector<int> genJetsFlav,genJetsHadFlav, btagStatus;
       std::vector<TLorentzVector> jets,genJets;
+      Int_t nbtags=0;
+      std::vector<JetPullInfo_t> bJetPulls;
       for (int k=0; k<ev.nj;k++)
 	{
 	  //check kinematics
@@ -350,12 +371,15 @@ void RunTopWidth(TString filename,
 	    }
 
 	  jets.push_back(jp4);
+	  if(fabs(jp4.Eta())>2.5) { isBTagged=false; isBTaggedUp=false; isBTaggedDown=false; }
 	  int btagStatusWord(isBTagged | (isBTaggedUp<<1) | (isBTaggedDown<<1));
-	  if(fabs(jp4.Eta())>2.5) btagStatusWord=0;
+	  
 	  btagStatus.push_back(btagStatusWord);
 	  genJets.push_back(gjp4);
 	  genJetsFlav.push_back(flav); 
 	  genJetsHadFlav.push_back(hadFlav);
+	  nbtags += isBTagged;
+	  if(isBTagged) bJetPulls.push_back( getPullVector(ev,k) );	  
 	}
       
       //at least two jets in the event are required
@@ -399,6 +423,12 @@ void RunTopWidth(TString filename,
 	  TString pf(Form("l%d",il));
 	  allPlots[pf+"pt_"+chTag]->Fill(leptons[il].Pt(),wgt);
 	  allPlots[pf+"eta_"+chTag]->Fill(fabs(leptons[il].Eta()),wgt);
+	  if(nbtags>1)
+	    {
+	      allPlots[pf+"b2pt_"+chTag]->Fill(leptons[il].Pt(),wgt);
+	      allPlots[pf+"b2eta_"+chTag]->Fill(fabs(leptons[il].Eta()),wgt);
+	    }
+
 	  twev.l_pt[il]=leptons[il].Pt();
 	  twev.l_eta[il]=leptons[il].Eta();
 	  twev.l_phi[il]=leptons[il].Phi();
@@ -419,15 +449,19 @@ void RunTopWidth(TString filename,
 	}
       
       twev.nj=jets.size();
-      Int_t nbtags=0;
       for(int ij=0; ij<(int)jets.size(); ij++)
 	{
-	  nbtags += (btagStatus[ij]&0x1);
 	  TString pf(Form("j%d",ij));
 	  if(ij<6)
 	    {
 	      allPlots[pf+"pt_"+chTag]->Fill(jets[ij].Pt(),wgt);
 	      allPlots[pf+"eta_"+chTag]->Fill(fabs(jets[ij].Eta()),wgt);
+	      if(nbtags>1)
+		{
+		  allPlots[pf+"b2pt_"+chTag]->Fill(jets[ij].Pt(),wgt);
+		  allPlots[pf+"b2eta_"+chTag]->Fill(fabs(jets[ij].Eta()),wgt);
+		}
+
 	    }
 	  twev.j_pt[ij]=jets[ij].Pt();
 	  twev.j_eta[ij]=jets[ij].Eta();
@@ -443,7 +477,21 @@ void RunTopWidth(TString filename,
 	}
       allPlots["njets_"+chTag]->Fill(twev.nj,wgt);
       allPlots["nbtags_"+chTag]->Fill(nbtags,wgt);
-      
+      if(nbtags>1)
+	{
+	  for(Int_t ibj=0; ibj<2; ibj++)
+	    {
+	      TString pf(Form("b%d",ibj));
+	      allPlots[pf+"const_"+chTag]->Fill(bJetPulls[ibj].n,wgt);
+	      allPlots[pf+"pullm_"+chTag]->Fill(bJetPulls[ibj].pull.Mod(),wgt);
+	      allPlots[pf+"pullangle_"+chTag]->Fill(TMath::ATan2(bJetPulls[ibj].pull.Px(),bJetPulls[ibj].pull.Py()),wgt);
+	      allPlots[pf+"chconst_"+chTag]->Fill(bJetPulls[ibj].nch,wgt);
+	      allPlots[pf+"chpullm_"+chTag]->Fill(bJetPulls[ibj].chPull.Mod(),wgt);
+	      allPlots[pf+"chpullangle_"+chTag]->Fill(TMath::ATan2(bJetPulls[ibj].chPull.Px(),bJetPulls[ibj].chPull.Py()),wgt);
+	    }
+	}
+
+
       twev.cat=11;
       if(chTag=="M") twev.cat=13;
       if(chTag=="MM") twev.cat=13*13;

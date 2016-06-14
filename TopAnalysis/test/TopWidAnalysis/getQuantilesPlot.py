@@ -12,7 +12,7 @@ parser = OptionParser(
 parser.add_option("-i",    type="string", dest="indir"  , default="./"            ,   help="directory to look for stats files in")
 parser.add_option("--wid", type="string", dest="widList", default="0p5w,2p0w,4p0w",   help="a list of widths to look for in stats filenames")
 parser.add_option("--lfs", type="string", dest="lfsList", default=""              ,   help="a list of lepton final states to look for in stats filenames")
-parser.add_option("-o",    type="string", dest="outdir" , default="./quantiles"   ,   help="the base filename for the quantiles plot")
+parser.add_option("-o",    type="string", dest="outdir" , default="./"   ,   help="the base filename for the quantiles plot")
 
 (options, args) = parser.parse_args()
 
@@ -61,8 +61,7 @@ for wid,lfs in [(wid,lfs) for wid in rawWidList for lfs in rawLfsList]:
             eyu1N[i] = ROOT.TMath.Abs(tline[4]-tline[3])
             eyu2N[i] = ROOT.TMath.Abs(tline[5]-tline[3])
             eyu3N[i] = ROOT.TMath.Abs(tline[6]-tline[3])
-
-        if "altquant" in line :
+        elif "altquant" in line :
             tline = map(float,line.split(";")[1:8]);
             eyl3A[i+1] = ROOT.TMath.Abs(tline[3]-tline[0])
             eyl2A[i+1] = ROOT.TMath.Abs(tline[3]-tline[1])
@@ -73,6 +72,9 @@ for wid,lfs in [(wid,lfs) for wid in rawWidList for lfs in rawLfsList]:
             eyu3A[i+1] = ROOT.TMath.Abs(tline[6]-tline[3])
         else : continue
     i+=2
+
+for i in xrange(0,nPoints) :
+    print y[i]
 
 # create graphs
 quantGraph1sigN = ROOT.TGraphAsymmErrors(x,y,ex,ex,eyl1N,eyu1N);
@@ -134,10 +136,12 @@ CP2.Draw()
 # set the bin and axis labels
 xax=totalGraph.GetXaxis()
 xax.SetTitle("")
-for i in xrange(0,len(rawWidList)) :
+i=0
+for wid,lfs in [(wid,lfs) for wid in rawWidList for lfs in rawLfsList]:
     bin_index = xax.FindBin(0.5+i)
-    label = "%s"%(rawWidList[i])
+    label = "%s %s"%(wid,lfs)
     xax.SetBinLabel(bin_index,label)
+    i+=1
 
 yax=totalGraph.GetYaxis()
 yax.SetTitle("-2 #times ln(L_{alt}/L_{null})")
@@ -156,5 +160,5 @@ leg.Draw()
 # save plots
 c.Modified()
 c.Update()
-c.SaveAs(options.outdir+".pdf")
-c.SaveAs(options.outdir+".png")
+c.SaveAs(options.outdir+options.lfsList.replace(',','')+"quantiles.pdf")
+c.SaveAs(options.outdir+options.lfsList.replace(',','')+"quantiles.png")

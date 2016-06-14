@@ -216,6 +216,7 @@ def main():
         _,expVarShapes=getDistsFrom(directory=fIn.Get('%sshapes_%s_exp'%(opt.dist,cat)))
         expVarShapes=filterShapeList(expVarShapes,signalList,rawSignalList)
         nExpSysts=expVarShapes[signalList[0]].GetNbinsY()/2
+        shapeOnlyExpSysts=['Pileup']
         for isyst in xrange(1,nExpSysts+1):
             
             #test which variations are significant
@@ -233,6 +234,11 @@ def main():
 
                     downShapeH  = expVarShapes[proc].ProjectionX('%s%dDown'%(proc,isyst), ybin,   ybin)
                     upShapeH    = expVarShapes[proc].ProjectionX('%s%dUp'%(proc,isyst),   ybin+1, ybin+1)
+
+                    #set as shape only if in the list
+                    if systVar in shapeOnlyExpSysts : 
+                        downShapeH.Scale(exp[proc].Integral()/downShapeH.Integral())
+                        upShapeH.Scale(exp[proc].Integral()/upShapeH.Integral())
 
                     bwList[proc]     = acceptVariationForDataCard(nomH=exp[proc], upH=upShapeH, downH=downShapeH)
                     if not bwList[proc]: continue
@@ -312,8 +318,8 @@ def main():
             #ttbar modelling
             ('Mtop',            {'tbart'         : ['tbartm=169.5','tbartm=175.5'],  'tW':['tWm=169.5','tWm=175.5'] },                True ,  True, False),
             ('ttPartonShower',  {'tbart'         : ['tbartscaledown','tbartscaleup']},                                                False , True, False),            
-            #('NLOgenerator',    {'tbart'         : ['tbartaMCNLO']},                                                                  False,  True, False),
-            ('Hadronizer',      {'tbart'         : ['tbartHerwig']},                                                                 False , True, True),
+            ('NLOgenerator',    {'tbart'         : ['tbartaMCNLO']},                                                                  False,  True, False),
+            ('Hadronizer',      {'tbart'         : ['tbartHerwig']},                                                                  False , True, True),
 
             #tWinterference
             ('tWttinterf',       {'tW'            : ['tWDS']},                                                                        False , True, True),            
@@ -336,10 +342,11 @@ def main():
             ('wFactScale',           { 'W': ['id1003muR0.10000E+01muF0.50000E+00','id1002muR0.10000E+01muF0.20000E+01'] },    False, False, False),
             ('wRenScale',            { 'W': ['id1007muR0.50000E+00muF0.10000E+01','id1004muR0.20000E+01muF0.10000E+01'] },    False, False, False),
             ('wCombScale',           { 'W': ['id1009muR0.50000E+00muF0.50000E+00','id1005muR0.20000E+01muF0.20000E+01'] },  False, False, False),
-
-            ('ttFactScale',          { 'tbart': ['muR1muF0.5hdampmt172.5','muR1muF2hdampmt172.5'] },     False , False, False),
-            ('ttRenScale',           { 'tbart': ['muR0.5muF1hdampmt172.5','muR2muF1hdampmt172.5'] },     False , False, False),
-            ('ttCombScale',          { 'tbart': ['muR0.5muF0.5hdampmt172.5','muR2muF2hdampmt172.5'] },   False , False, False),
+            
+            #ttbar Powheg
+            ('ttFactScale',          { 'tbart': ['muR1muF0.5hdampmt172.5',  'muR1muF2hdampmt172.5'] },     True , False, False),
+            ('ttRenScale',           { 'tbart': ['muR0.5muF1hdampmt172.5',  'muR2muF1hdampmt172.5'] },     True , False, False),
+            ('ttCombScale',          { 'tbart': ['muR0.5muF0.5hdampmt172.5','muR2muF2hdampmt172.5'] },     False , False, False),
             ]
 
         _,genVarShapes = getDistsFrom(directory=fIn.Get('%sshapes_%s_gen'%(opt.dist,cat)))

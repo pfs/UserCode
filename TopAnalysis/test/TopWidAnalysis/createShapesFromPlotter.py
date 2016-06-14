@@ -102,13 +102,15 @@ def getMergedDists(fIn,basedir='',addList=None,addTitle='',
             for key in mergeExp :
                 newName=key
                 if key in sigList :
-                    newName=('%s%s'%(key,wid)).replace('.','p')
+                    newName=('%s%s'%(key,wid.replace('.','p')))
+                print " - " +newName
                 exp[newName]=mergeExp[key].Clone(newName)
         else :
             _,mergeExp=getDistsFrom(directory=directory,addList=addList,addTitle=addTitle,keyFilter=keyFilter)
             for key in mergeExp :
                 if key in sigList :
-                    newName=('%s%s'%(key,wid)).replace('.','p')
+                    newName=('%s%s'%(key,wid.replace('.','p')))
+                    print " - " +newName
                     exp[newName]=mergeExp[key].Clone(newName)
                 else : continue
     return obs,exp
@@ -122,7 +124,8 @@ def saveToShapesFile(outFile,shapeColl,directory=''):
     if len(directory)==0:
         fOut.cd()
     else:
-        outDir=fOut.mkdir(directory)
+        fOut.mkdir(directory)
+        outDir=fOut.Get(directory)
         outDir.cd()
     for key in shapeColl:
         #remove bin labels
@@ -150,10 +153,8 @@ def main():
     parser.add_option(      '--systInput', dest='systInput', help='input plotter for systs from alternative samples', default=None,            type='string')
     parser.add_option('-d', '--dist',      dest='dist',      help='distribution',                                     default='mlb',           type='string')
     parser.add_option('-s', '--signal',    dest='signal',    help='signal (csv)',                                     default='tbart,tW',      type='string')
-    parser.add_option('-w', '--wids',      dest='widList',   help='signal widths',                                    default='1.0,0.5,4.0',type='string')
+    parser.add_option('-w', '--wids',      dest='widList',   help='signal widths',                                    default='1.0,0.5,2.0,4.0',type='string')
     parser.add_option('-c', '--cat',       dest='cat',       help='categories (csv)',                                 default='',              type='string')
-    #parser.add_option('-q', '--qcd',       dest='qcd',       help='qcd normalization file',                           default=None,            type='string')
-    #parser.add_option('-w', '--wjets',     dest='wjets',     help='wjets normalization file',                         default=None,            type='string')
     parser.add_option('-o', '--output',    dest='output',    help='output directory',                                 default='datacards',     type='string')
     parser.add_option(      '--addSigs',   dest='addSigs',   help='signal processes to add',                          default=False,           action='store_true')
     parser.add_option(      '--lfs',       dest='lfsInput',  help='lepton final states to consider',                  default='E,EE,EM,MM,M',  type='string')
@@ -174,21 +175,59 @@ def main():
     nomWid="1.0w"
     modNomWid="1p0w"
 
+    modWidList=widList[:]
+    for i in xrange(0,len(widList)) :
+        modWidList[i]=widList[i].replace('.','p')
+
     # what are our categories?
     catList=opt.cat.split(',')
 
-    #read qcd normalization
-    #qcdNorm=None
-    #if opt.qcd:
-    #    cache=open(opt.qcd,'r')
-    #    qcdNorm=pickle.load(cache)
+    # prepare systematics
+    tWRateSystList=['tW']
+    ttRateSystList=['tbart']
+    tWIsSig=('tW'    in rawSignalList)
+    ttIsSig=('tbart' in rawSignalList)
+    for wid in modWidList :
+        if tWIsSig : tWRateSystList += ["tW%s"%wid]
+        if ttIsSig : ttRateSystList += ["tbart%s"%wid]
+
+    rateSysts=[
+          ('lumi_13TeV',       1.027,    'lnN',    []                   ,['Multijetsdata']),
+          #('DYnorm_th',        1.038,    'lnN',    ['DYl','DYc','DYb']  ,[]),
+          #('Wnorm_th',         1.037,    'lnN',    ['Wl' ,'Wc','Wb']    ,[]),
+          ('DYnorm_th',        1.038,    'lnN',    ['DY']  ,[]),
+          ('Wnorm_th',         1.037,    'lnN',    ['W']   ,[]),
+          ('tWnorm_th',        1.054,    'lnN',    tWRateSystList,[]),
+          ('tnorm_th',         1.044,    'lnN',    ['tch']              ,[]),
+          ('VVnorm_th',        1.20,     'lnN',    ['Multiboson']       ,[]),
+          ('tbartVnorm_th',    1.30,     'lnN',    ['tbartV']           ,[]),
+    ]
+
+    Mtop=['tbartm=169.5','tbartm=175.5','tWm=169.5','tWm=175.5']
+    ttParton_tt=['tbartscaledown','tbartscaleup']
+    ttParton_tW=['tWscaledown','tWscaleup']
+    tWinterf=['tWDS']
+
+    MtopMap={}
+    ttPartonMap={}
+    tWinterfMap={}
+    for wid in modWidList :
+        MtopMap[    'tbart%s'%wid]=['tbartm=169.5%s'  %(wid),'tbartm=175.5%s'%(wid)]
+        ttPartonMap['tbart%s'%wid]=['tbartscaledown%s'%(wid),'tbartscaleup%s'%(wid)]
+        MtopMap[    'tW%s'   %wid]=['tWm=169.5%s'     %(wid),'tWm=175.5%s'   %(wid)]
+        ttPartonMap['tW%s'   %wid]=['tWscaledown%s'   %(wid),'tWscaleup%s'   %(wid)]
+
+        tWinterfMap['tW%s'   %wid]=['tWDS%s'   %(wid)]
 
 
-    #read wjets normalization
-    #wjetsNorm=None
-    #if opt.wjets:
-    #    cache=open(opt.wjets,'r')
-    #    wjetsNorm=pickle.load(cache)
+    sampleSysts=[
+          #ttbar modelling
+          ('Mtop'          , MtopMap    , True ,  True, False),
+          ('ttPartonShower', ttPartonMap, False , True, False),
+          #tWinterference
+          ('tWttinterf'    , tWinterfMap, False , True, True)
+    ]
+
 
     #prepare output directory
     os.system('mkdir -p %s'%opt.output)
@@ -208,10 +247,6 @@ def main():
     outFile='%s/shapes.root'%(opt.output)
     fOut=ROOT.TFile.Open(outFile,'RECREATE')
     fOut.Close()
-
-    modWidList=widList[:]
-    for i in xrange(0,len(widList)) :
-        modWidList[i]=widList[i].replace('.','p')
 
     #loop over lepton final states
     for lfs in lfsList :
@@ -255,7 +290,7 @@ def main():
 
             #expectations
             datacard.write('\t\t\t %32s'%'bin')
-            for i in xrange(0,len(exp)+2-len(modWidList)): datacard.write('%15s'%'1')
+            for i in xrange(0,len(exp)+(2 if opt.addSigs else 0)-len(modWidList)): datacard.write('%15s'%'1')
             datacard.write('\n')
             datacard.write('\t\t\t %32s'%'process')
             for sig in signalList: datacard.write('%15s'%('%s%s'%(sig,modNomWid)))
@@ -294,21 +329,9 @@ def main():
 
 
             #rate systematics
-            rateSysts=[
-                    ('lumi_13TeV',       1.027,    'lnN',    []                   ,['Multijetsdata']),
-                    #('DYnorm_th',        1.038,    'lnN',    ['DYl','DYc','DYb']  ,[]),
-                    #('Wnorm_th',         1.037,    'lnN',    ['Wl' ,'Wc','Wb']    ,[]),
-                    ('DYnorm_th',        1.038,    'lnN',    ['DY']  ,[]),
-                    ('Wnorm_th',         1.037,    'lnN',    ['W']   ,[]),
-                    #('tWnorm_th',        1.054,    'lnN',    ['tW']               ,[]),
-                    ('tnorm_th',         1.044,    'lnN',    ['tch']              ,[]),
-                    ('VVnorm_th',        1.20,     'lnN',    ['Multiboson']       ,[]),
-                    ('tbartVnorm_th',    1.30,     'lnN',    ['tbartV']           ,[]),
-                    ]
             try:
                 jetCat=cat[:-2] if cat.endswith('t') else cat
                 rateSysts.append( ('MultiJetsNorm%s%s'%(jetCat,anCat),  1+qcdNorm[jetCat][1],                       'lnN',    ['Multijetsdata']    ,[]) )
-                #rateSysts.append( ('Wnorm%s'%jetCat,          1+ROOT.TMath.Abs(1-wjetsNorm[jetCat][0]), 'lnU',    ['Wl','Wc','Wb']     ,[]) )
             except:
                 pass
 
@@ -344,6 +367,101 @@ def main():
                         datacard.write('%15s'%'-')
                 datacard.write('\n')
 
+            #generator level systematics
+            if systfIn is None:
+                datacard.close()
+                continue
+
+            systSignalList=Mtop+ttParton_tt+ttParton_tW+tWinterf
+
+            _,genVarShapes = getMergedDists(fIn,('gen_%s_%s_'%(lfs,opt.dist)),(rawSignalList if opt.addSigs else None),('top' if opt.addSigs else ''),widList,nomWid,systSignalList)
+            _,altExp       = getMergedDists(systfIn,('%s_%s_'%(lfs,opt.dist)),(rawSignalList if opt.addSigs else None),('top' if opt.addSigs else ''),widList,nomWid,systSignalList)
+
+            for systVar, procsToApply, normalize, useAltShape, projectRelToNom in sampleSysts:
+
+                #prepare shapes and check if variation is significant
+                downShapes, upShapes = {}, {}
+
+                for iproc in procsToApply:
+                    nomH=exp[iproc]
+
+                    #check which shape to use
+                    if useAltShape:
+
+                        #get directly from another file
+                        downH  = altExp[ procsToApply[iproc][0] ]
+                        if len( procsToApply[iproc] ) > 1 :
+                            upH    = altExp[ procsToApply[iproc][1] ]
+                        else:
+                            #if only one variation is available, mirror it
+                            upH = downH.Clone( '%s%sUp'%(iproc,systVar) )
+                            for xbin in xrange(1,upH.GetNbinsX()+1):
+                                diff=upH.GetBinContent(xbin)-nomH.GetBinContent(xbin)
+                                upH.SetBinContent(xbin,nomH.GetBinContent(xbin)-diff)
+                    else:
+
+                        #project from 2D histo (re-weighted from nominal sample)
+                        ybinUp, ybinDown = -1, -1
+                        for ybin in xrange(1,genVarShapes[ iproc ].GetNbinsY()+1):
+                            label = genVarShapes[ iproc ].GetYaxis().GetBinLabel(ybin)
+                            if procsToApply[iproc][0] in label : ybinDown=ybin
+                            if procsToApply[iproc][1] in label : ybinUp=ybin
+
+                        downH = genVarShapes[ iproc ].ProjectionX('%s%sDown'%(iproc,systVar), ybinDown, ybinDown)
+                        upH   = genVarShapes[ iproc ].ProjectionX('%s%sUp'%(iproc,systVar),   ybinUp,   ybinUp)
+
+                    # use do down/up x nom to generate the variation, then mirror it
+                    if projectRelToNom:
+                        ratioH=downH.Clone()
+                        ratioH.Divide(upH)
+                        for xbin in xrange(1,nomH.GetNbinsX()+1):
+                            nomVal=nomH.GetBinContent(xbin)
+                            varVal = ratioH.GetBinContent(xbin) * nomVal
+                            upH.SetBinContent(xbin, varVal)
+                            varVal = varVal- nomVal
+                            downH.SetBinContent(xbin, nomVal-varVal)
+
+                    #normalize (shape only variation is considered)
+                    if normalize : downH.Scale( nomH.Integral()/downH.Integral() )
+                    if normalize : upH.Scale( nomH.Integral()/upH.Integral() )
+
+                    #check if variation is meaningful
+                    accept = acceptVariationForDataCard(nomH=nomH, upH=upH, downH=downH)
+                    if not accept : continue
+
+                    #save
+                    downShapes[iproc]=downH
+                    upShapes[iproc]=upH
+
+                #check if something has been accepted
+                if len(upShapes)==0 : continue
+
+                #export to shapes file
+                saveToShapesFile(outFile,downShapes,systVar+'Down')
+                saveToShapesFile(outFile,upShapes,systVar+'Up')
+
+                #write to datacard
+                datacard.write('%26s shape'%systVar)
+                for sig in signalList:
+                    if ("%s%s"%(sig,wid)) in procsToApply and ("%s%s"%(sig,wid)) in upShapes:
+                        datacard.write('%15s'%'1')
+                    else:
+                        datacard.write('%15s'%'-')
+                for sig in signalList:
+                    if ("%s%s"%(sig,wid)) in procsToApply and ("%s%s"%(sig,wid)) in upShapes:
+                        datacard.write('%15s'%'1')
+                    else:
+                        datacard.write('%15s'%'-')
+                for proc in exp:
+                    isSig=False
+                    for sig in modWidList :
+                        if sig in proc : isSig=True
+                    if isSig : continue
+                    if proc in procsToApply and proc in upShapes:
+                        datacard.write('%15s'%'1')
+                    else:
+                        datacard.write('%15s'%'-')
+                datacard.write('\n')
 
         #all done
         datacard.close()

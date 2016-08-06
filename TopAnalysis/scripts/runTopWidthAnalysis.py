@@ -230,7 +230,7 @@ def runTopWidthAnalysis(fileName,
             mlbMap["%s%s%s%s_%smlb_%3.1fw"%(s,ptC,evC,btC,mC,w)] = initVals
 
         metForMT2 = ROOT.TLorentzVector()
-        metForMT2.SetPtPhiM(tree.met_pt, tree.met_eta, tree.met_phi, tree.met_m)
+        metForMT2.SetPtEtaPhiM(tree.met_pt, 0, tree.met_phi, 0)
 
         #pair with the leptons
         for il in xrange(0,2):
@@ -302,11 +302,11 @@ def runTopWidthAnalysis(fileName,
                     mlb=(lp4+jp4).M()
                     ptlb=(lp4+jp4).Pt()
                     ptCat='lowpt' if ptlb<100 else 'highpt'
-                    dRlb=lp4.deltaR(jp4)
+                    dRlb=lp4.DeltaR(jp4)
 
                     # calculate mt2 only in the last loop
                     mt2=float('inf')
-                    if il == 1 and ib == nbjets-1:
+                    if il == 1 and ib == nbtags-1:
                         # get other lepton
                         tlp=ROOT.TLorentzVector()
                         tlp.SetPtEtaPhiM(tree.l_pt[0],tree.l_eta[0],tree.l_phi[0],tree.l_m[0])
@@ -314,12 +314,14 @@ def runTopWidthAnalysis(fileName,
                             tlp*=(1+tree.l_les[0])
                         if s=="lesdown" :
                             tlp*=(1-tree.l_les[0])
-                        if nbjets==1 :
+                        if nbtags==1 :
                             # calculate mt2 assuming the bjet could come from either t quark
-                            mt2=min(calcMt2(lp4+jp4,tlp,metForMT2), calcMt2(lp4,tlp+jp4,metForMT2))
-                        else if nbjets==2 :
+                            mt2=min(MT2Calculator.calcMt2(lp4+jp4,tlp,metForMT2),
+                                    MT2Calculator.calcMt2(lp4,tlp+jp4,metForMT2))
+                        elif nbtags==2 :
                             _,tb = bjets[ijhyp][0]
-                            mt2=min(calcMt2(lp4+jp4,tlp+tb,metForMT2), calcMt2(lp4+tb,tlp+jp4,metForMT2))
+                            mt2=min(MT2Calculator.calcMt2(lp4+jp4,tlp+tb,metForMT2),
+                                    MT2Calculator.calcMt2(lp4+tb,tlp+jp4,metForMT2))
 
 
                     #fill histos
@@ -349,7 +351,7 @@ def runTopWidthAnalysis(fileName,
 
                         # fill mdr mlb
                         var=s+ptCat+evcat+btagcat+'_mdrmlb_%3.1fw'%w
-                        if mlb < mlbMap[var][0] and dRlb<0.4 :
+                        if mlb < mlbMap[var][0] and dRlb<=0.4 :
                             mlbMap[var] = [(mlb,mlbWt)]
 
                         # fill mt2 mlb
@@ -362,37 +364,35 @@ def runTopWidthAnalysis(fileName,
                         var=s+ptCat+evcat+btagcat+'_pairing'
                         observablesH[var].Fill(assignmentType,evWeight*widthWeight[w])
 
-    # fill all relevant histos
-    for histoName in mlbMap :
-        # make sure there's one entry for appropriate mlb
-        if len(mlbMap[histoName]) > 1:
-            if "min" in histoName or
-                "mdr" in histoName or
-                "mt2" in histoName :
+        # fill all relevant histos
+        for histoName in mlbMap :
+            # make sure there's one entry for appropriate mlb
+            if len(mlbMap[histoName]) > 1:
+                if "min" in histoName or "mdr" in histoName or "mt2" in histoName :
                     print "WARNING: storing more than one mlb for %s"%histoName
-        # perform snc reduction
-        if "snc" in histoName:
-            if len(mlbMap[histoName]) % 2 == 1 :
-                print "WARNING: incorrect structure for %s"%histoName
-            minDR2=[(float('inf'),0,float('inf')),(float('inf'),0,float('inf'))]
+            # perform snc reduction
+            if "snc" in histoName:
+                if len(mlbMap[histoName]) % 2 == 1 :
+                    print "WARNING: incorrect structure for %s"%histoName
+                minDR2=[(float('inf'),0,float('inf')),(float('inf'),0,float('inf'))]
 
-            # get pair with lowest DR separation
-            for i in range(0,len(mlbMap[histoName],2) :
-                mlb,wt = mlbMap[histoName][i]
-                mdr,_  = mlbMap[histoName][i+1]
+                # get pair with lowest DR separation
+                for i in range(0,len(mlbMap[histoName]),2) :
+                    mlb,wt = mlbMap[histoName][i]
+                    mdr,_  = mlbMap[histoName][i+1]
 
-                if mdr < minDR2[0][2] :
-                    minDR2[1] = minDR2[0]
-                    minDR2[0] = (mlb,wt,dr)
-                else if mdr < minDR2[1][2] :
-                    minDR2[1] = (mlb,wt,dr)
+                    if mdr < minDR2[0][2] :
+                        minDR2[1] = minDR2[0]
+                        minDR2[0] = (mlb,wt,mdr)
+                    elif mdr < minDR2[1][2] :
+                        minDR2[1] = (mlb,wt,mdr)
 
-            mlbMap[histoName] = [(mlb,wt) for mlb,wt,_ in minDR2]
+                mlbMap[histoName] = [(mlb,wt) for mlb,wt,_ in minDR2]
 
-        # fill
-        for mlb,wt in mlbMap[histoName] :
-            if mlb == float('inf') : continue
-            observablesH[histoName].Fill(mlb,wt)
+            # fill
+            for mlb,wt in mlbMap[histoName] :
+                if mlb == float('inf') : continue
+                observablesH[histoName].Fill(mlb,wt)
 
     #save results
     fOut=ROOT.TFile.Open(outFileName,'RECREATE')

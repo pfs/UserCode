@@ -20,7 +20,7 @@ fi
 
 export LSB_JOB_REPORT_MAIL=N
 
-queue=2nd
+queue=1nd
 githash=f423545
 lumi=3977.28
 eosdir=/store/cmst3/user/psilva/LJets2016/${githash}
@@ -62,7 +62,7 @@ case $WHAT in
 	./scripts/mergeOutputs.py ${outdir}/analysis;
 	;;
     BKG )
-	python scripts/plotter.py      -i ${outdir}/analysis  -j data/${ERA}/samples.json  -l ${lumi} --onlyData --only mll -o dy_plotter.root;        
+	python scripts/plotter.py -i ${outdir}/analysis  -j data/${ERA}/samples.json  -l ${lumi} --onlyData --only mll -o dy_plotter.root;        
 	python scripts/runDYRinRout.py --in ${outdir}/analysis/plots/dy_plotter.root --categs 1b,2b --out ${outdir}/analysis/plots/;
 	;;
     PLOT )

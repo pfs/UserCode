@@ -5,6 +5,8 @@ import os.path
 import ROOT
 from pprint import pprint
 from optparse import OptionParser
+from tdrStyle import setTDRStyle
+import CMS_lumi
 parser = OptionParser(
     usage="%prog [options] [label=datacard.txt | datacard.txt]",
     epilog="Collects quantiles information from signal statistics output and turns it into a nice TGraph and LaTeX table. Format of .txt files is stats__<wid>_<lfs>.txt"
@@ -28,6 +30,7 @@ for wid in rawWidList :
 
     # create canvas
     c=ROOT.TCanvas()
+    setTDRStyle()
     c.SetGrid()
     c.cd()
 
@@ -74,25 +77,29 @@ for wid in rawWidList :
     # leg.Draw()
 
     # CMS text
-    CMSLine="CMS"
-    CP=ROOT.TLatex(0.12,0.92, CMSLine)
-    CP.SetNDC(ROOT.kTRUE)
-    CP.SetTextSize(0.05)
-    CP.Draw()
+    #CMSLine="CMS"
+    #CP=ROOT.TLatex(0.12,0.92, CMSLine)
+    #CP.SetNDC(ROOT.kTRUE)
+    #CP.SetTextSize(0.05)
+    #CP.Draw()
 
-    # Lumi
-    CMSLineLumi="#sqrt{s}=13 TeV, 2.1 fb^{-1}"
-    CP1=ROOT.TLatex(0.67,0.92, CMSLineLumi)
-    CP1.SetNDC(ROOT.kTRUE)
-    CP1.SetTextSize(0.04)
-    CP1.Draw()
+    ## Lumi
+    #CMSLineLumi="#sqrt{s}=13 TeV, 2.1 fb^{-1}"
+    #CP1=ROOT.TLatex(0.67,0.92, CMSLineLumi)
+    #CP1.SetNDC(ROOT.kTRUE)
+    #CP1.SetTextSize(0.04)
+    #CP1.Draw()
 
-    # ExtraText
-    CMSLineExtra="#bf{#it{Preliminary}}"
-    CP2=ROOT.TLatex(0.195,0.92, CMSLineExtra)
-    CP2.SetNDC(ROOT.kTRUE)
-    CP2.SetTextSize(0.04)
-    CP2.Draw()
+    ## ExtraText
+    #CMSLineExtra="#bf{#it{Preliminary}}"
+    #CP2=ROOT.TLatex(0.195,0.92, CMSLineExtra)
+    #CP2.SetNDC(ROOT.kTRUE)
+    #CP2.SetTextSize(0.04)
+    #CP2.Draw()
+
+    CMS_lumi.relPosX = 0.180
+    CMS_lumi.lumiTextSize = 0.55
+    CMS_lumi.CMS_lumi(canvas,4,0)
 
     # save plots
     c.Modified()

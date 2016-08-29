@@ -47,17 +47,15 @@ def runTopWidthAnalysis(fileName,outFileName,widthList=[0.5,1,2,4],smMass=172.5,
 
     #book histograms
     observablesH={}
-    for w in widthList:
-        observablesH['tmass_%3.1fw'%w]=ROOT.TH1F('tmass_%3.1fw'%w,';Top mass [GeV];Events',50,160,185)
     for i in ['','cor_','wro_']:
         for j in ['','gen_']:
             for k in ['E','M','EE','MM','EM']:
                 for w in widthList:
                     var=i+j+k+'_mlb_%3.1fw'%w
-                    observablesH[var]=ROOT.TH1F(var,';Mass(lepton,b) [GeV];Events',80,0,400)
-    for var in observablesH:
-        observablesH[var].SetDirectory(0)
-        observablesH[var].Sumw2()
+                    observablesH[var]=ROOT.TH1F(var,';Mass(lepton,b) [GeV];Events',50,0,300)
+                    observablesH[var].SetDirectory(0)
+                    observablesH[var].Sumw2()
+
 
     #open file
     puNormSF=1.0
@@ -80,26 +78,36 @@ def runTopWidthAnalysis(fileName,outFileName,widthList=[0.5,1,2,4],smMass=172.5,
 
         if i%100==0 : sys.stdout.write('\r [ %d/100 ] done' %(int(float(100.*i)/float(totalEntries))) )
 
-        #event category
+        #determine weighting factors for the width
+        tmassList=[]
+        for it in xrange(0,tree.nt): tmassList.append( tree.t_m[it] )
+        widthWeight={}
+        for w in widthList: widthWeight[w]=weightTopWidth(tmassList,bwigner,w*smWidth,smWidth)
+
         evcat='E'
         if abs(tree.cat)==13 : evcat='M'
         if abs(tree.cat)==11*11 : evcat='EE'
         if abs(tree.cat)==11*13 : evcat='EM'
         if abs(tree.cat)==13*13 : evcat='MM'
 
-        #base weight for the event
         evWeight=puNormSF*tree.weight[0]
 
-        #determine weighting factors for the width
-        tmassList=[]
-        for it in xrange(0,tree.nt): tmassList.append( tree.t_m[it] )
-        widthWeight={}
-        for w in widthList: 
-            widthWeight[w]=weightTopWidth(tmassList,bwigner,w*smWidth,smWidth)
-            for tmass in tmassList:
-                observablesH['tmass_%3.1fw'%w].Fill(tmass,evWeight*tree.weight[0]*widthWeight[w])
+        #preselect the b-jets
+        bjets=[]
+        for ij in xrange(0,tree.nj):
 
+            btagVal=(tree.j_btag[ij] & 0x1)
+            if btagVal==0: continue
+            
+            jp4=ROOT.TLorentzVector()
+            jp4.SetPtEtaPhiM(tree.j_pt[ij],tree.j_eta[ij],tree.j_phi[ij],tree.j_m[ij])
+            gjp4=ROOT.TLorentzVector()
+            gjp4.SetPtEtaPhiM(tree.gj_pt[ij],tree.gj_eta[ij],tree.gj_phi[ij],tree.gj_m[ij])
+            bjets.append( (jp4,gjp4) )
+            if len(bjets)==2 : break
+        if len(bjets)!=2: continue
 
+        #pair with the leptons
         for il in xrange(0,tree.nl):
 
             lp4=ROOT.TLorentzVector()
@@ -109,10 +117,7 @@ def runTopWidthAnalysis(fileName,outFileName,widthList=[0.5,1,2,4],smMass=172.5,
             
             for ib in xrange(0,2):
 
-                jp4=ROOT.TLorentzVector()
-                jp4.SetPtEtaPhiM(tree.j_pt[ib],tree.j_eta[ib],tree.j_phi[ib],tree.j_m[ib])
-                gjp4=ROOT.TLorentzVector()
-                gjp4.SetPtEtaPhiM(tree.gj_pt[ib],tree.gj_eta[ib],tree.gj_phi[ib],tree.gj_m[ib])
+                jp4,gjp4 = bjets[ib]
                 
                 mlb=(lp4+jp4).M()
                 mglgb=(glp4+gjp4).M()
@@ -130,11 +135,11 @@ def runTopWidthAnalysis(fileName,outFileName,widthList=[0.5,1,2,4],smMass=172.5,
                         if glp4.Pt()>0 and gjp4.Pt()>0:
                             var=i+'gen_'+evcat+'_mlb_%3.1fw'%w
                             observablesH[var].Fill(mglgb,evWeight*widthWeight[w])
+
          
     #save results
     fOut=ROOT.TFile.Open(outFileName,'RECREATE')
-    for var in observablesH:
-        observablesH[var].Write()
+    for var in observablesH: observablesH[var].Write()
     fOut.Close()
 
  

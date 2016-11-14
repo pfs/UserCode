@@ -876,4 +876,71 @@ case $WHAT in
         cp ${outdir}/*.{png,pdf} ${wwwdir}/ana_${ERA} 
         cp test/index.php ${wwwdir}/ana_${ERA}
     ;;
+    
+    MAKE_SCANCARDS ) 
+        cd ${CMSSW_7_4_7dir}
+        eval `scramv1 runtime -sh`
+
+        python ${CMSSW_7_6_3dir}/TopLJets2015/TopAnalysis/test/TopWidthAnalysis/create2DScanDatacards.py \
+            -i ${outdir}/datacards/shapes.root \
+            -o ${outdir}/scancards/ \
+            --nocards \
+            --makeSplit
+
+        for dist in ${dists[*]} ; do
+            allcmd="python ${CMSSW_BASE}/src/HiggsAnalysis/CombinedLimit/scripts/combineCards.py "
+        for tlbCat in ${lbCat[*]} ; do
+        for tlfs in ${lfs[*]} ; do
+        for tCat in ${cat[*]} ; do
+        for i in $(seq 3 27) ; do
+            cardname="bin${i}_${tlbCat}${tlfs}${tCat}_${dist}=${outdir}/scancards/"
+            cardname="${cardname}/datacard__1p0w_bin${i}_${tlbCat}${tlfs}${tCat}_${dist}.dat"
+            allcmd="${allcmd} ${cardname} "
+        done
+        done
+        done
+        done
+
+            allcmd="${allcmd} > ${outdir}/scancards/datacard_fullscan_${dist}.dat"
+            eval $allcmd
+
+        done
+    ;;
+    SIMWORKSPACE )
+        cd ${CMSSW_7_4_7dir}
+        eval `scramv1 runtime -sh`
+
+        for dist in ${dists[*]} ; do
+            text2workspace.py ${outdir}/scancards/datacard_fullscan_${dist}.dat -P \
+                HiggsAnalysis.CombinedLimit.TopWidMassScan:topWidMassScan \
+                -m 172.5 --PO verbose --PO coeffCache=${outdir}/scancards/coeff_cachefile.pck  \
+                -o ${outdir}/fullscan_${dist}.root 
+        done
+    ;;
+    SIMSCAN )
+        cd ${CMSSW_7_4_7dir}
+        eval `scramv1 runtime -sh`
+
+        for massStep in $(seq 0 9) ; do
+        for widStep in $(seq 0 9) ; do
+        for dist in ${dists[*]} ; do
+            massDn=`python -c "print  $massStep   *(-169.5+175.5)/10+169.5"`
+            massUp=`python -c "print ($massStep+1)*(-169.5+175.5)/10+169.5"`
+            widDn=`python -c "print  $widStep   *(-0.2648+5.296)/10+0.2648"`
+            widUp=`python -c "print ($widStep+1)*(-0.2648+5.296)/10+0.2648"`
+
+            echo "[$massDn,$massUp] : [$widDn,$widUp]"
+
+            cmd="combine ${outdir}/fullscan_${dist}.root -M MultiDimFit --seed 8192" 
+            cmd="${cmd} -m 172.5 -t -1 -P x -P m --floatOtherPOIs=1"
+            cmd="${cmd} --setPhysicsModelParameterRanges m=$massDn,$massUp:x=$widDn,$widUp"
+            cmd="${cmd} --algo=grid --points=20 -n x_m_scan__${dist}_$massStep_$widStep"
+        
+            bsub -q ${queue} \
+            sh ${CMSSW_7_6_3dir}/TopLJets2015/TopAnalysis/test/TopWidthAnalysis/wrapPseudoexperiments.sh \
+                "${outdir}/" "${cmd}"
+        done
+        done
+        done
+    ;;
 esac

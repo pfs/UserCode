@@ -180,14 +180,20 @@ def main():
             _,expVarShapes=getDistsFrom(directory=fIn.Get('%sshapes_%s_exp'%(opt.dist,cat)))
             expVarShapes=filterShapeList(expVarShapes,signalList,rawSignalList)
             nExpSysts=expVarShapes[signalList[0]].GetNbinsY()/2
+
             for isyst in xrange(1,nExpSysts+1):
-            
+
                 #test which variations are significant
                 bwList={}
                 ybin=2*(isyst-1)+1
                 systVar=''
                 upShapes,downShapes={},{}
+                iRateVars={}
                 for proc in exp:
+
+                    nbins=exp[proc].GetNbinsX()
+                    n=exp[proc].Integral(0,nbins+1)
+                    if n==0 : continue
 
                     if proc in expVarShapes:
                     
@@ -198,6 +204,16 @@ def main():
                         downShapeH  = expVarShapes[proc].ProjectionX('%s%dDown'%(proc,isyst), ybin,   ybin)
                         upShapeH    = expVarShapes[proc].ProjectionX('%s%dUp'%(proc,isyst),   ybin+1, ybin+1)
 
+                        #normalize varied shapes to nominal expectations
+                        nUp=upShapeH.Integral(0,nbins+1)
+                        nDn=downShapeH.Integral(0,nbins+1)
+                        if nUp>0: upShapeH.Scale(n/nUp)
+                        if nDn>0: downShapeH.Scale(n/nDn)
+
+                        #save a rate systematic from the variation of the yields
+                        iRateVars[proc]=(nUp/n,nDn/n)
+                        if iRateVars[proc][0]<1.001 and iRateVars[proc][1]<1.001 : del iRateVars[proc]
+
                         bwList[proc]     = acceptVariationForDataCard(nomH=exp[proc], upH=upShapeH, downH=downShapeH)
                         if not bwList[proc]: continue
                         
@@ -205,29 +221,53 @@ def main():
                         upShapes[proc]   = upShapeH
                     
                 #test if at least one process has been white listed
-                if len(upShapes)+len(downShapes)==0:
-                    print '\t skipping',systVar,'for %s'%cat
+                if len(upShapes)+len(downShapes)==0 and len(iRateVars)==0:
+                    print '\t skipping',systVar,'for %s (no significant shapes of rate variations found)'%(anCat+cat)
                     continue
- 
-                #export to shapes file                
-                saveToShapesFile(outFile,downShapes,systVar+'Down',opt.rebin)
-                saveToShapesFile(outFile,upShapes,systVar+'Up',opt.rebin)
+                
+                if 'eeff' in systVar or 'meff' in systVar:
+                    print 'will decouple %s for category %s%s'%(systVar,cat,anCat)
+                    systVar += cat+anCat
+            
+                #export to shapes file     
+                if len(upShapes)+len(downShapes)>0:
+                    
+                    saveToShapesFile(outFile,downShapes,systVar+'Down',opt.rebin)
+                    saveToShapesFile(outFile,upShapes,systVar+'Up',opt.rebin)
+                    
+                    #shape variations
+                    datacard.write('%32s shape'%systVar)        
+                    for sig in signalList: 
+                        if sig in bwList and bwList[sig]:
+                            datacard.write('%15s'%'1') 
+                        else:
+                            datacard.write('%15s'%'-')
+                    for proc in exp: 
+                        if proc in signalList: continue
+                        if proc in bwList and bwList[proc] :
+                            datacard.write('%15s'%'1')
+                        else:
+                            datacard.write('%15s'%'-')
+                    datacard.write('\n')
+                    
 
-                #write to datacard
-                datacard.write('%32s shape'%systVar)        
-                for sig in signalList: 
-                    if sig in bwList and bwList[sig]:
-                        datacard.write('%15s'%'1') 
-                    else:
-                        datacard.write('%15s'%'-')
-                for proc in exp: 
-                    if proc in signalList: continue
-                    if proc in bwList and bwList[proc] :
-                        datacard.write('%15s'%'1')
-                    else:
-                        datacard.write('%15s'%'-')
-                datacard.write('\n')
-                        
+                #rate variations written separately
+                if len(iRateVars)>0:
+                    
+                    datacard.write('%32s %8s'%(systVar+'Rate','lnN'))
+                    for sig in signalList:
+                        if sig in iRateVars :                            
+                            datacard.write('%15s'%'%3.3f/%3.3f'%(iRateVars[sig][0],iRateVars[sig][1]))
+                        else:
+                            datacard.write('%15s'%'-')
+                    for proc in exp:
+                        if proc in  signalList: continue
+                        if proc in iRateVars :                            
+                            datacard.write('%15s'%'%3.3f/%3.3f'%(iRateVars[proc][0],iRateVars[proc][1]))
+                        else:
+                            datacard.write('%15s'%'-')
+                    datacard.write('\n')
+                    
         except:
             pass
 

@@ -20,10 +20,11 @@ cd EgammaAnalysis/ElectronTools/data
 git clone -b ICHEP2016_v2 https://github.com/ECALELFS/ScalesSmearings.git
 cd -
 #Pseudo-top producer with Markus fix
-git cms-addpkg  TopQuarkAnalysis/TopEventProducers
-https://raw.githubusercontent.com/intrepid42/cmssw/4336e8182cab054c8383d7b4eb6622c046952711/TopQuarkAnalysis/TopEventProducers/src/PseudoTopProducer.cc
+git remote add -f -t bugfix-pseudotop-bjets-81X intrepid42 https://github.com/intrepid42/cmssw.git
+git cms-addpkg TopQuarkAnalysis/TopEventProducers
+git fetch intrepid42
+git checkout intrepid42/bugfix-pseudotop-bjets-81X
 #analysis code
-cd-
 git clone git@github.com:pfs/TopLJets2015.git
 cd TopLJets2015/TopAnalysis
 git checkout 80x_dev

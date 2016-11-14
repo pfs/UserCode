@@ -11,18 +11,19 @@ struct TopUE_t
 {
   Int_t run,event,lumi,cat;
   Int_t nvtx;
-  Int_t nw,n,gen_n;
-  Int_t passSel,gen_passSel;
-  Int_t gen_nj,gen_nb;
-  Int_t nj[9],nb[9];
-  Int_t isInBFlags[5000];
+  Int_t nw;
   Float_t weight[400];
-  Float_t gen_pt_ttbar,       gen_phi_ttbar;
-  Float_t gen_pt_pseudottbar, gen_phi_pseudottbar;
-  Float_t rec_pt_ttbar[9],    rec_phi_ttbar[9];
+  Int_t passSel,gen_passSel;
+  Int_t nj[9],  nb[9];
+  Int_t gen_nj, gen_nb;
+  Float_t ptpos[5],  phipos[5],  ptll[5],  phill[5],  mll[5],  sumpt[5],  dphill[5];
+  Float_t gen_ptpos, gen_phipos, gen_ptll, gen_phill, gen_mll, gen_sumpt, gen_dphill;
+  Float_t ptttbar[9],     phittbar[9];
+  Float_t parton_ptttbar, parton_phittbar;
+  Float_t gen_ptttbar,    gen_phittbar;  
+  Int_t n,gen_n,isInBFlags[5000];
   Float_t pt[5000],     eta[5000],     phi[5000];
   Float_t gen_pt[5000], gen_eta[5000], gen_phi[5000]; 
-  Float_t mll,gen_mll,dphill,gen_dphill;
 };
 
 void createTopUETree(TTree *t,TopUE_t &tue);

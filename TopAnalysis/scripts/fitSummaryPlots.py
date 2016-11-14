@@ -7,7 +7,7 @@ from array import array
 import ROOT
 
 POItitles={'r':'#mu=#sigma/#sigma_{th}',
-           'btag':'SF_{b}',
+           'btagRate':'SF_{b}',
            'Mtop':'m_{t} [GeV]'}
 
 """
@@ -42,7 +42,7 @@ def show1DLikelihoodScan(resultsSet,parameter='r',output='./',label=''):
         for ftitle,f,lstyle,lwidth in files:
 
             #if file not available continue
-            fIn=ROOT.TFile.Open('%s/%s_%s.root' % (dir,f,parameter) )
+            fIn=ROOT.TFile.Open('%s/%s_%s.root' % (dir,f,parameter.replace('Rate','')) )
             if not fIn : continue
         
             #create new graph for the likelihood scan
@@ -66,7 +66,7 @@ def show1DLikelihoodScan(resultsSet,parameter='r',output='./',label=''):
                 parVal=getattr(tree,parameter)
                 if parameter=='Mtop':
                     parVal=parVal*3+172.5
-                if parameter=='btag' :
+                if parameter=='btagRate' :
                     parVal=parVal*0.1+1.0
                 nllGrs[ftitle][-1].SetPoint(npoint,parVal,nll)
             nllGrs[ftitle][-1].Sort()
@@ -80,8 +80,8 @@ def show1DLikelihoodScan(resultsSet,parameter='r',output='./',label=''):
     c.SetRightMargin(0.05)
     minParVal=0.6 if parameter=='r' else -2.0
     maxParVal=1.4 if parameter=='r' else +2.0
-    if parameter=='btag' : minParVal,maxParVal=0.8,1.2
-    if parameter=='Mtop' : minParVal,maxParVal=166.5,178.5
+    if parameter=='btagRate' : minParVal,maxParVal=0.8,1.2
+    if parameter=='Mtop'     : minParVal,maxParVal=166.5,178.5
     frame=ROOT.TH1F('frame',';%s;-2#DeltalnL'%POItitles[parameter],100,minParVal,maxParVal)
     frame.Draw()
     frame.GetYaxis().SetRangeUser(0,10)
@@ -150,14 +150,14 @@ def show2DLikelihoodScan(resultsSet,parameters,output,label):
             if not ftitle in nllGrs: nllGrs[ftitle]=[]
 
             #if file not available continue
-            fIn=ROOT.TFile.Open('%s/%s_%svs%s.root' % (dir,f,parameters[0],parameters[1]) )
+            fIn=ROOT.TFile.Open('%s/%s_%svs%s.root' % (dir,f,parameters[0],parameters[1].replace('Rate','')) )
             if not fIn : continue
             tree=fIn.Get('limit')
 
             #fill the 2D likelihood histogram
             xmin,xmax=0,2
             ymin,ymax=0,2
-            if parameters[1]=='btag' : ymin,ymax=0.8,1.2
+            if parameters[1]=='btagRate' : ymin,ymax=0.8,1.2
             hcont=ROOT.TH2D('hcont','%s;%s;%s'%(ftitle,POItitles[parameters[0]],POItitles[parameters[1]]),
                             50,xmin,xmax,50,ymin,ymax)
             hcont.SetContour(len(contours),contours)
@@ -165,7 +165,7 @@ def show2DLikelihoodScan(resultsSet,parameters,output,label):
                 tree.GetEntry(ientry)
                 x=getattr(tree,parameters[0])
                 y=getattr(tree,parameters[1])
-                if parameters[1]=='btag': y=y*0.1+1.0
+                if parameters[1]=='btagRate': y=y*0.1+1.0
                 hcont.Fill(x,y,2*tree.deltaNLL)
 
             #draw the contours and save them
@@ -175,7 +175,7 @@ def show2DLikelihoodScan(resultsSet,parameters,output,label):
             contGrs = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
             for name,title,idx in [ (f+'68cl','68%CL',0),
                                     (f+'95cl','95%CL',2)]:                
-                nllGrs[ftitle].append( contGrs.At(idx).At(0) )
+                nllGrs[ftitle].append( contGrs.At(idx).At(0).Clone() )
                 nllGrs[ftitle][-1].SetName(name)
                 nllGrs[ftitle][-1].SetTitle(title)
                 nllGrs[ftitle][-1].SetFillStyle(0)
@@ -191,7 +191,7 @@ def show2DLikelihoodScan(resultsSet,parameters,output,label):
                 frame=hcont.Clone('frame')
                 frame.Reset('ICE')
                 frame.SetDirectory(0)
-            hcont.Delete()
+            #hcont.Delete()
 
     #show 2D likelihood scan
     c.Clear()

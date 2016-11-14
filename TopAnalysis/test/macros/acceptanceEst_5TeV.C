@@ -11,12 +11,12 @@
 #include <vector>
 
 enum TTbarSample {PY8,HWpp,PSUP,PSDN};
-void acceptanceEst(TTbarSample sample,TString baseDir="~/work/LJets-5TeV/analysis_mu");
+void acceptanceEst(TTbarSample sample,TString baseDir="~/work/LJets-5TeV/analysis_mu",bool addElectron=false);
 
-void acceptanceEst(TTbarSample sample,TString baseDir)
+void acceptanceEst(TTbarSample sample,TString baseDir,bool addElectron)
 {
   float brCorr(1.0);
-  TString file("");
+  TString file("");  
   if(sample==PY8)  file=baseDir+"/MCTTNominal_v2.root";
   if(sample==HWpp) file=baseDir+"/MCTTHerwig_v1.root";
   if(sample==PSUP) file=baseDir+"/MCTTScaleUp_v2.root";
@@ -27,8 +27,22 @@ void acceptanceEst(TTbarSample sample,TString baseDir)
   if(inF==0) return;
   TH1 *hcounter = (TH1*)inF->Get("fidcounter")->Clone("hcounter");
   hcounter->SetDirectory(0);
-  hcounter->Divide( (TH1*)inF->Get("wgtcounter")->Clone("hnormcounter") );
+  TH1 *wgtCounter=(TH1*)inF->Get("wgtcounter")->Clone("hnormcounter");
+  wgtCounter->SetDirectory(0);
   inF->Close();
+
+  if(addElectron)
+    {
+      file=file.ReplaceAll("analysis_mu","analysis_e");
+      inF=TFile::Open(file);
+      if(inF){
+	hcounter->Add((TH1*)inF->Get("fidcounter")->Clone("hcounter") );
+	//wgtCounter->Add( (TH1*)inF->Get("wgtcounter")->Clone("hnormcounter") );
+	inF->Close();
+      }
+    }
+  hcounter->Divide(wgtCounter);
+
   
   //report on final result
   float acceptance=hcounter->GetBinContent(1);

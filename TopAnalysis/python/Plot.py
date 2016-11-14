@@ -31,8 +31,9 @@ A wrapper to store data and MC histograms for comparison
 """
 class Plot(object):
 
-    def __init__(self,name):
+    def __init__(self,name,com='13 TeV'):
         self.name = name
+        self.com=com
         self.wideCanvas = True if 'ratevsrun' in self.name else False
         self.mc = {}
         self.spimpose={}
@@ -156,7 +157,7 @@ class Plot(object):
         # legend
         iniy=0.9 if self.wideCanvas else 0.85
         dy=0.1 
-        ndy= 0.3*max(len(self.mc)-2,1)
+        ndy= 0.2*max(len(self.mc)-2,1)
         inix,dx =0.45,0.5
         if noStack:
             inix,dx=0.6,0.35
@@ -167,7 +168,7 @@ class Plot(object):
         leg.SetBorderSize(0)
         leg.SetFillStyle(0)        
         leg.SetTextFont(42)
-        leg.SetTextSize(0.045)
+        leg.SetTextSize(0.045 if self.wideCanvas else 0.035)
         nlegCols = 0
 
         if self.dataH is not None:
@@ -271,9 +272,9 @@ class Plot(object):
         iniy=0.9 if self.wideCanvas else 0.95
         inix=0.12 if noStack else 0.18
         if lumi<100:
-            txt.DrawLatex(inix,iniy,'#bf{CMS} #it{Preliminary} #scale[0.8]{%3.1f pb^{-1} (13 TeV)}' % (lumi) )
+            txt.DrawLatex(inix,iniy,'#bf{CMS} #it{Preliminary} #scale[0.8]{%3.1f pb^{-1} (%s)}' % (lumi,self.com) )
         else:
-            txt.DrawLatex(inix,iniy,'#bf{CMS} #it{Preliminary} #scale[0.8]{%3.1f fb^{-1} (13 TeV)}' % (lumi/1000.) )
+            txt.DrawLatex(inix,iniy,'#bf{CMS} #it{Preliminary} #scale[0.8]{%3.1f fb^{-1} (%s)}' % (lumi/1000.,self.com) )
         try:
             extraCtr=1
             for extra in extraText.split('\\'):

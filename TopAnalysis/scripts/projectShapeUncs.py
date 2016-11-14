@@ -72,8 +72,9 @@ def projectShapeUncs(url,proc,systList):
     c.Modified()
     c.Update()
     outName=os.path.splitext( os.path.basename(url) )[0]
+    dirName=os.path.dirname(url)
     for ext in ['pdf','png']:
-        c.SaveAs('%s_%s_unc.%s'%(outName,key,ext))
+        c.SaveAs(os.path.join(dirName,'%s_%s_unc.%s'%(outName,key,ext)))
     fIn.Close()
 
 def main():

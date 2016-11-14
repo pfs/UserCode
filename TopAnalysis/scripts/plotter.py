@@ -14,6 +14,7 @@ def main():
     usage = 'usage: %prog [options]'
     parser = optparse.OptionParser(usage)
     parser.add_option(     '--mcUnc',        dest='mcUnc'  ,      help='common MC related uncertainty (e.g. lumi)',        default=0,              type=float)
+    parser.add_option(     '--com',          dest='com'  ,        help='center of mass energy',                            default='13 TeV',       type='string')
     parser.add_option('-j', '--json',        dest='json'  ,      help='json with list of files',        default=None,              type='string')
     parser.add_option(      '--signalJson',  dest='signalJson',  help='signal json list',               default=None,              type='string')
     parser.add_option('-i', '--inDir',       dest='inDir' ,      help='input directory',                default=None,              type='string')
@@ -130,7 +131,7 @@ def main():
                                         
                             obj.Scale(xsec*lumi*puNormSF*sfVal)                    
                         if opt.rebin>1:  obj.Rebin(opt.rebin)
-                        if not key in plots : plots[key]=Plot(key)
+                        if not key in plots : plots[key]=Plot(key,com=opt.com)
                         plots[key].add(h=obj,title=sp[1],color=sp[2],isData=sample[1],spImpose=isSignal)
                 except:
                     pass

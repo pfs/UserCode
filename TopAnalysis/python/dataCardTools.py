@@ -182,12 +182,23 @@ def saveToShapesFile(outFile,shapeColl,directory='',rebin=0):
         #    shapeColl[key].Copy(h)
         #    shapeColl[key]=h
         
+        #reinforce that all histos have the same type
+        #projections from 2D histos will be TH1D will nominal may be TH1F...
+            
+        h2write=ROOT.TH1F(key,
+                          '%s;%s;%s'%(shapeColl[key].GetTitle(),shapeColl[key].GetXaxis().GetTitle(),shapeColl[key].GetYaxis().GetTitle()),
+                          shapeColl[key].GetNbinsX(),
+                          shapeColl[key].GetXaxis().GetXmin(),
+                          shapeColl[key].GetXaxis().GetXmax())
+        for xbin in xrange(1,shapeColl[key].GetNbinsX()+1):
+            h2write.SetBinContent(xbin,shapeColl[key].GetBinContent(xbin))
+
         #rebin final shape, if required
-        h2write=shapeColl[key].Clone()
+        #h2write=shapeColl[key].Clone()
         if rebin!=0: h2write.Rebin(rebin)
 
         #save to file
-        h2write.SetDirectory(outDir)
+        h2write.SetDirectory(outDir)        
         h2write.Write(key,ROOT.TObject.kOverwrite)
 
     #all done here

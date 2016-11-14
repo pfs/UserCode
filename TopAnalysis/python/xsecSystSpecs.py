@@ -59,7 +59,7 @@ def xsecSystSpecs(analysis='TOP-16-006'):
     if analysis=='TOP-16-015':
 
         rateSysts=[
-            ('lumi_5TeV',        1.040,    'lnN',    []                   ,['Multijetsdata']),
+            ('lumi_5TeV',        1.023,    'lnN',    []                   ,['Multijetsdata']),
             ('DYnorm',           1.30,     'lnN',    ['DY']  ,[]),
             ('Wnorm_th',         1.037,    'lnN',    ['W']   ,[]),
             ('tWnorm',           1.30,     'lnN',    ['tW']               ,[]),

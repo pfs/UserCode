@@ -63,7 +63,9 @@ def main():
 
             out_list=[]
             count_list=getEOSlslist(directory=time_list[0],prepend='')
-            for count in count_list: out_list += getEOSlslist(directory=count,prepend='')
+            for count in count_list: 
+                if '/merge' in count and  'group/hintt' in count : continue
+                out_list += getEOSlslist(directory=count,prepend='')
             file_list=[x for x in out_list if '.root' in x]
 
             newDir='%s/%s' % (opt.outDir,pub)        

@@ -393,7 +393,7 @@ void RunTop16019(TString filename,
 	    }
 	  
 	  //update nominal event weight
-	  wgt=triggerCorrWgt.first*triggerCorrWgt.first*lepSelCorrWgt.first*puWgts[0]*norm;
+	  wgt=triggerCorrWgt.first*lepSelCorrWgt.first*puWgts[0]*norm;
 	  if(ev.ttbar_nw>0) wgt*=ev.ttbar_w[0];
 	}
 

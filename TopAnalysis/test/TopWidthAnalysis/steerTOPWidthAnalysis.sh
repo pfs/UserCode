@@ -959,7 +959,7 @@ case $WHAT in
         cmd="${cmd} --injWid 1.2 --injMas 175.5 ;"
 
         # move relevant files
-        cmd="${cmd} cp $(ls $outdir/atgccards/*${chExt}.{root,dat})"
+        cmd="${cmd} cp \$(ls $outdir/atgccards/*${chExt}.{root,dat})"
         cmd="${cmd} ${CMSSW_7_1_5dir}/CombinedEWKAnalysis/CommonTools/data/anomalousCoupling ;"
 
         cmd="${cmd} cp $outdir/atgccards/config_all${chExt}.dat"
@@ -972,7 +972,7 @@ case $WHAT in
         cmd="${cmd} python buildWorkspace_AC.py --config config_all${chExt}.dat ;"
 
         # merge datacards 
-        cmd="${cmd} combineCards.py $(ls aC_[hl]*${chExt}.txt) > aC_TopMasWid_all${chExt}.txt ;"
+        cmd="${cmd} combineCards.py \$(ls aC_[hl]*${chExt}.txt) > aC_TopMasWid_all${chExt}.txt ;"
 
         chString=""
         for tlfs in ${lfs[*]} ; do 

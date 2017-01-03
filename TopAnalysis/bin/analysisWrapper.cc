@@ -3,9 +3,10 @@
 #include "TopLJets2015/TopAnalysis/interface/CommonTools.h"
 #include "TopLJets2015/TopAnalysis/interface/TOP-16-006.h"
 #include "TopLJets2015/TopAnalysis/interface/TOP-16-019.h"
+#include "TopLJets2015/TopAnalysis/interface/TOP-16-023.h"
 #include "TopLJets2015/TopAnalysis/interface/TOP-UE.h"
 #include "TopLJets2015/TopAnalysis/interface/TopCharmedMesonAnalysis.h"
-#include "TopLJets2015/TopAnalysis/interface/Run5TeVAnalysis.h"
+#include "TopLJets2015/TopAnalysis/interface/TOPJetShape.h"
 
 #include "TH1F.h"
 #include "TFile.h"
@@ -55,7 +56,10 @@ int main(int argc, char* argv[])
   if(normF)
     {
       normH=(TH1F *)normF->Get(normTag);
-      if(normH) normH->SetDirectory(0);
+      if(normH) {
+        normH->SetDirectory(0);
+        normH->SetTitle(normTag);
+      }
       normF->Close();
     }
   if(normH==0)
@@ -78,9 +82,10 @@ int main(int argc, char* argv[])
   //check method to run
   if(method=="TOP-16-006::RunTop16006")                                  RunTop16006(in,out,channel,charge,FlavourSplitting(flav),normH,runSysts,era);
   else if(method=="TOP-16-019::RunTop16019")                             RunTop16019(in,out,channel,charge,FlavourSplitting(flav),normH,runSysts,era);
+  else if(method=="TOP-16-023::RunTop16023")                             RunTop16023(in,out,channel,charge,FlavourSplitting(flav),normH,runSysts,era);
   else if(method=="TopCharmedMesonAnalysis::RunTopCharmedMesonAnalysis") RunTopCharmedMesonAnalysis(in,out,channel,charge,FlavourSplitting(flav),normH,runSysts,era,debug);
-  else if(method=="Run5TeVAnalysis::Run5TeVAnalysis")                    Run5TeVAnalysis(in,out,channel,charge,FlavourSplitting(flav),normH,runSysts,era);
   else if(method=="TOP-UE::RunTopUE")                                    RunTopUE(in,out,channel,charge,FlavourSplitting(flav),normH,runSysts,era);
+  else if(method=="TOPJetShape::RunTopJetShape")                         RunTopJetShape(in,out,channel,charge,FlavourSplitting(flav),normH,runSysts,era);
   else
     {
       cout << "Check method=" << method <<endl;

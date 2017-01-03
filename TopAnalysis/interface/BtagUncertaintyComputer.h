@@ -36,7 +36,7 @@ class BTagSFUtil{
   BTagSFUtil( int seed=0 );
   ~BTagSFUtil();
     
-  void modifyBTagsWithSF( bool& isBTagged, float Btag_SF = 0.98, float Btag_eff = 1.0);
+  bool modifyBTagsWithSF( bool& isBTagged, float Btag_SF = 0.98, float Btag_eff = 1.0);
 
 
  private:

@@ -113,7 +113,6 @@ def show1DLikelihoodScan(resultsSet,parameter='r',output='./',label=''):
         cl.DrawLine(minParVal,delta,maxParVal,delta)
 
     drawCMSlabel(label=label)
-   
     c.Modified()
     c.Update()
     for ext in ['png','pdf','C']:
@@ -150,9 +149,13 @@ def show2DLikelihoodScan(resultsSet,parameters,output,label):
             if not ftitle in nllGrs: nllGrs[ftitle]=[]
 
             #if file not available continue
-            fIn=ROOT.TFile.Open('%s/%s_%svs%s.root' % (dir,f,parameters[0],parameters[1].replace('Rate','')) )
-            if not fIn : continue
+            fname='%s/%s_%svs%s.root' % (dir,f,parameters[0],parameters[1].replace('Rate',''))
+            fIn=ROOT.TFile.Open(fname)
+            if not fIn : 
+                print 'Failed to open',fname
+                continue
             tree=fIn.Get('limit')
+
 
             #fill the 2D likelihood histogram
             xmin,xmax=0,2
@@ -167,6 +170,22 @@ def show2DLikelihoodScan(resultsSet,parameters,output,label):
                 y=getattr(tree,parameters[1])
                 if parameters[1]=='btagRate': y=y*0.1+1.0
                 hcont.Fill(x,y,2*tree.deltaNLL)
+
+            #check if there are bins with no entries and interpolate from neighboring bins
+            for xbin in xrange(1,hcont.GetNbinsX()+1):
+                for ybin in xrange(1,hcont.GetNbinsY()+1):
+                    val,unc =hcont.GetBinContent(xbin,ybin), hcont.GetBinError(xbin,ybin)
+                    if val!=0 or unc!=0 : continue 
+                    avgVal,nUsed=0,0
+                    for k in xrange(-1,2):
+                        for l in xrange(-1,2):
+                            neighborVal=hcont.GetBinContent(xbin+k,ybin+l)
+                            if neighborVal==0 : continue
+                            avgVal+=neighborVal
+                            nUsed+=1
+                    if nUsed>0:
+                        print 'patching',xbin,ybin
+                        hcont.SetBinContent(xbin,ybin,avgVal/nUsed)
 
             #draw the contours and save them
             c.Clear()
@@ -424,7 +443,7 @@ def main():
 
     ROOT.gStyle.SetOptStat(0)
     ROOT.gStyle.SetOptTitle(0)
-    ROOT.gROOT.SetBatch(True) #False)
+    ROOT.gROOT.SetBatch(False) #True) #False)
        
     resultsSet=[]
     for newCat in args:

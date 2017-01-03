@@ -308,7 +308,7 @@ def defineAnalysisBinning(opt):
         if i%100==0 :
             sys.stdout.write('\r [ %d/100 ] done' %(int(float(100.*i)/float(totalEntries))) )
             sys.stdout.flush()
-        if i>1000: break
+
         #require a pure event selected at reco and gen levels
         passSel=(t.passSel&0x1)
         gen_passSel=t.gen_passSel
@@ -336,11 +336,21 @@ def defineAnalysisBinning(opt):
         obs,level=key
         for a in obsVals[key]:
             for i in xrange(0,len(obsVals[key][a])):
-                varQ = np.percentile( np.array( obsVals[key][a][i] ), OBSQUANTILES[obs] )
-                varQ[0]=0.                
-                obsAxes[ (obs,a,i,level) ] = ROOT.TAxis(len(varQ)-1,array.array('d',varQ))
                 levelStr='rec' if level else 'gen'
+                varQ = np.percentile( np.array( obsVals[key][a][i] ), OBSQUANTILES[obs])
+                varQ[0]=0.                
+                if level:
+                    recBin=[]
+                    for k in xrange(1,len(varQ)):
+                        dx=(varQ[k]-varQ[k-1])*0.5
+                        recBin.append( varQ[k-1] )
+                        recBin.append( varQ[k-1]+dx)
+                    recBin.append( varQ[-1] )
+                    obsAxes[ (obs,a,i,level) ] = ROOT.TAxis(len(recBin)-1,array.array('d',recBin))
+                else:
+                    obsAxes[ (obs,a,i,level) ] = ROOT.TAxis(len(varQ)-1,array.array('d',varQ))
                 obsAxes[ (obs,a,i,level) ].SetName('%s_%s%s_%d'%(levelStr,obs,a,i))
+
 
     #
     # DEFINE MIGRATION MATRICES, GEN/REC LEVEL HISTOS
@@ -426,8 +436,6 @@ def runUEAnalysis(inF,outF,wgtIdx,varIdx,cfgDir):
             sys.stdout.write('\r [ %d/100 ] done' %(int(float(100.*i)/float(totalEntries))) )
             sys.stdout.flush()
 
-        if i>20000: break
-
         #count particles
         ue.count(t,varIdx=varIdx)
 
@@ -503,8 +511,6 @@ def runUEAnalysisPacked(args):
 
 def main():
 
-    eos_cmd = '/afs/cern.ch/project/eos/installation/0.3.15/bin/eos.select'
-
     #configuration
     usage = 'usage: %prog [options]'
     parser = optparse.OptionParser(usage)
@@ -523,6 +529,7 @@ def main():
 
     if opt.step==0:
         determineSliceResolutions(opt)
+
     if opt.step==1:
         defineAnalysisBinning(opt)
 

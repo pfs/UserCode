@@ -28,6 +28,12 @@ wwwdir=~/www/TopUE_era2016/
 RED='\e[31m'
 NC='\e[0m'
 case $WHAT in
+
+    FULLSEL ) 
+	queue=local
+	python scripts/runLocalAnalysis.py -i ${eosdir} -q ${queue} -o ${outdir} --era era2016 -m TOP-UE::RunTopUE --ch 0 --only dilpow;
+	;;
+
     SEL )
 	samplesToProcess=(Double,MuonEG DY,Single,W,ZZ _TT)
 	for s in ${samplesToProcess[@]}; do
@@ -56,9 +62,11 @@ case $WHAT in
 	cp test/index.php ${wwwdir}/sel
 	;;
     ANA )
-	echo "Coming soon hopefully"
-	#python test/TopUEAnalysis/runUEanalysis.py -i ${outdir}/MC13TeV_TTJets_dilpowheg_0.root --step 1;
-	#python test/TopUEAnalysis/runUEanalysis.py -i ${outdir}/MC13TeV_TTJets_dilpowheg_*.root --step 2;
+	eosprefix=root://eoscms//eos/cms
+	echo "Computing resolutions"
+	#python test/TopUEAnalysis/runUEanalysis.py -i ${eosprefix}/${summaryeosdir}/MC13TeV_TTJets_dilpowheg_0.root --step 0;
+	echo "Defining analysis configuration"
+	python test/TopUEAnalysis/runUEanalysis.py -i ${eosprefix}/${summaryeosdir}/MC13TeV_TTJets_dilpowheg_0.root --step 1;
 	#python test/TopUEAnalysis/runUEanalysis.py --step 3;
 	;;
 

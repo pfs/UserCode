@@ -9,6 +9,8 @@
 #include <vector>
 #include <map>
 
+#include "TopLJets2015/TopAnalysis/interface/ObjectTools.h"
+
 typedef std::pair<float,float> EffCorrection_t;
 
 class LeptonEfficiencyWrapper 
@@ -16,7 +18,9 @@ class LeptonEfficiencyWrapper
  public:
   LeptonEfficiencyWrapper(bool isData,TString era);
   EffCorrection_t getTriggerCorrection(std::vector<int> pdgId,std::vector<TLorentzVector> leptons);
+  EffCorrection_t getTriggerCorrection(std::vector<Particle> leptons);
   EffCorrection_t getOfflineCorrection(int pdgId,float pt,float eta);
+  EffCorrection_t getOfflineCorrection(Particle lepton);
   ~LeptonEfficiencyWrapper();  
  private:
   void init(TString era);

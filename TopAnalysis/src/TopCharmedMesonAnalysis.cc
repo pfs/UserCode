@@ -2,11 +2,15 @@
 #include <TROOT.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TTree.h>
 #include <TSystem.h>
 #include <TGraph.h>
 #include <TLorentzVector.h>
 #include <TGraphAsymmErrors.h>
 
+#include "TopLJets2015/TopAnalysis/interface/MiniEvent.h"
+#include "TopLJets2015/TopAnalysis/interface/CommonTools.h"
+#include "TopLJets2015/TopAnalysis/interface/ObjectTools.h"
 #include "TopLJets2015/TopAnalysis/interface/TopCharmedMesonAnalysis.h"
 #include "TopLJets2015/TopAnalysis/interface/LeptonEfficiencyWrapper.h"
 #include "TopLJets2015/TopAnalysis/interface/BtagUncertaintyComputer.h"
@@ -17,7 +21,6 @@
 
 #include <vector>
 #include <iostream>
-#include <algorithm>
 
 #include "TMath.h"
 #include "TopQuarkAnalysis/TopTools/interface/MEzCalculator.h"
@@ -330,8 +333,8 @@ void RunTopCharmedMesonAnalysis(TString filename,
 	}
 
       //sort by Pt
-      sort(bJetsVec.begin(),    bJetsVec.end(),   sortJetsByPt);
-      sort(allJetsVec.begin(),  allJetsVec.end(), sortJetsByPt);
+      sort(bJetsVec.begin(),    bJetsVec.end(),   Jet::sortJetsByPt);
+      sort(allJetsVec.begin(),  allJetsVec.end(), Jet::sortJetsByPt);
 
 
       //
@@ -434,7 +437,7 @@ void RunTopCharmedMesonAnalysis(TString filename,
       }
 
       //charmed resonance analysis : use only jets with CSV>CSVL, up to two per event
-      sort(allJetsVec.begin(),    allJetsVec.end(),     sortJetsByCSV);
+      sort(allJetsVec.begin(),    allJetsVec.end(),     Jet::sortJetsByCSV);
       for(size_t ij=0; ij<allJetsVec.size(); ij++)
 	{
 	  if(ij>1) continue;
@@ -632,15 +635,3 @@ void RunTopCharmedMesonAnalysis(TString filename,
   if(debug) cout << "writing histograms DONE" << endl;
   fOut->Close();
 }
-
-Jet::Jet(TLorentzVector p4, float csv, int idx) : p4_(p4), csv_(csv), idx_(idx) { }
-Jet::~Jet() {}
-void Jet::addTrack(TLorentzVector p4, int pfid) { trks_.push_back( IdTrack(p4,pfid) ); }
-TLorentzVector &Jet::getVec() { return p4_; }
-float &Jet::getCSV() { return csv_; }
-std::vector<IdTrack> &Jet::getTracks() { return trks_; }
-int &Jet::getJetIndex() { return idx_; }
-void Jet::sortTracksByPt() { sort(trks_.begin(),trks_.end(), sortIdTracksByPt); }
-bool sortJetsByPt(Jet i, Jet j)  { return i.getVec().Pt() > j.getVec().Pt(); }
-bool sortJetsByCSV(Jet i, Jet j) { return i.getCSV() > j.getCSV(); }
-bool sortIdTracksByPt(IdTrack i, IdTrack j)  { return i.first.Pt() > j.first.Pt(); }

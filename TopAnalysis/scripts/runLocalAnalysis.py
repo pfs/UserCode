@@ -33,6 +33,7 @@ def RunMethodPacked(args):
                                                                                                                       flav)
         if runSysts : cmd += ' --runSysts'
         if debug : cmd += ' --debug'
+        print(cmd)
         os.system(cmd)
 
     except :
@@ -55,7 +56,7 @@ def main():
     parser.add_option(      '--only',        dest='only',        help='csv list of samples to process  [%default]',             default=None,       type='string')
     parser.add_option(      '--runSysts',    dest='runSysts',    help='run systematics  [%default]',                            default=False,      action='store_true')
     parser.add_option(      '--babySit',     dest='babySit',     help='babysit batch execution  [%default]',                    default=False,      action='store_true')
-    parser.add_option(      '--debug',    dest='debug',          help='debug mode  [%default]',                            default=False,      action='store_true')
+    parser.add_option(      '--debug',       dest='debug',      help='debug mode  [%default]',                            default=False,      action='store_true')
     parser.add_option(      '--flav',        dest='flav',        help='split according to heavy flavour content  [%default]',   default=0,          type=int)
     parser.add_option(      '--ch',          dest='channel',     help='channel  [%default]',                                    default=13,         type=int)
     parser.add_option(      '--charge',      dest='charge',      help='charge  [%default]',                                     default=0,          type=int)
@@ -63,6 +64,7 @@ def main():
     parser.add_option(      '--tag',         dest='tag',         help='normalize from this tag  [%default]',                    default=None,       type='string')
     parser.add_option('-q', '--queue',       dest='queue',       help='submit to this queue  [%default]',                       default='local',    type='string')
     parser.add_option('-n', '--njobs',       dest='njobs',       help='# jobs to run in parallel  [%default]',                                default=0,    type='int')
+    parser.add_option(      '--skipexisting',dest='skipexisting',help='skip jobs with existing output files  [%default]',                            default=False,      action='store_true')
     (opt, args) = parser.parse_args()
 
     #parse selection list
@@ -113,10 +115,16 @@ def main():
                 if not processThisTag : continue
 
             input_list=getEOSlslist(directory='%s/%s' % (opt.input,tag) )
+            nexisting = 0
+            
             for ifile in xrange(0,len(input_list)):
                 inF=input_list[ifile]
                 outF=os.path.join(opt.output,'%s_%d.root' %(tag,ifile))
+                if (opt.skipexisting and os.path.isfile(outF)):
+                    nexisting += 1
+                    continue
                 task_list.append( (opt.method,inF,outF,opt.channel,opt.charge,opt.flav,opt.runSysts,opt.era,tag,opt.debug) )
+            if (opt.skipexisting): print '--skipexisting: skipping %d of %d tasks as files already exist'%(nexisting,len(input_list))
 
     #run the analysis jobs
     if opt.queue=='local':

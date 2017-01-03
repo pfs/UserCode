@@ -262,7 +262,7 @@ void MiniAnalyzer::genAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
     }
   histContainer_["counter"]->Fill(1,ev_.ttbar_w[0]);
   
-  //alternative weights for systematics
+  //alternative weights for systematics 
   edm::Handle<LHEEventProduct> evet;
   iEvent.getByToken(generatorlheToken_, evet);
   if(evet.isValid())
@@ -274,7 +274,7 @@ void MiniAnalyzer::genAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
 	ev_.ttbar_nw++;
       }
     }
-      
+     
   //
   // GENERATOR LEVEL EVENT
   //
@@ -645,6 +645,7 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
 	  break;
 	}	 
       ev_.j_csv[ev_.nj]=j->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+      ev_.j_btag[ev_.nj]=(ev_.j_csv[ev_.nj]>0.800);
       ev_.j_cvsl[ev_.nj]=j->bDiscriminator("pfCombinedCvsLJetTags");
       ev_.j_cvsb[ev_.nj]=j->bDiscriminator("pfCombinedCvsBJetTags");
       ev_.j_vtxpx[ev_.nj]=j->userFloat("vtxPx");

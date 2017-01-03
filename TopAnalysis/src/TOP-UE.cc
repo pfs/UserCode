@@ -613,7 +613,7 @@ void RunTopUE(TString filename,
 	}
    
       //all done, save it
-      //outT->Fill();
+      outT->Fill();
     }
   
   //save histos to file  

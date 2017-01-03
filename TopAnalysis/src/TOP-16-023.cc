@@ -10,24 +10,52 @@
 
 #include "TopLJets2015/TopAnalysis/interface/LeptonEfficiencyWrapper.h"
 #include "TopLJets2015/TopAnalysis/interface/BtagUncertaintyComputer.h"
-#include "TopLJets2015/TopAnalysis/interface/Run5TeVAnalysis.h"
+#include "TopLJets2015/TopAnalysis/interface/TOP-16-023.h"
 #include "TopLJets2015/TopAnalysis/interface/TOP-16-006.h"
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
 //
-void Run5TeVAnalysis(TString inFileName,
-		     TString outFileName,
-		     Int_t channelSelection,
-		     Int_t chargeSelection,
-                     FlavourSplitting flavourSplitting,
-                     TH1F *normH,
-                     Bool_t runSysts,
-		     TString era)
+bool sortDijetKeys(std::pair< std::pair<int,int>, float > a,
+		   std::pair< std::pair<int,int>, float > b)
 {
+  return a.second < b.second;
+}
+
+
+//
+std::pair<int,int> getDijetsSystemCandidate(std::vector<TLorentzVector> &lightJets)
+{
+  std::vector< std::pair< std::pair<int,int>, float > > rankedDijets;
+  for(size_t i=0; i<lightJets.size(); i++)
+    for(size_t j=i+1; j<lightJets.size(); j++)
+      {
+	std::pair<int,int> jetKey(i,j);
+	float dR=lightJets[i].DeltaR(lightJets[j]);
+	rankedDijets.push_back( std::pair< std::pair<int,int>, float >(jetKey,dR) );
+      }
+  sort(rankedDijets.begin(),rankedDijets.end(),sortDijetKeys);  
+  return rankedDijets[0].first;
+}
+
+//
+void RunTop16023(TString inFileName,
+		 TString outFileName,
+		 Int_t channelSelection,
+		 Int_t chargeSelection,
+		 FlavourSplitting flavourSplitting,
+		 TH1F *normH,
+		 Bool_t runSysts,
+		 TString era)
+{
+
+  Float_t JETPTTHRESHOLD=30;
+  Float_t DRJJTHRESHOLD=2.0;
+
   if(inFileName=="") 
     {
       std::cout << "No inputs specified. return" << std::endl;
@@ -77,6 +105,46 @@ void Run5TeVAnalysis(TString inFileName,
   TString lselTxt( channelSelection==13 ? "m" : (channelSelection==11 ? "e" : "") );
   TString expSysts[]={"btagup","btagdn","othertagup","othertagdn","jesup","jesdn","jerup","jerdn",lselTxt+"effup",lselTxt+"effdn"};
   
+  //prepare output
+  TFile* outFile_p = new TFile(outFileName, "RECREATE");
+
+  //book tree
+  outFile_p->cd();
+  
+  LJEvent_t ljev;
+  TTree *outT=new TTree("data","data");
+  outT->Branch("w",    &ljev.w,       "w/F");
+  outT->Branch("nj",   &ljev.nj,      "nj/I");
+  outT->Branch("nb",   &ljev.nb,      "nb/I");
+  outT->Branch("j_btag", ljev.j_btag, "j_btag[nj]/O");
+  outT->Branch("j_pt",   ljev.j_pt,   "j_pt[nj]/F");
+  outT->Branch("j_eta",  ljev.j_eta,  "j_eta[nj]/F");
+  outT->Branch("j_phi",  ljev.j_phi,  "j_phi[nj]/F");
+  outT->Branch("j_m",    ljev.j_m,    "j_m[nj]/F");
+  outT->Branch("l_id",  &ljev.l_id,   "l_id/I");
+  outT->Branch("l_pt",  &ljev.l_pt,   "l_pt/F");
+  outT->Branch("l_eta", &ljev.l_eta,  "l_eta/F");
+  outT->Branch("l_phi", &ljev.l_phi,  "l_phi/F");
+  outT->Branch("l_m",   &ljev.l_m,    "l_m/F");
+  if(isMC)
+    {
+      outT->Branch("ngp",   &ljev.ngp,    "ngp/I");
+      outT->Branch("gp_pt",   ljev.gp_pt,   "gp_pt[ngp]/F");
+      outT->Branch("gp_eta",  ljev.gp_eta,  "gp_eta[ngp]/F");
+      outT->Branch("gp_phi",  ljev.gp_phi,  "gp_phi[ngp]/F");
+      outT->Branch("gp_m",    ljev.gp_m,    "gp_m[ngp]/F");      
+      outT->Branch("ngj",   &ljev.ngj,    "ngj/I");
+      outT->Branch("gj_pt",   ljev.gj_pt,   "gj_pt[ngj]/F");
+      outT->Branch("gj_eta",  ljev.gj_eta,  "gj_eta[ngj]/F");
+      outT->Branch("gj_phi",  ljev.gj_phi,  "gj_phi[ngj]/F");
+      outT->Branch("gj_m",    ljev.gj_m,    "gj_m[ngj]/F");
+      outT->Branch("gl_pt",  &ljev.gl_pt,   "gl_pt/F");
+      outT->Branch("gl_eta", &ljev.gl_eta,  "gl_eta/F");
+      outT->Branch("gl_phi", &ljev.gl_phi,  "gl_phi/F");
+      outT->Branch("gl_m",   &ljev.gl_m,    "gl_m/F");
+    }
+  outT->SetDirectory(outFile_p);
+
   //book histograms
   std::map<TString,TH1 *> histos;
   histos["wgtcounter"] = new TH1F("wgtcounter",";Weight;Events;",200,0,200);
@@ -111,15 +179,13 @@ void Run5TeVAnalysis(TString inFileName,
       TString pf(Form("%db",ij));
       histos["lpt_"+pf]    = new TH1F("lpt_"+pf,";Transverse momentum [GeV];Events",5.,20.,120.);
       histos["leta_"+pf]   = new TH1F("leta_"+pf,";Pseudo-rapidity;Events",5.,0.,2.2);
-      TString region1("_ee"); TString region2("_eb");
+      TString region1("ee_"); TString region2("eb_");
       if( (channelSelection==11 || channelSelection==1100) )
 	{
-	  histos["lpt_"+pf+region1]    = new TH1F("lpt_"+pf+region1,";Transverse momentum [GeV];Events",5.,20.,120.); 
-	  histos["lpt_"+pf+region2]    = new TH1F("lpt_"+pf+region2,";Transverse momentum [GeV];Events",5.,20.,120.);
-	}
-      if( (channelSelection==11 || channelSelection==1100) )
-	{  histos["leta_"+pf+region1]   = new TH1F("leta_"+pf+region1,";Pseudo-rapidity;Events",5.,0.,2.2);
-	  histos["leta_"+pf+region2]   = new TH1F("leta_"+pf+region2,";Pseudo-rapidity;Events",5.,0.,2.2); 
+	  histos["lpt_"+region1+pf]    = new TH1F("lpt_"+region1+pf,";Transverse momentum [GeV];Events",5.,20.,120.); 
+	  histos["lpt_"+region2+pf]    = new TH1F("lpt_"+region2+pf,";Transverse momentum [GeV];Events",5.,20.,120.);
+	  histos["leta_"+region1+pf]   = new TH1F("leta_"+region1+pf,";Pseudo-rapidity;Events",5.,0.,2.2);
+	  histos["leta_"+region2+pf]   = new TH1F("leta_"+region2+pf,";Pseudo-rapidity;Events",5.,0.,2.2); 
 	}
       histos["jpt_"+pf]    = new TH1F("jpt_"+pf,";Transverse momentum [GeV];Events",5.,0.,250.);
       histos["jeta_"+pf]   = new TH1F("jeta_"+pf,";Pseudo-rapidity;Events",5.,0.,2.5);
@@ -128,6 +194,11 @@ void Run5TeVAnalysis(TString inFileName,
       histos["metphi_"+pf] = new TH1F("metphi_" + pf,";MET #phi [rad];Events" ,5,-3.2,3.2);
       histos["mt_"+pf]     = new TH1F("mt_"+pf,";Transverse Mass [GeV];Events" ,10,0.,300.);
       histos["mjj_"+pf]    = new TH1F("mjj_"+pf,";Mass(j,j') [GeV];Events" ,20,0.,400.);
+      histos["rankedmjj_"+pf]    = new TH1F("rankedmjj_"+pf,";Mass(j,j') [GeV];Events" ,20,0.,400.);
+      histos["rankedq70mjj_"+pf]    = new TH1F("rankedq70mjj_"+pf,";Mass(j,j') [GeV];Events" ,20,0.,400.);
+      histos["drjj_"+pf]    = new TH1F("drjj_"+pf,";min#DeltaR(j,j') [GeV];Events" ,12,0.,6.3);
+      histos["ptjj_"+pf]    = new TH1F("ptjj_"+pf,";p_{T}(j,j') [GeV];Events" ,20,0.,300.);
+      histos["etajj_"+pf]    = new TH1F("etajj_"+pf,";#eta(j,j');Events" ,10,-3.,3.);
       histos["mlb_"+pf]    = new TH1F("mlb_"+pf,";Mass(l,b) [GeV];Events" ,20,0.,300.);
       histos["njets_"+pf]  = new TH1F("njets_"+pf,";Jet multiplicity;Events" ,6,2.,8.);
 
@@ -135,12 +206,28 @@ void Run5TeVAnalysis(TString inFileName,
 	{
 	  nSysts=sizeof(expSysts)/sizeof(TString);
 	  histos["mjjshapes_"+pf+"_exp"]=new TH2F("mjjshapes_"+pf+"_exp",";Mass(j,j');Systematic uncertainty;Events",20,0,400,nSysts,0,nSysts);
+	  histos["drjjshapes_"+pf+"_exp"]=new TH2F("drjjshapes_"+pf+"_exp",";min#DeltaR(j,j');Systematic uncertainty;Events",12,0,6.3,nSysts,0,nSysts);
+	  histos["rankedmjjshapes_"+pf+"_exp"]=new TH2F("rankedmjjshapes_"+pf+"_exp",";Mass(j,j');Systematic uncertainty;Events",20,0,400,nSysts,0,nSysts);
+	  histos["rankedq70mjjshapes_"+pf+"_exp"]=new TH2F("rankedq70mjjshapes_"+pf+"_exp",";Mass(j,j');Systematic uncertainty;Events",20,0,400,nSysts,0,nSysts);
 	  for(int i=0; i<nSysts; i++)
-	    histos["mjjshapes_"+pf+"_exp"]->GetYaxis()->SetBinLabel(i+1,expSysts[i]);
+	    {
+	      histos["drjjshapes_"+pf+"_exp"]->GetYaxis()->SetBinLabel(i+1,expSysts[i]);
+	      histos["mjjshapes_"+pf+"_exp"]->GetYaxis()->SetBinLabel(i+1,expSysts[i]);
+	      histos["rankedmjjshapes_"+pf+"_exp"]->GetYaxis()->SetBinLabel(i+1,expSysts[i]);
+	      histos["rankedq70mjjshapes_"+pf+"_exp"]->GetYaxis()->SetBinLabel(i+1,expSysts[i]);
+	    }
 	  
 	  histos["mjjshapes_"+pf+"_gen"]=new TH2F("mjjshapes_"+pf+"_gen",";Mass(j,j') [GeV];Systematic uncertainty;Events",20,0,400,200,0,200);
+	  histos["drjjshapes_"+pf+"_gen"]=new TH2F("drjjshapes_"+pf+"_gen",";min#DeltaR(j,j');Systematic uncertainty;Events",12,0,6.3,200,0,200);
+	  histos["rankedmjjshapes_"+pf+"_gen"]=new TH2F("rankedmjjshapes_"+pf+"_gen",";Mass(j,j') [GeV];Systematic uncertainty;Events",20,0,400,200,0,200);
+	  histos["rankedq70mjjshapes_"+pf+"_gen"]=new TH2F("rankedq70mjjshapes_"+pf+"_gen",";Mass(j,j') [GeV];Systematic uncertainty;Events",20,0,400,200,0,200);
 	  for(int i=0; i<200;i++)
-	    histos["mjjshapes_"+pf+"_gen"]->GetYaxis()->SetBinLabel(i+1,Form("genUnc%d",i));
+	    {
+	      histos["drjjshapes_"+pf+"_gen"]->GetYaxis()->SetBinLabel(i+1,Form("genUnc%d",i));
+	      histos["mjjshapes_"+pf+"_gen"]->GetYaxis()->SetBinLabel(i+1,Form("genUnc%d",i));
+	      histos["rankedmjjshapes_"+pf+"_gen"]->GetYaxis()->SetBinLabel(i+1,Form("genUnc%d",i));
+	      histos["rankedq70mjjshapes_"+pf+"_gen"]->GetYaxis()->SetBinLabel(i+1,Form("genUnc%d",i));
+	    }
 	}
     }
 
@@ -287,16 +374,22 @@ void Run5TeVAnalysis(TString inFileName,
     lepTree_p->SetBranchAddress("eleCharge", &eleCharge_p);
 
     //gen-level variables
-    std::vector<int> *mcPID=0;
-    std::vector<float> *mcPt=0,*mcEta=0,*mcPhi=0;
+    std::vector<int> *mcPID=0,*mcMomPID=0,*mcStatus=0;
+    std::vector<float> *mcPt=0,*mcEta=0,*mcPhi=0,*mcMass=0;
     lepTree_p->SetBranchStatus("mcPID", 1);
     lepTree_p->SetBranchStatus("mcPt", 1);
     lepTree_p->SetBranchStatus("mcEta", 1);
     lepTree_p->SetBranchStatus("mcPhi", 1);
+    lepTree_p->SetBranchStatus("mcMomPID", 1);
+    lepTree_p->SetBranchStatus("mcStatus", 1);
+    lepTree_p->SetBranchStatus("mcMass", 1);
+    lepTree_p->SetBranchAddress("mcMomPID", &mcMomPID);
+    lepTree_p->SetBranchAddress("mcStatus", &mcStatus);
     lepTree_p->SetBranchAddress("mcPID", &mcPID);
     lepTree_p->SetBranchAddress("mcPt", &mcPt);
     lepTree_p->SetBranchAddress("mcEta", &mcEta);
     lepTree_p->SetBranchAddress("mcPhi", &mcPhi);
+    lepTree_p->SetBranchAddress("mcMass", &mcMass);
 
     //jet variables
     const int maxJets = 5000;
@@ -386,6 +479,9 @@ void Run5TeVAnalysis(TString inFileName,
 	    cout << flush;
 	  }
 
+	//reset summary tree
+	ljev.nj=0; ljev.ngj=0; ljev.ngp=0; ljev.nb=0; ljev.l_id=0; ljev.w=0;
+
 	//readout this event
 	lepTree_p->GetEntry(entry);
 	jetTree_p->GetEntry(entry);
@@ -407,19 +503,45 @@ void Run5TeVAnalysis(TString inFileName,
 		for(size_t imc=0; imc<mcPID->size(); imc++)
 		  {
 		    int abspid=abs(mcPID->at(imc));		
+		    int mompid=abs(mcMomPID->at(imc));
+		    int status=abs(mcStatus->at(imc));
+		    
+		    TLorentzVector p4;
+		    p4.SetPtEtaPhiM(mcPt->at(imc),mcEta->at(imc),mcPhi->at(imc),mcMass->at(imc));
+
+		    if(mompid==6 && abspid==24 && status==22 && ljev.ngp<20)
+		      {
+			ljev.gp_pt[ljev.ngp]=p4.Pt();
+			ljev.gp_eta[ljev.ngp]=p4.Eta();
+			ljev.gp_phi[ljev.ngp]=p4.Phi();
+			ljev.gp_m[ljev.ngp]=p4.M();
+			ljev.ngp++;		    
+		      }
+
+		    //final state leptons
+		    if(status!=1) continue;
 		    if(channelSelection==13 && abspid!=13) continue;
 		    if(channelSelection==11 && abspid!=11) continue;
-		    TLorentzVector p4;
-		    p4.SetPtEtaPhiM(mcPt->at(imc),mcEta->at(imc),mcPhi->at(imc),0.);
-		    if(p4.Pt()>15 && fabs(p4.Eta())<2.5) otherLeptons.push_back(p4);
 		    if(fabs(p4.Eta())<2.1)
 		      {
 			if(abspid==13 && p4.Pt()>25) selGenLeptons.push_back(p4);
 			if(abspid==11 && p4.Pt()>35) selGenLeptons.push_back(p4);
 		      }
+		    else if( (abspid==13 || abspid==11) && p4.Pt()>15 && fabs(p4.Eta())<2.5)
+		      {
+			otherLeptons.push_back(p4);
+		      }
 		  }
 	      }
-
+	    
+	    if(selGenLeptons.size()>0)
+	      {
+		ljev.gl_pt=selGenLeptons[0].Pt();
+		ljev.gl_eta=selGenLeptons[0].Eta();
+		ljev.gl_phi=selGenLeptons[0].Phi();
+		ljev.gl_m=selGenLeptons[0].M();
+	      }
+	    
 	    //select gen jets cross-cleaning with leading muon
 	    int nGenJets(0);
 	    for(int imcj=0; imcj<ngen; imcj++)
@@ -429,6 +551,16 @@ void Run5TeVAnalysis(TString inFileName,
 		if(selGenLeptons.size() && p4.DeltaR(selGenLeptons[0])<0.4) continue;
 		if(p4.Pt()<25 || fabs(p4.Eta())>2.4) continue;
 		nGenJets++;
+		
+		if(ljev.ngj<20)
+		  {
+		    ljev.gj_pt[ljev.ngj]=p4.Pt();
+		    ljev.gj_eta[ljev.ngj]=p4.Eta();
+		    ljev.gj_phi[ljev.ngj]=p4.Phi();
+		    ljev.gj_m[ljev.ngj]=p4.M();
+		    ljev.ngj++;
+		  }
+
 	      }
 
 	    //check if it passes the gen level acceptance
@@ -620,6 +752,9 @@ void Run5TeVAnalysis(TString inFileName,
 	    if(mediumElectronsFailId.size()==0) continue;
 	    if(mediumElectrons.size()+vetoElectrons.size()+tightMuons.size()+looseMuons.size()!=0) continue;
 	    mediumElectrons=mediumElectronsFailId;
+
+	    //from Georgios studies, endcap electron fakes would still benefit from a ~15% extra weight
+	    if(!isMC && fabs(mediumElectrons[0].Eta())>1.4479) evWeight *= 1.5;
 	  }
 	if(channelSelection==11)
 	  {
@@ -666,7 +801,6 @@ void Run5TeVAnalysis(TString inFileName,
 	  }
 	histos["mt"]->Fill(mt,evWeight);
 	histos["metpt"]->Fill(rawMET.Pt(),evWeight);
-
 
 	//jet counting
 	typedef std::vector<TLorentzVector> JetColl_t;
@@ -716,12 +850,22 @@ void Run5TeVAnalysis(TString inFileName,
 		    myBTagSFUtil.modifyBTagsWithSF(passCSVMDn,0.7,expEff);	
 		  }		
 	      }
-
-	    if(jp4.Pt()>30)
+	    
+	    if(jp4.Pt()>JETPTTHRESHOLD)
 	      {
 		//nominal selection
 		if(passCSVM) bJets[0].push_back(jp4);
 		else         lightJets[0].push_back(jp4);
+
+		if(ljev.nj<20)
+		  {
+		    ljev.j_pt[ljev.nj]=jp4.Pt();
+		    ljev.j_eta[ljev.nj]=jp4.Eta();
+		    ljev.j_phi[ljev.nj]=jp4.Phi();
+		    ljev.j_m[ljev.nj]=jp4.M();
+		    ljev.j_btag[ljev.nj]=passCSVM;
+		    ljev.nj++;
+		  }
 
 		//tag variations affect differently depending on the flavour
 		if(jflav==5 || jflav==4)
@@ -788,7 +932,7 @@ void Run5TeVAnalysis(TString inFileName,
 	      {
 		//JES varied selections
 		TLorentzVector jesVarP4(jp4); jesVarP4*=jesScaleUnc[ivar+1];
-		if(jesVarP4.Pt()>30)
+		if(jesVarP4.Pt()>JETPTTHRESHOLD)
 		  {
 		    if(passCSVM) bJets[5+ivar].push_back(jesVarP4);
 		    else         lightJets[5+ivar].push_back(jesVarP4);
@@ -796,7 +940,7 @@ void Run5TeVAnalysis(TString inFileName,
 
 		//JER varied selections
 		TLorentzVector jerVarP4(jp4); jerVarP4*=jerSmear[ivar+1]/jerSmear[0];     
-		if(jerVarP4.Pt()>30)
+		if(jerVarP4.Pt()>JETPTTHRESHOLD)
 		  {
 		    if(passCSVM) bJets[7+ivar].push_back(jerVarP4);
 		    else         lightJets[7+ivar].push_back(jerVarP4);
@@ -821,11 +965,18 @@ void Run5TeVAnalysis(TString inFileName,
 	    
 	    //jet-related quantities
 	    Float_t mjj( (lightJets[jetIdx][0]+lightJets[jetIdx][1]).M() );
+	    std::pair<int,int> jjLegsIdx=getDijetsSystemCandidate(lightJets[jetIdx]);
+	    int idx1(jjLegsIdx.first),idx2(jjLegsIdx.second);
+	    Float_t rankedmjj( (lightJets[jetIdx][idx1]+lightJets[jetIdx][idx2]).M() );
+	    Float_t drjj( lightJets[jetIdx][idx1].DeltaR( lightJets[jetIdx][idx2]) );
+	    Float_t ptjj( (lightJets[jetIdx][idx1]+lightJets[jetIdx][idx2]).Pt() );
+	    Float_t etajj( (lightJets[jetIdx][idx1]+lightJets[jetIdx][idx2]).Eta() );
 	    Float_t htsum(0);
 	    for(Int_t ij=0; ij<nbtags; ij++) htsum += bJets[jetIdx][ij].Pt();
 	    for(Int_t ij=0; ij<nljets; ij++) htsum += lightJets[jetIdx][ij].Pt();
 
-	    Float_t mlb( (goodLeptons[0]+lightJets[jetIdx][0]).M() );
+	    Float_t mlb( TMath::Min( (goodLeptons[0]+lightJets[jetIdx][idx1]).M(),
+				     (goodLeptons[0]+lightJets[jetIdx][idx2]).M()) );
 	    if(nbtags>0)
 	      {
 		mlb=(goodLeptons[0]+bJets[jetIdx][0]).M();
@@ -841,22 +992,56 @@ void Run5TeVAnalysis(TString inFileName,
 	    if(channelSelection==13 && ivar==10) iweight*=0.97;
 	    if(channelSelection==11 && ivar==9)  iweight*=(1.0+eselSF.second);
 	    if(channelSelection==11 && ivar==10) iweight*=(1.0-eselSF.second);
-	  
-	    //fill histos
+
+	    //fill histos and tree
 	    if(ivar==0)
 	      {
+
+		ljev.w=iweight;
+		ljev.l_id=channelSelection;
+		ljev.l_pt=goodLeptons[0].Pt();
+		ljev.l_eta=goodLeptons[0].Eta();
+		ljev.l_phi=goodLeptons[0].Phi();
+		ljev.l_m=goodLeptons[0].M();
+		ljev.nb=nbtags;
+		outT->Fill();
+		
+		histos["mjj_"+pf]->Fill(mjj,iweight);
+		histos["rankedmjj_"+pf]->Fill(rankedmjj,iweight);
+		histos["drjj_"+pf]->Fill(drjj,iweight);
 		histos["lpt_"+pf]->Fill(goodLeptons[0].Pt(),iweight);
 		histos["leta_"+pf]->Fill(fabs(goodLeptons[0].Eta()),iweight);
 		if( (channelSelection==11 || channelSelection==1100) )
 		  {
-		    TString region(fabs(goodLeptons[0].Eta()) > 1.4479 ? "_ee" : "_eb");
-		    histos["lpt_"+pf+region]->Fill(goodLeptons[0].Pt(),evWeight);
-		    histos["leta_"+pf+region]->Fill(fabs(goodLeptons[0].Eta()),evWeight);
+		    TString region(fabs(goodLeptons[0].Eta()) > 1.4479 ? "ee_" : "eb_");
+		    histos["lpt_"+region+pf]->Fill(goodLeptons[0].Pt(),evWeight);
+		    histos["leta_"+region+pf]->Fill(fabs(goodLeptons[0].Eta()),evWeight);
 		  }
 		histos["ht_"+pf]->Fill(htsum,iweight);
-		histos["mjj_"+pf]->Fill(mjj,iweight);
 		histos["mlb_"+pf]->Fill(mlb,iweight);
-	       
+		histos["metpt_"+pf]->Fill(rawMET.Pt(),iweight);
+		histos["metphi_"+pf]->Fill(rawMET.Phi(),iweight);
+		histos["mt_"+pf]->Fill(mt,iweight);    
+		if(nbtags)
+		  {
+		    histos["jpt_"+pf]->Fill(bJets[jetIdx][0].Pt(),iweight);
+		    histos["jeta_"+pf]->Fill(fabs(bJets[jetIdx][0].Eta()),iweight);
+		  }
+		else
+		  {
+		    histos["jpt_"+pf]->Fill(lightJets[jetIdx][idx1].Pt(),iweight);
+		    histos["jeta_"+pf]->Fill(fabs(lightJets[jetIdx][idx1].Eta()),iweight);
+		    histos["jpt_"+pf]->Fill(lightJets[jetIdx][idx2].Pt(),iweight);
+		    histos["jeta_"+pf]->Fill(fabs(lightJets[jetIdx][idx2].Eta()),iweight);
+		  }
+		histos["njets_"+pf]->Fill(njets,iweight);
+		if(drjj<DRJJTHRESHOLD)
+		  {
+		    histos["rankedq70mjj_"+pf]->Fill(rankedmjj,iweight);
+		    histos["ptjj_"+pf]->Fill(ptjj,iweight);
+		    histos["etajj_"+pf]->Fill(etajj,iweight);
+		  }
+				  	       
 		if(runSysts)
 		  {
 		    //theory uncertainties (by matrix-element weighting)
@@ -871,27 +1056,21 @@ void Run5TeVAnalysis(TString inFileName,
 			  {
 			    newWeight *= (ttbar_w_p->at(igs)/ttbar_w_p->at(0));
 			  }
+
 			((TH2 *)histos["mjjshapes_"+pf+"_gen"])->Fill(mjj,igs,newWeight);
+			((TH2 *)histos["drjjshapes_"+pf+"_gen"])->Fill(drjj,igs,newWeight);			
+			((TH2 *)histos["rankedmjjshapes_"+pf+"_gen"])->Fill(rankedmjj,igs,newWeight);
+			if(drjj<DRJJTHRESHOLD) ((TH2 *)histos["rankedq70mjjshapes_"+pf+"_gen"])->Fill(rankedmjj,igs,newWeight);
 		      }
 		  }
-		histos["metpt_"+pf]->Fill(rawMET.Pt(),iweight);
-		histos["metphi_"+pf]->Fill(rawMET.Phi(),iweight);
-		histos["mt_"+pf]->Fill(mt,iweight);    
-		if(nbtags)
-		  {
-		    histos["jpt_"+pf]->Fill(bJets[jetIdx][0].Pt(),iweight);
-		    histos["jeta_"+pf]->Fill(fabs(bJets[jetIdx][0].Eta()),iweight);
-		  }
-		else
-		  {
-		    histos["jpt_"+pf]->Fill(lightJets[jetIdx][0].Pt(),iweight);
-		    histos["jeta_"+pf]->Fill(fabs(lightJets[jetIdx][0].Eta()),iweight);
-		  }
-		histos["njets_"+pf]->Fill(njets,iweight);
 	      }
 	    else if (runSysts)
 	      {
 		((TH2 *)histos["mjjshapes_"+pf+"_exp"])->Fill(mjj,ivar-1,iweight);
+		((TH2 *)histos["drjjshapes_"+pf+"_exp"])->Fill(drjj,ivar-1,iweight);			
+		((TH2 *)histos["rankedmjjshapes_"+pf+"_exp"])->Fill(rankedmjj,ivar-1,iweight);
+		if(drjj<DRJJTHRESHOLD) 
+		  ((TH2 *)histos["rankedq70mjjshapes_"+pf+"_exp"])->Fill(rankedmjj,ivar-1,iweight);
 	      }
 	  }
       }
@@ -901,8 +1080,8 @@ void Run5TeVAnalysis(TString inFileName,
   }
   
   //dump histograms
-  TFile* outFile_p = new TFile(outFileName, "RECREATE");
   outFile_p->cd();
+  outT->Write();
   for(std::map<TString, TH1 *>::iterator it=histos.begin();
       it!=histos.end();
       it++)

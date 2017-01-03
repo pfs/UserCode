@@ -68,7 +68,44 @@ def doTF2Fit(histo, minX, nomX, maxX, minY, nomY, maxY) :
     formula = formula%(nomX,nomY,nomX,nomY)
     fit=ROOT.TF2("",formula,minX,maxX,minY,maxY)
     histo.Fit(fit)
-    return [fit.GetParameter(0),fit.GetParameter(1),fit.GetParameter(2),fit.GetParameter(3)]
+    data=[fit.GetParameter(0),fit.GetParameter(1),fit.GetParameter(2),fit.GetParameter(3)]
+    del fit
+    return data
+
+"""
+"""
+def makeMCTemplate(histos,signals,widVal,masVal) :
+    templHist=None
+    histList=[]
+    for sig in signals:
+        histList+=[histos[sig+("%.1fw"%(widVal)).replace('.','p')].Clone()]
+
+    for name,hist in histos.iteritems():
+        if name=="data_obs" : continue
+        isSig = False
+        for sig in signals:
+            if sig in hist.GetName() and hist.GetName()!="tbartV" :
+                isSig=True
+                break;
+        if isSig : continue
+        histList+=[hist.Clone()]
+
+    for hist in histList :
+        if templHist is None :
+            templHist=hist.Clone()
+        else :
+            templHist.Add(hist)
+
+    del histList
+    return templHist
+
+
+"""
+"""
+def merge_two_dicts(dict1, dict2) :
+    z=dict1.copy()
+    z.update(dict2)
+    return z
 
 
 """
@@ -80,15 +117,16 @@ def main():
     usage = 'usage: %prog [options]'
     parser = optparse.OptionParser(usage)
     parser.add_option('-i', '--input',     dest='input',     help='input shapes file',               default=None,            type='string')
+    parser.add_option('-o', '--output',    dest='output',    help='output directory',                default='datacards',     type='string')
+    parser.add_option('-n', '--outname',   dest='outname',   help='output file name',                default='shapes',        type='string')
     parser.add_option('-d', '--dists',     dest='distList',  help='distribution',                    default='incmlb',        type='string')
     parser.add_option('-s', '--signal',    dest='signal',    help='signal (csv)',                    default='tbart,tW',      type='string')
     parser.add_option('-c', '--cat',       dest='cat',       help='categories (csv)',                default='1b,2b',         type='string')
-    parser.add_option('-o', '--output',    dest='output',    help='output directory',                default='datacards',     type='string')
-    parser.add_option('-n', '--outname',   dest='outname',   help='output file name',                default='shapes',        type='string')
     parser.add_option(      '--lfs',       dest='lfsInput',  help='lepton final states to consider', default='EE,EM,MM',      type='string')
     parser.add_option(      '--lbCat',     dest='lbCat',     help='pt categories to consider',       default='highpt,lowpt',  type='string')
     parser.add_option(      '--nomW',      dest='nomWid',    help='nominal width [GeV]',             default='1.324',         type='string')
     parser.add_option(      '--nomM',      dest='nomMas',    help='nominal mass  [GeV]',             default='172.5',         type='string')
+    parser.add_option(      '--injectMC',  dest='mcInject',  help='replace data with MC',            default=',',             type='string')
     parser.add_option(      '--widUnits',  dest='widUnits',  help='use if the input list has units', default=False,     action='store_true')
     parser.add_option('-m', '--makeSplit', dest='makeSplit', help='make split shapes file?',         default=False,     action='store_true')
     parser.add_option(      '--nocards',   dest='nocards',   help='do not produce datacards',        default=False,     action='store_true')
@@ -123,6 +161,13 @@ def main():
     modWidList=widList[:]
     for i in xrange(0,len(widList)) :
         modWidList[i]=widList[i].replace('.','p')
+
+    # do we want to replace data with MC?
+    injWid,injMas=tuple(opt.mcInject.split(','))
+    injectMC = (injWid != "" and injMas != "")
+    injTitle = "" if not injectMC else "_w%s_m%s"%(injWid,injMas)
+    injWid=float(injWid)
+    injMas=float(injMas)
 
     # helpers for coefficient computation
     widValArray=sorted([float(wid.replace('p','.').replace('w','')) for wid in widList])
@@ -217,17 +262,24 @@ def main():
         if opt.nocards : break;
         category="%s%s%s"%(lbCat,lfs,cat)
         exp=getDistsFrom(fIn.Get("%s_%s"%(category,dist)))
-        obs=exp["data_obs"].Clone()
+        mUp=getDistsFrom(fIn.Get("%s_%s_MtopUp"%(category,dist)),keyFilter=MtopMap)
+        mDn=getDistsFrom(fIn.Get("%s_%s_MtopDown"%(category,dist)),keyFilter=MtopMap)
+
+        # make mc template or get data histogram
+        obs=None
+        if not injectMC :
+            obs=exp["data_obs"].Clone()
+        elif injMas==max(masValArray) :
+            obs=makeMCTemplate(merge_two_dicts(exp,mUp),sigList,injWid,injMas)
+        elif injMas==min(masValArray) :
+            obs=makeMCTemplate(merge_two_dicts(exp,mDn),sigList,injWid,injMas)
+        else :
+            obs=makeMCTemplate(exp,sigList,injWid,injMas)
+
         for bin in range(1,31) :
             #loop over categories, widths
             cardIndex+=1
             print 'Initiating %s datacard for %s \t\t [%i/%i]'%(dist,category,cardIndex,numCards)
-
-            #get distributions for this category
-            mUp,mDn = None,None
-            if bin==1 :
-                mUp=getDistsFrom(fIn.Get("%s_%s_MtopUp"%(category,dist)),keyFilter=MtopMap)
-                mDn=getDistsFrom(fIn.Get("%s_%s_MtopDown"%(category,dist)),keyFilter=MtopMap)
 
             #prep coefficient storage
             if len(binCoeffs)<1:
@@ -251,35 +303,8 @@ def main():
                         widValArray[0],nomWid,widValArray[-1],
                         masValArray[0],nomMas,masValArray[-1])
 
-                #binArray=[]
-                #mUpArray=[]
-                #mDnArray=[]
-                #mBnArray=[]
-
-                ## collect bin information
-                #for wid in widValArray :
-                #    binArray += [exp[sig+("%2.1fw"%(wid)).replace('.','p')].GetBinContent(ibin)]
-                #    mUpArray += [mUp[sig+("%2.1fw"%(wid)).replace('.','p')].GetBinContent(ibin)]
-                #    mDnArray += [mDn[sig+("%2.1fw"%(wid)).replace('.','p')].GetBinContent(ibin)]
-
-                #for mas in masValArray :
-                #    mBnArray += [exp[sig+modNomWid].GetBinContent(ibin)]
-
-                # get linear terms for mass, width
-                #a,d1=doLinearRegression(widValArray,binArray,nomWid)
-                #b,d2=doLinearRegression(masValArray,mBnArray,nomMas)
-
-                # get corner term (d/dM)(d/dW)
-                #c,d3= doLinearRegression(widValArray,mUpArray,nomWid)
-                #c2,d4=doLinearRegression(widValArray,mDnArray,nomWid)
-                #c-=c2
-                #c/=(masValArray[-1]-masValArray[0])
-
-                #d=d1
-                #binCoeffs[ibin][category+"_"+sig]=[a,b,c,d]
-
             #start the datacard
-            datacard=open('%s/datacard__%s_bin%i_%s_%s.dat'%(opt.output,modNomWid,bin,category,dist),'w')
+            datacard=open('%s/datacard__%s_bin%i_%s_%s%s.dat'%(opt.output,modNomWid,bin,category,dist,injTitle),'w')
             datacard.write('#\n')
             datacard.write('# Generated by %s for analysis category %s_%s\n' % (getpass.getuser(),
                 category, wid) )
@@ -289,7 +314,7 @@ def main():
             datacard.write('jmax *\n')
             datacard.write('kmax *\n')
             datacard.write('-'*50+'\n')
-            datacard.write('shapes *        * shapes.root $CHANNEL/$PROCESS $CHANNEL_$SYSTEMATIC/$PROCESS\n')
+            datacard.write('shapes *        * shapes%s.root $CHANNEL/$PROCESS $CHANNEL_$SYSTEMATIC/$PROCESS\n'%injTitle)
             datacard.write('-'*50+'\n')
             datacard.write('bin bin%i_%s_%s\n'%(bin,category,dist))
             datacard.write('observation %3.1f\n' % obs.GetBinContent(bin))
@@ -423,9 +448,9 @@ def main():
             #all done
             datacard.close()
             del datacard
-            del mDn
-            del mUp
             gc.collect()
+        del mDn
+        del mUp
         del exp
         del obs
         gc.collect()
@@ -434,11 +459,11 @@ def main():
     if not opt.nocards:
         pp=pprint.PrettyPrinter(indent=2)
         pp.pprint(binCoeffs)
-        with open('%s/coeff_cachefile.pck'%opt.output,'w') as cachefile:
+        with open('%s/coeff_cachefile%s.pck'%(opt.output,injTitle),'w') as cachefile:
             pickle.dump(binCoeffs, cachefile, pickle.HIGHEST_PROTOCOL)
 
     if not opt.makeSplit : return
-    fOut=ROOT.TFile("%s/shapes_split.root"%opt.output,"RECREATE")
+    fOut=ROOT.TFile("%s/shapes%s.root"%(opt.output,injTitle),"RECREATE")
 
     for key in fIn.GetListOfKeys() :
         cdir=fIn.Get(key.GetName())
@@ -452,6 +477,19 @@ def main():
             fOut.mkdir(formatName%ibin)
         for histKey in cdir.GetListOfKeys() :
             hist=cdir.Get(histKey.GetName());
+            if histKey.GetName() == "data_obs" and injectMC :
+                mUp=fIn.Get(key.GetName()+"_MtopUp")
+                mDn=fIn.Get(key.GetName()+"_MtopDown")
+                if   injMas==max(masValArray) :
+                    hist=makeMCTemplate(merge_two_dicts(getDistsFrom(cdir),
+                        getDistsFrom(mUp)),
+                        sigList,injWid,injMas)
+                elif injMas==min(masValArray) :
+                    hist=makeMCTemplate(merge_two_dicts(getDistsFrom(cdir),
+                        getDistsFrom(mDn)),
+                        sigList,injWid,injMas)
+                else :
+                    hist=makeMCTemplate(getDistsFrom(cdir),sigList,injWid,injMas)
             #hist.SetDirectory(0)
             for ibin in range(1,31) :
                 fOut.cd(formatName%ibin)

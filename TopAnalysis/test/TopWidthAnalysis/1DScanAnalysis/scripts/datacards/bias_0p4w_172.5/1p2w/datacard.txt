@@ -1,0 +1,23 @@
+# Datacard produced by CombineHarvester with git status: analysis-HIG-16-006-freeze-080416-248-g4041883-dirty
+imax    1 number of bins
+jmax    6 number of processes minus 1
+kmax    * number of nuisance parameters
+--------------------------------------------------------------------------------
+shapes * highptEE1b_incmlb shapes.root highptEE1b_incmlb/$PROCESS highptEE1b_incmlb/$PROCESS_$SYSTEMATIC
+--------------------------------------------------------------------------------
+bin          highptEE1b_incmlb 
+observation  8262.3565       
+--------------------------------------------------------------------------------
+bin                    highptEE1b_incmlb highptEE1b_incmlb highptEE1b_incmlb highptEE1b_incmlb highptEE1b_incmlb highptEE1b_incmlb highptEE1b_incmlb 
+process                tbart           tW              Multiboson      tbartV          tch             DY              W               
+process                -1              0               1               2               3               4               5               
+rate                   6718.68         747.008         27.014          39.8609         1.56404         702.651         0.03            
+--------------------------------------------------------------------------------
+DYnorm_th      lnN     -               -               -               -               -               1.3             -               
+VVnorm_th      lnN     -               -               1.2             -               -               -               -               
+Wnorm_th       lnN     -               -               -               -               -               -               1.3             
+lumi_13TeV     lnN     1.062           1.062           1.062           1.062           1.062           1.062           1.062           
+sel            lnN     1.02            1.02            1.02            1.02            1.02            1.02            1.02            
+tWnorm_th      lnN     -               1.054           -               -               -               -               -               
+tbartVnorm_th  lnN     -               -               -               1.3             -               -               -               
+tnorm_th       lnN     -               -               -               -               1.044           -               -               

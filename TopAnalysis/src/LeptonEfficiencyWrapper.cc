@@ -189,31 +189,24 @@ EffCorrection_t LeptonEfficiencyWrapper::getTriggerCorrection(std::vector<int> p
 	  //add a 2% uncertainty
 	  corr.second=sqrt(0.02*0.02+corr.second);
 	}
-      else // single lepton
+      else 
 	{
-	  corr.first = 1.; corr.second = 0.;
-	  
-	  std::vector<TString> hnames;
-	  TString lepname(abs(pdgId[0])==11 ? "e" : "m");
-	  hnames.push_back(TString(lepname + "_singleleptrig"));
-	  hnames.push_back(TString(lepname + "_sel"));
+	  TString hname(abs(pdgId[0])==11 ? "e" : "m");
+	  hname += "_singleleptrig";
 
-	  for (auto& hname : hnames)
+	  if( lepEffH_.find(hname)!=lepEffH_.end() )
 	    {
-              if( lepEffH_.find(hname)!=lepEffH_.end() )
-                {
-                  TH1 *h=lepEffH_[hname];
-                  float minEtaForEff( h->GetXaxis()->GetXmin() ), maxEtaForEff( h->GetXaxis()->GetXmax()-0.01 );
-                  float etaForEff=TMath::Max(TMath::Min(float(fabs(leptons[0].Eta())),maxEtaForEff),minEtaForEff);
-                  Int_t etaBinForEff=h->GetXaxis()->FindBin(etaForEff);
+	      TH1 *h=lepEffH_[hname];
+	      float minEtaForEff( h->GetXaxis()->GetXmin() ), maxEtaForEff( h->GetXaxis()->GetXmax()-0.01 );
+	      float etaForEff=TMath::Max(TMath::Min(float(fabs(leptons[0].Eta())),maxEtaForEff),minEtaForEff);
+	      Int_t etaBinForEff=h->GetXaxis()->FindBin(etaForEff);
 
-                  float minPtForEff( h->GetYaxis()->GetXmin() ), maxPtForEff( h->GetYaxis()->GetXmax()-0.01 );
-                  float ptForEff=TMath::Max(TMath::Min(float(leptons[0].Pt()),maxPtForEff),minPtForEff);
-                  Int_t ptBinForEff=h->GetYaxis()->FindBin(ptForEff);
+	      float minPtForEff( h->GetYaxis()->GetXmin() ), maxPtForEff( h->GetYaxis()->GetXmax()-0.01 );
+	      float ptForEff=TMath::Max(TMath::Min(float(leptons[0].Pt()),maxPtForEff),minPtForEff);
+	      Int_t ptBinForEff=h->GetYaxis()->FindBin(ptForEff);
 
-                  corr.first *= h->GetBinContent(etaBinForEff,ptBinForEff);
-                  corr.second = sqrt(pow(corr.second,2) + pow(h->GetBinError(etaBinForEff,etaBinForEff),2));
-                }
+	      corr.first=h->GetBinContent(etaBinForEff,ptBinForEff);
+	      corr.second=h->GetBinError(etaBinForEff,etaBinForEff);
 	    }
 	}
     }

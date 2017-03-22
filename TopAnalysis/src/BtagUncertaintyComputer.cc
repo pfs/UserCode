@@ -13,11 +13,10 @@ BTagSFUtil::~BTagSFUtil() {
 }
 
 
-bool BTagSFUtil::modifyBTagsWithSF(bool& isBTagged, float tag_SF, float tag_Eff){
+void BTagSFUtil::modifyBTagsWithSF(bool& isBTagged, float tag_SF, float tag_Eff){
   bool newBTag = isBTagged;
   newBTag = applySF(isBTagged, tag_SF, tag_Eff);
   isBTagged = newBTag;
-  return newBTag;
 }
 
 

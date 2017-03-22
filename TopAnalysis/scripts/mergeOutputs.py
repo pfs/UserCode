@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 import os, sys
+import ROOT
 counters = {}
+badFiles = []
 
 def isint(string):
     try:
@@ -16,8 +18,18 @@ def getBaseNames(dirname):
         if not ext == '.root': continue
         try:
             #if not ('MC13TeV' in filename or 'Data13TeV' in filename) : continue
+            fIn=ROOT.TFile.Open(dirname+'/'+item)
+            goodFile = False
+            try:
+                if fIn and not fIn.IsZombie() and not fIn.TestBit(ROOT.TFile.kRecovered):
+                    goodFile = True
+            except:
+                pass
             basename, number = filename.rsplit('_',1)
-            print basename,number
+            print basename,number,goodFile
+            if (not goodFile):
+                badFiles.append(dirname+'/'+item)
+                continue
             if not number == 'missing' and not isint(number):
                 raise ValueError
             try:
@@ -43,12 +55,11 @@ except IndexError:
 noTrees=False
 if len(sys.argv)>2 and sys.argv[2]=='True': noTrees=True
 
-basenames = getBaseNames(inputdir)
+outputdir = inputdir
+chunkdir  = os.path.join(inputdir, 'Chunks')
+basenames = getBaseNames(chunkdir)
 print '-----------------------'
 print 'Will process the following samples:', basenames
-
-outputdir = os.path.join(inputdir)
-chunkdir = os.path.join(inputdir, 'Chunks')
 
 os.system('mkdir -p %s' % chunkdir)
 
@@ -65,8 +76,6 @@ for basename, files in counters.iteritems():
         cmd = 'hadd -f %s %s' % (target, filenames)
     os.system(cmd)
 
-    # cleanup:
-    cmd = '/bin/mv %s %s' % (filenames, chunkdir)
-    os.system(cmd)
-
-
+if (len(badFiles) > 0):
+    print '-----------------------'
+    print 'The following files are not done yet or require resubmission, please check LSF output:', badFiles

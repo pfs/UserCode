@@ -76,7 +76,7 @@ def main():
 
     #prepare output if a directory
     if not '.root' in opt.output:
-        os.system('mkdir -p %s'%opt.output)
+        os.system('mkdir -p %s/Chunks'%opt.output)
     
     #correct location of corrections to be used using cmsswBase, if needed
     cmsswBase=os.environ['CMSSW_BASE']
@@ -119,7 +119,7 @@ def main():
             
             for ifile in xrange(0,len(input_list)):
                 inF=input_list[ifile]
-                outF=os.path.join(opt.output,'%s_%d.root' %(tag,ifile))
+                outF=os.path.join(opt.output,'Chunks','%s_%d.root' %(tag,ifile))
                 if (opt.skipexisting and os.path.isfile(outF)):
                     nexisting += 1
                     continue

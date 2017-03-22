@@ -2,6 +2,7 @@ import optparse
 import os,sys
 import json
 import pickle
+from collections import OrderedDict
 
 from TopLJets2015.TopAnalysis.Plot import *
 
@@ -18,6 +19,7 @@ def main():
     parser.add_option('-j', '--json',        dest='json'  ,      help='json with list of files',        default=None,              type='string')
     parser.add_option(      '--signalJson',  dest='signalJson',  help='signal json list',               default=None,              type='string')
     parser.add_option('-i', '--inDir',       dest='inDir' ,      help='input directory',                default=None,              type='string')
+    parser.add_option('-O', '--outDir',      dest='outDir' ,     help='output directory',                default=None,              type='string')
     parser.add_option('-o', '--outName',     dest='outName' ,    help='name of the output file',        default='plotter.root',    type='string')
     parser.add_option(      '--noStack',     dest='noStack',     help='don\'t stack distributions',     default=False,             action='store_true')
     parser.add_option(      '--saveLog',     dest='saveLog' ,    help='save log versions of the plots', default=False,             action='store_true')
@@ -34,14 +36,14 @@ def main():
 
     #read list of samples
     jsonFile = open(opt.json,'r')
-    samplesList=json.load(jsonFile,encoding='utf-8').items()
+    samplesList=json.load(jsonFile, encoding='utf-8', object_pairs_hook=OrderedDict).items()
     jsonFile.close()
 
     #read list of signal samples
     signalSamplesList=None
     try:
         jsonFile = open(opt.signalJson,'r')
-        signalSamplesList=json.load(jsonFile,encoding='utf-8').items()
+        signalSamplesList=json.load(jsonFile, encoding='utf-8', object_pairs_hook=OrderedDict).items()
         jsonFile.close()
     except:
         pass
@@ -68,7 +70,8 @@ def main():
     onlyList=opt.only.split(',')
 
     #read plots 
-    plots={}
+    plots=OrderedDict()
+
     report=''
     for slist,isSignal in [ (samplesList,False),(signalSamplesList,True) ]:
         if slist is None: continue
@@ -109,7 +112,7 @@ def main():
                         if not keep: continue
                         obj=fIn.Get(key)
                         if not obj.InheritsFrom('TH1') : continue
-                        if not obj.InheritsFrom('TH2') : fixExtremities(obj)
+                        if not obj.InheritsFrom('TH2') : fixExtremities(obj, False, False)
 
                         if not isData and not '(data)' in sp[1]: 
                             sfVal=1.0
@@ -140,7 +143,8 @@ def main():
     ROOT.gStyle.SetOptTitle(0)
     ROOT.gStyle.SetOptStat(0)
     ROOT.gROOT.SetBatch(True)
-    outDir=opt.inDir+'/plots'
+    if (not opt.outDir): outDir = opt.inDir+'/plots'
+    else:                outDir = opt.outDir
     os.system('mkdir -p %s' % outDir)
     os.system('rm %s/%s'%(outDir,opt.outName))
     for p in plots : 

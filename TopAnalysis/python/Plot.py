@@ -1,8 +1,11 @@
 import ROOT
 import math
 import os,sys
+from collections import OrderedDict
 
 from TopLJets2015.TopAnalysis.rounding import *
+
+fillLineColorDict = { 633:ROOT.kRed+3, 0:ROOT.kGray+2, 413:ROOT.kGreen+3, 616:ROOT.kMagenta+3, 858:ROOT.kAzure-1, 400:ROOT.kYellow+2 }
 
 """
 increments the first and the last bin to show the under- and over-flows
@@ -35,7 +38,7 @@ class Plot(object):
         self.name = name
         self.com=com
         self.wideCanvas = True if 'ratevsrun' in self.name else False
-        self.mc = {}
+        self.mc = OrderedDict()
         self.spimpose={}
         self.dataH = None
         self.data = None
@@ -43,7 +46,7 @@ class Plot(object):
         self.plotformats = ['pdf','png']
         self.savelog = False
         self.doChi2 = False
-        self.ratiorange = (0.76,1.24)
+        self.ratiorange = (0.4,1.6)
         self.frameMin=0.1
         self.frameMax=1.45
         self.mcUnc=0
@@ -82,7 +85,7 @@ class Plot(object):
                     h.SetLineColor(color)
                     h.SetLineWidth(2)
                 else : 
-                    h.SetLineColor(ROOT.kBlack)
+                    h.SetLineColor(fillLineColorDict.get(color, 0))
                     h.SetLineWidth(1)
                     h.SetFillColor(color)
                     h.SetFillStyle(1001)
@@ -199,7 +202,7 @@ class Plot(object):
         # Build the stack to plot from all backgrounds
         totalMC = None
         stack = ROOT.THStack('mc','mc')
-        for h in self.mc:
+        for h in reversed(self.mc):
 
             if noStack:
                 self.mc[h].SetFillStyle(0)
@@ -301,7 +304,7 @@ class Plot(object):
             ratioframe.GetYaxis().SetTitle('Ratio')
             ratioframe.GetYaxis().SetRangeUser(self.ratiorange[0], self.ratiorange[1])
             self._garbageList.append(ratioframe)
-            ratioframe.GetYaxis().SetNdivisions(5)
+            ratioframe.GetYaxis().SetNdivisions(503)
             ratioframe.GetYaxis().SetLabelSize(0.18)        
             ratioframe.GetYaxis().SetTitleSize(0.2)
             ratioframe.GetYaxis().SetTitleOffset(0.25)

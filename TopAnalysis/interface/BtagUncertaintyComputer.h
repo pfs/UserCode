@@ -36,12 +36,10 @@ class BTagSFUtil{
   BTagSFUtil( int seed=0 );
   ~BTagSFUtil();
     
-  bool modifyBTagsWithSF( bool& isBTagged, float Btag_SF = 0.98, float Btag_eff = 1.0);
-
-
- private:
-  
+  void modifyBTagsWithSF( bool& isBTagged, float Btag_SF = 0.98, float Btag_eff = 1.0);  
   bool applySF(bool& isBTagged, float Btag_SF = 0.98, float Btag_eff = 1.0);
+  
+ private:
   
   TRandom3* rand_;
 

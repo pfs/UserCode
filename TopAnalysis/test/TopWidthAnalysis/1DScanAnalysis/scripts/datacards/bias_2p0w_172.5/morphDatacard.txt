@@ -1,0 +1,202 @@
+# Datacard produced by CombineHarvester with git status: analysis-HIG-16-006-freeze-080416-248-g4041883-dirty
+imax    12 number of bins
+jmax    6 number of processes minus 1
+kmax    * number of nuisance parameters
+--------------------------------------------------------------------------------
+shapes * highptEE1b_incmlb morphShapes.root highptEE1b_incmlb/$PROCESS highptEE1b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * highptEE2b_incmlb morphShapes.root highptEE2b_incmlb/$PROCESS highptEE2b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * highptEM1b_incmlb morphShapes.root highptEM1b_incmlb/$PROCESS highptEM1b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * highptEM2b_incmlb morphShapes.root highptEM2b_incmlb/$PROCESS highptEM2b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * highptMM1b_incmlb morphShapes.root highptMM1b_incmlb/$PROCESS highptMM1b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * highptMM2b_incmlb morphShapes.root highptMM2b_incmlb/$PROCESS highptMM2b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * lowptEE1b_incmlb morphShapes.root lowptEE1b_incmlb/$PROCESS lowptEE1b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * lowptEE2b_incmlb morphShapes.root lowptEE2b_incmlb/$PROCESS lowptEE2b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * lowptEM1b_incmlb morphShapes.root lowptEM1b_incmlb/$PROCESS lowptEM1b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * lowptEM2b_incmlb morphShapes.root lowptEM2b_incmlb/$PROCESS lowptEM2b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * lowptMM1b_incmlb morphShapes.root lowptMM1b_incmlb/$PROCESS lowptMM1b_incmlb/$PROCESS_$SYSTEMATIC
+shapes * lowptMM2b_incmlb morphShapes.root lowptMM2b_incmlb/$PROCESS lowptMM2b_incmlb/$PROCESS_$SYSTEMATIC
+shapes tbart highptEE1b_incmlb morphShapes.root morph:highptEE1b_incmlb_$PROCESS_morph 
+shapes tW highptEE1b_incmlb morphShapes.root morph:highptEE1b_incmlb_$PROCESS_morph 
+shapes Multiboson highptEE1b_incmlb morphShapes.root morph:highptEE1b_incmlb_$PROCESS_morph 
+shapes tbartV highptEE1b_incmlb morphShapes.root morph:highptEE1b_incmlb_$PROCESS_morph 
+shapes tch highptEE1b_incmlb morphShapes.root morph:highptEE1b_incmlb_$PROCESS_morph 
+shapes DY highptEE1b_incmlb morphShapes.root morph:highptEE1b_incmlb_$PROCESS_morph 
+shapes W highptEE1b_incmlb morphShapes.root morph:highptEE1b_incmlb_$PROCESS_morph 
+shapes tbart highptEE2b_incmlb morphShapes.root morph:highptEE2b_incmlb_$PROCESS_morph 
+shapes tW highptEE2b_incmlb morphShapes.root morph:highptEE2b_incmlb_$PROCESS_morph 
+shapes Multiboson highptEE2b_incmlb morphShapes.root morph:highptEE2b_incmlb_$PROCESS_morph 
+shapes tbartV highptEE2b_incmlb morphShapes.root morph:highptEE2b_incmlb_$PROCESS_morph 
+shapes tch highptEE2b_incmlb morphShapes.root morph:highptEE2b_incmlb_$PROCESS_morph 
+shapes DY highptEE2b_incmlb morphShapes.root morph:highptEE2b_incmlb_$PROCESS_morph 
+shapes W highptEE2b_incmlb morphShapes.root morph:highptEE2b_incmlb_$PROCESS_morph 
+shapes tbart highptEM1b_incmlb morphShapes.root morph:highptEM1b_incmlb_$PROCESS_morph 
+shapes tW highptEM1b_incmlb morphShapes.root morph:highptEM1b_incmlb_$PROCESS_morph 
+shapes Multiboson highptEM1b_incmlb morphShapes.root morph:highptEM1b_incmlb_$PROCESS_morph 
+shapes tbartV highptEM1b_incmlb morphShapes.root morph:highptEM1b_incmlb_$PROCESS_morph 
+shapes tch highptEM1b_incmlb morphShapes.root morph:highptEM1b_incmlb_$PROCESS_morph 
+shapes DY highptEM1b_incmlb morphShapes.root morph:highptEM1b_incmlb_$PROCESS_morph 
+shapes W highptEM1b_incmlb morphShapes.root morph:highptEM1b_incmlb_$PROCESS_morph 
+shapes tbart highptEM2b_incmlb morphShapes.root morph:highptEM2b_incmlb_$PROCESS_morph 
+shapes tW highptEM2b_incmlb morphShapes.root morph:highptEM2b_incmlb_$PROCESS_morph 
+shapes Multiboson highptEM2b_incmlb morphShapes.root morph:highptEM2b_incmlb_$PROCESS_morph 
+shapes tbartV highptEM2b_incmlb morphShapes.root morph:highptEM2b_incmlb_$PROCESS_morph 
+shapes tch highptEM2b_incmlb morphShapes.root morph:highptEM2b_incmlb_$PROCESS_morph 
+shapes DY highptEM2b_incmlb morphShapes.root morph:highptEM2b_incmlb_$PROCESS_morph 
+shapes W highptEM2b_incmlb morphShapes.root morph:highptEM2b_incmlb_$PROCESS_morph 
+shapes tbart highptMM1b_incmlb morphShapes.root morph:highptMM1b_incmlb_$PROCESS_morph 
+shapes tW highptMM1b_incmlb morphShapes.root morph:highptMM1b_incmlb_$PROCESS_morph 
+shapes Multiboson highptMM1b_incmlb morphShapes.root morph:highptMM1b_incmlb_$PROCESS_morph 
+shapes tbartV highptMM1b_incmlb morphShapes.root morph:highptMM1b_incmlb_$PROCESS_morph 
+shapes tch highptMM1b_incmlb morphShapes.root morph:highptMM1b_incmlb_$PROCESS_morph 
+shapes DY highptMM1b_incmlb morphShapes.root morph:highptMM1b_incmlb_$PROCESS_morph 
+shapes W highptMM1b_incmlb morphShapes.root morph:highptMM1b_incmlb_$PROCESS_morph 
+shapes tbart highptMM2b_incmlb morphShapes.root morph:highptMM2b_incmlb_$PROCESS_morph 
+shapes tW highptMM2b_incmlb morphShapes.root morph:highptMM2b_incmlb_$PROCESS_morph 
+shapes Multiboson highptMM2b_incmlb morphShapes.root morph:highptMM2b_incmlb_$PROCESS_morph 
+shapes tbartV highptMM2b_incmlb morphShapes.root morph:highptMM2b_incmlb_$PROCESS_morph 
+shapes tch highptMM2b_incmlb morphShapes.root morph:highptMM2b_incmlb_$PROCESS_morph 
+shapes DY highptMM2b_incmlb morphShapes.root morph:highptMM2b_incmlb_$PROCESS_morph 
+shapes W highptMM2b_incmlb morphShapes.root morph:highptMM2b_incmlb_$PROCESS_morph 
+shapes tbart lowptEE1b_incmlb morphShapes.root morph:lowptEE1b_incmlb_$PROCESS_morph 
+shapes tW lowptEE1b_incmlb morphShapes.root morph:lowptEE1b_incmlb_$PROCESS_morph 
+shapes Multiboson lowptEE1b_incmlb morphShapes.root morph:lowptEE1b_incmlb_$PROCESS_morph 
+shapes tbartV lowptEE1b_incmlb morphShapes.root morph:lowptEE1b_incmlb_$PROCESS_morph 
+shapes tch lowptEE1b_incmlb morphShapes.root morph:lowptEE1b_incmlb_$PROCESS_morph 
+shapes DY lowptEE1b_incmlb morphShapes.root morph:lowptEE1b_incmlb_$PROCESS_morph 
+shapes W lowptEE1b_incmlb morphShapes.root morph:lowptEE1b_incmlb_$PROCESS_morph 
+shapes tbart lowptEE2b_incmlb morphShapes.root morph:lowptEE2b_incmlb_$PROCESS_morph 
+shapes tW lowptEE2b_incmlb morphShapes.root morph:lowptEE2b_incmlb_$PROCESS_morph 
+shapes Multiboson lowptEE2b_incmlb morphShapes.root morph:lowptEE2b_incmlb_$PROCESS_morph 
+shapes tbartV lowptEE2b_incmlb morphShapes.root morph:lowptEE2b_incmlb_$PROCESS_morph 
+shapes tch lowptEE2b_incmlb morphShapes.root morph:lowptEE2b_incmlb_$PROCESS_morph 
+shapes DY lowptEE2b_incmlb morphShapes.root morph:lowptEE2b_incmlb_$PROCESS_morph 
+shapes W lowptEE2b_incmlb morphShapes.root morph:lowptEE2b_incmlb_$PROCESS_morph 
+shapes tbart lowptEM1b_incmlb morphShapes.root morph:lowptEM1b_incmlb_$PROCESS_morph 
+shapes tW lowptEM1b_incmlb morphShapes.root morph:lowptEM1b_incmlb_$PROCESS_morph 
+shapes Multiboson lowptEM1b_incmlb morphShapes.root morph:lowptEM1b_incmlb_$PROCESS_morph 
+shapes tbartV lowptEM1b_incmlb morphShapes.root morph:lowptEM1b_incmlb_$PROCESS_morph 
+shapes tch lowptEM1b_incmlb morphShapes.root morph:lowptEM1b_incmlb_$PROCESS_morph 
+shapes DY lowptEM1b_incmlb morphShapes.root morph:lowptEM1b_incmlb_$PROCESS_morph 
+shapes W lowptEM1b_incmlb morphShapes.root morph:lowptEM1b_incmlb_$PROCESS_morph 
+shapes tbart lowptEM2b_incmlb morphShapes.root morph:lowptEM2b_incmlb_$PROCESS_morph 
+shapes tW lowptEM2b_incmlb morphShapes.root morph:lowptEM2b_incmlb_$PROCESS_morph 
+shapes Multiboson lowptEM2b_incmlb morphShapes.root morph:lowptEM2b_incmlb_$PROCESS_morph 
+shapes tbartV lowptEM2b_incmlb morphShapes.root morph:lowptEM2b_incmlb_$PROCESS_morph 
+shapes tch lowptEM2b_incmlb morphShapes.root morph:lowptEM2b_incmlb_$PROCESS_morph 
+shapes DY lowptEM2b_incmlb morphShapes.root morph:lowptEM2b_incmlb_$PROCESS_morph 
+shapes W lowptEM2b_incmlb morphShapes.root morph:lowptEM2b_incmlb_$PROCESS_morph 
+shapes tbart lowptMM1b_incmlb morphShapes.root morph:lowptMM1b_incmlb_$PROCESS_morph 
+shapes tW lowptMM1b_incmlb morphShapes.root morph:lowptMM1b_incmlb_$PROCESS_morph 
+shapes Multiboson lowptMM1b_incmlb morphShapes.root morph:lowptMM1b_incmlb_$PROCESS_morph 
+shapes tbartV lowptMM1b_incmlb morphShapes.root morph:lowptMM1b_incmlb_$PROCESS_morph 
+shapes tch lowptMM1b_incmlb morphShapes.root morph:lowptMM1b_incmlb_$PROCESS_morph 
+shapes DY lowptMM1b_incmlb morphShapes.root morph:lowptMM1b_incmlb_$PROCESS_morph 
+shapes W lowptMM1b_incmlb morphShapes.root morph:lowptMM1b_incmlb_$PROCESS_morph 
+shapes tbart lowptMM2b_incmlb morphShapes.root morph:lowptMM2b_incmlb_$PROCESS_morph 
+shapes tW lowptMM2b_incmlb morphShapes.root morph:lowptMM2b_incmlb_$PROCESS_morph 
+shapes Multiboson lowptMM2b_incmlb morphShapes.root morph:lowptMM2b_incmlb_$PROCESS_morph 
+shapes tbartV lowptMM2b_incmlb morphShapes.root morph:lowptMM2b_incmlb_$PROCESS_morph 
+shapes tch lowptMM2b_incmlb morphShapes.root morph:lowptMM2b_incmlb_$PROCESS_morph 
+shapes DY lowptMM2b_incmlb morphShapes.root morph:lowptMM2b_incmlb_$PROCESS_morph 
+shapes W lowptMM2b_incmlb morphShapes.root morph:lowptMM2b_incmlb_$PROCESS_morph 
+--------------------------------------------------------------------------------
+bin          highptEE1b_incmlb highptEE2b_incmlb highptEM1b_incmlb highptEM2b_incmlb highptMM1b_incmlb highptMM2b_incmlb lowptEE1b_incmlb lowptEE2b_incmlb lowptEM1b_incmlb lowptEM2b_incmlb lowptMM1b_incmlb lowptMM2b_incmlb 
+observation  8233.8400       8057.0095       23359.0915      24275.7531      11915.4504      11224.4302      15307.2537      13016.8459      41761.2714      42049.2258      24981.4945      20535.5710      
+--------------------------------------------------------------------------------
+bin                                highptEE1b_incmlb highptEE1b_incmlb highptEE2b_incmlb highptEE2b_incmlb highptEM1b_incmlb highptEM1b_incmlb highptEM2b_incmlb highptEM2b_incmlb highptMM1b_incmlb highptMM1b_incmlb highptMM2b_incmlb highptMM2b_incmlb lowptEE1b_incmlb lowptEE1b_incmlb lowptEE2b_incmlb lowptEE2b_incmlb lowptEM1b_incmlb lowptEM1b_incmlb lowptEM2b_incmlb lowptEM2b_incmlb lowptMM1b_incmlb lowptMM1b_incmlb lowptMM2b_incmlb lowptMM2b_incmlb highptEE1b_incmlb highptEE2b_incmlb highptEM1b_incmlb highptEM2b_incmlb highptMM1b_incmlb highptMM2b_incmlb lowptEE1b_incmlb lowptEE2b_incmlb lowptEM1b_incmlb lowptEM2b_incmlb lowptMM1b_incmlb lowptMM2b_incmlb highptEE1b_incmlb highptEE2b_incmlb highptEM1b_incmlb highptEM2b_incmlb highptMM1b_incmlb highptMM2b_incmlb lowptEE1b_incmlb lowptEE2b_incmlb lowptEM1b_incmlb lowptEM2b_incmlb lowptMM1b_incmlb lowptMM2b_incmlb highptEE1b_incmlb highptEE2b_incmlb highptEM1b_incmlb highptEM2b_incmlb highptMM1b_incmlb highptMM2b_incmlb lowptEE1b_incmlb lowptEE2b_incmlb lowptEM1b_incmlb lowptEM2b_incmlb lowptMM1b_incmlb lowptMM2b_incmlb highptEE1b_incmlb highptEE2b_incmlb highptEM1b_incmlb highptEM2b_incmlb highptMM1b_incmlb highptMM2b_incmlb lowptEE1b_incmlb lowptEE2b_incmlb lowptEM1b_incmlb lowptEM2b_incmlb lowptMM1b_incmlb lowptMM2b_incmlb highptEE1b_incmlb highptEE2b_incmlb highptEM1b_incmlb highptEM2b_incmlb highptMM1b_incmlb highptMM2b_incmlb lowptEE1b_incmlb lowptEE2b_incmlb lowptEM1b_incmlb lowptEM2b_incmlb lowptMM1b_incmlb lowptMM2b_incmlb 
+process                            tbart           tW              tbart           tW              tbart           tW              tbart           tW              tbart           tW              tbart           tW              tbart           tW              tbart           tW              tbart           tW              tbart           tW              tbart           tW              tbart           tW              Multiboson      Multiboson      Multiboson      Multiboson      Multiboson      Multiboson      Multiboson      Multiboson      Multiboson      Multiboson      Multiboson      Multiboson      tbartV          tbartV          tbartV          tbartV          tbartV          tbartV          tbartV          tbartV          tbartV          tbartV          tbartV          tbartV          tch             tch             tch             tch             tch             tch             tch             tch             tch             tch             tch             tch             DY              DY              DY              DY              DY              DY              DY              DY              DY              DY              DY              DY              W               W               W               W               W               W               W               W               W               W               W               W               
+process                            -1              0               -1              0               -1              0               -1              0               -1              0               -1              0               -1              0               -1              0               -1              0               -1              0               -1              0               -1              0               1               1               1               1               1               1               1               1               1               1               1               1               2               2               2               2               2               2               2               2               2               2               2               2               3               3               3               3               3               3               3               3               3               3               3               3               4               4               4               4               4               4               4               4               4               4               4               4               5               5               5               5               5               5               5               5               5               5               5               5               
+rate                               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               1               
+--------------------------------------------------------------------------------
+DYnorm_th                  lnN     -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             -               -               -               -               -               -               -               -               -               -               -               -               
+VVnorm_th                  lnN     -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               1.2             1.2             1.2             1.2             1.2             1.2             1.2             1.2             1.2             1.2             1.2             1.2             -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               
+Wnorm_th                   lnN     -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             
+lumi_13TeV                 lnN     1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           1.062           
+sel                        lnN     1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            1.02            
+tWnorm_th                  lnN     -               1.054           -               1.054           -               1.054           -               1.054           -               1.054           -               1.054           -               1.054           -               1.054           -               1.054           -               1.054           -               1.054           -               1.054           -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               
+tbartVnorm_th              lnN     -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             1.3             -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               
+tnorm_th                   lnN     -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               1.044           1.044           1.044           1.044           1.044           1.044           1.044           1.044           1.044           1.044           1.044           1.044           -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               -               
+norm_highptEE1b_incmlb     rateParam  highptEE1b_incmlb DY         1 [0.5,1.5]
+norm_highptEE1b_incmlb     rateParam  highptEE1b_incmlb Multiboson 1 [0.5,1.5]
+norm_highptEE1b_incmlb     rateParam  highptEE1b_incmlb W          1 [0.5,1.5]
+norm_highptEE1b_incmlb     rateParam  highptEE1b_incmlb tW         1 [0.5,1.5]
+norm_highptEE1b_incmlb     rateParam  highptEE1b_incmlb tbart      1 [0.5,1.5]
+norm_highptEE1b_incmlb     rateParam  highptEE1b_incmlb tbartV     1 [0.5,1.5]
+norm_highptEE1b_incmlb     rateParam  highptEE1b_incmlb tch        1 [0.5,1.5]
+norm_highptEE2b_incmlb     rateParam  highptEE2b_incmlb DY         1 [0.5,1.5]
+norm_highptEE2b_incmlb     rateParam  highptEE2b_incmlb Multiboson 1 [0.5,1.5]
+norm_highptEE2b_incmlb     rateParam  highptEE2b_incmlb W          1 [0.5,1.5]
+norm_highptEE2b_incmlb     rateParam  highptEE2b_incmlb tW         1 [0.5,1.5]
+norm_highptEE2b_incmlb     rateParam  highptEE2b_incmlb tbart      1 [0.5,1.5]
+norm_highptEE2b_incmlb     rateParam  highptEE2b_incmlb tbartV     1 [0.5,1.5]
+norm_highptEE2b_incmlb     rateParam  highptEE2b_incmlb tch        1 [0.5,1.5]
+norm_highptEM1b_incmlb     rateParam  highptEM1b_incmlb DY         1 [0.5,1.5]
+norm_highptEM1b_incmlb     rateParam  highptEM1b_incmlb Multiboson 1 [0.5,1.5]
+norm_highptEM1b_incmlb     rateParam  highptEM1b_incmlb W          1 [0.5,1.5]
+norm_highptEM1b_incmlb     rateParam  highptEM1b_incmlb tW         1 [0.5,1.5]
+norm_highptEM1b_incmlb     rateParam  highptEM1b_incmlb tbart      1 [0.5,1.5]
+norm_highptEM1b_incmlb     rateParam  highptEM1b_incmlb tbartV     1 [0.5,1.5]
+norm_highptEM1b_incmlb     rateParam  highptEM1b_incmlb tch        1 [0.5,1.5]
+norm_highptEM2b_incmlb     rateParam  highptEM2b_incmlb DY         1 [0.5,1.5]
+norm_highptEM2b_incmlb     rateParam  highptEM2b_incmlb Multiboson 1 [0.5,1.5]
+norm_highptEM2b_incmlb     rateParam  highptEM2b_incmlb W          1 [0.5,1.5]
+norm_highptEM2b_incmlb     rateParam  highptEM2b_incmlb tW         1 [0.5,1.5]
+norm_highptEM2b_incmlb     rateParam  highptEM2b_incmlb tbart      1 [0.5,1.5]
+norm_highptEM2b_incmlb     rateParam  highptEM2b_incmlb tbartV     1 [0.5,1.5]
+norm_highptEM2b_incmlb     rateParam  highptEM2b_incmlb tch        1 [0.5,1.5]
+norm_highptMM1b_incmlb     rateParam  highptMM1b_incmlb DY         1 [0.5,1.5]
+norm_highptMM1b_incmlb     rateParam  highptMM1b_incmlb Multiboson 1 [0.5,1.5]
+norm_highptMM1b_incmlb     rateParam  highptMM1b_incmlb W          1 [0.5,1.5]
+norm_highptMM1b_incmlb     rateParam  highptMM1b_incmlb tW         1 [0.5,1.5]
+norm_highptMM1b_incmlb     rateParam  highptMM1b_incmlb tbart      1 [0.5,1.5]
+norm_highptMM1b_incmlb     rateParam  highptMM1b_incmlb tbartV     1 [0.5,1.5]
+norm_highptMM1b_incmlb     rateParam  highptMM1b_incmlb tch        1 [0.5,1.5]
+norm_highptMM2b_incmlb     rateParam  highptMM2b_incmlb DY         1 [0.5,1.5]
+norm_highptMM2b_incmlb     rateParam  highptMM2b_incmlb Multiboson 1 [0.5,1.5]
+norm_highptMM2b_incmlb     rateParam  highptMM2b_incmlb W          1 [0.5,1.5]
+norm_highptMM2b_incmlb     rateParam  highptMM2b_incmlb tW         1 [0.5,1.5]
+norm_highptMM2b_incmlb     rateParam  highptMM2b_incmlb tbart      1 [0.5,1.5]
+norm_highptMM2b_incmlb     rateParam  highptMM2b_incmlb tbartV     1 [0.5,1.5]
+norm_highptMM2b_incmlb     rateParam  highptMM2b_incmlb tch        1 [0.5,1.5]
+norm_lowptEE1b_incmlb      rateParam  lowptEE1b_incmlb DY         1 [0.5,1.5]
+norm_lowptEE1b_incmlb      rateParam  lowptEE1b_incmlb Multiboson 1 [0.5,1.5]
+norm_lowptEE1b_incmlb      rateParam  lowptEE1b_incmlb W          1 [0.5,1.5]
+norm_lowptEE1b_incmlb      rateParam  lowptEE1b_incmlb tW         1 [0.5,1.5]
+norm_lowptEE1b_incmlb      rateParam  lowptEE1b_incmlb tbart      1 [0.5,1.5]
+norm_lowptEE1b_incmlb      rateParam  lowptEE1b_incmlb tbartV     1 [0.5,1.5]
+norm_lowptEE1b_incmlb      rateParam  lowptEE1b_incmlb tch        1 [0.5,1.5]
+norm_lowptEE2b_incmlb      rateParam  lowptEE2b_incmlb DY         1 [0.5,1.5]
+norm_lowptEE2b_incmlb      rateParam  lowptEE2b_incmlb Multiboson 1 [0.5,1.5]
+norm_lowptEE2b_incmlb      rateParam  lowptEE2b_incmlb W          1 [0.5,1.5]
+norm_lowptEE2b_incmlb      rateParam  lowptEE2b_incmlb tW         1 [0.5,1.5]
+norm_lowptEE2b_incmlb      rateParam  lowptEE2b_incmlb tbart      1 [0.5,1.5]
+norm_lowptEE2b_incmlb      rateParam  lowptEE2b_incmlb tbartV     1 [0.5,1.5]
+norm_lowptEE2b_incmlb      rateParam  lowptEE2b_incmlb tch        1 [0.5,1.5]
+norm_lowptEM1b_incmlb      rateParam  lowptEM1b_incmlb DY         1 [0.5,1.5]
+norm_lowptEM1b_incmlb      rateParam  lowptEM1b_incmlb Multiboson 1 [0.5,1.5]
+norm_lowptEM1b_incmlb      rateParam  lowptEM1b_incmlb W          1 [0.5,1.5]
+norm_lowptEM1b_incmlb      rateParam  lowptEM1b_incmlb tW         1 [0.5,1.5]
+norm_lowptEM1b_incmlb      rateParam  lowptEM1b_incmlb tbart      1 [0.5,1.5]
+norm_lowptEM1b_incmlb      rateParam  lowptEM1b_incmlb tbartV     1 [0.5,1.5]
+norm_lowptEM1b_incmlb      rateParam  lowptEM1b_incmlb tch        1 [0.5,1.5]
+norm_lowptEM2b_incmlb      rateParam  lowptEM2b_incmlb DY         1 [0.5,1.5]
+norm_lowptEM2b_incmlb      rateParam  lowptEM2b_incmlb Multiboson 1 [0.5,1.5]
+norm_lowptEM2b_incmlb      rateParam  lowptEM2b_incmlb W          1 [0.5,1.5]
+norm_lowptEM2b_incmlb      rateParam  lowptEM2b_incmlb tW         1 [0.5,1.5]
+norm_lowptEM2b_incmlb      rateParam  lowptEM2b_incmlb tbart      1 [0.5,1.5]
+norm_lowptEM2b_incmlb      rateParam  lowptEM2b_incmlb tbartV     1 [0.5,1.5]
+norm_lowptEM2b_incmlb      rateParam  lowptEM2b_incmlb tch        1 [0.5,1.5]
+norm_lowptMM1b_incmlb      rateParam  lowptMM1b_incmlb DY         1 [0.5,1.5]
+norm_lowptMM1b_incmlb      rateParam  lowptMM1b_incmlb Multiboson 1 [0.5,1.5]
+norm_lowptMM1b_incmlb      rateParam  lowptMM1b_incmlb W          1 [0.5,1.5]
+norm_lowptMM1b_incmlb      rateParam  lowptMM1b_incmlb tW         1 [0.5,1.5]
+norm_lowptMM1b_incmlb      rateParam  lowptMM1b_incmlb tbart      1 [0.5,1.5]
+norm_lowptMM1b_incmlb      rateParam  lowptMM1b_incmlb tbartV     1 [0.5,1.5]
+norm_lowptMM1b_incmlb      rateParam  lowptMM1b_incmlb tch        1 [0.5,1.5]
+norm_lowptMM2b_incmlb      rateParam  lowptMM2b_incmlb DY         1 [0.5,1.5]
+norm_lowptMM2b_incmlb      rateParam  lowptMM2b_incmlb Multiboson 1 [0.5,1.5]
+norm_lowptMM2b_incmlb      rateParam  lowptMM2b_incmlb W          1 [0.5,1.5]
+norm_lowptMM2b_incmlb      rateParam  lowptMM2b_incmlb tW         1 [0.5,1.5]
+norm_lowptMM2b_incmlb      rateParam  lowptMM2b_incmlb tbart      1 [0.5,1.5]
+norm_lowptMM2b_incmlb      rateParam  lowptMM2b_incmlb tbartV     1 [0.5,1.5]
+norm_lowptMM2b_incmlb      rateParam  lowptMM2b_incmlb tch        1 [0.5,1.5]

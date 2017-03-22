@@ -1,0 +1,13 @@
+Error in <ROOT::Math::FReal time 0:00:00, CP time 0.200
+
+
+ --- MaxLikelihoodFit ---
+Best fit gamma: 0.399794  0.000193081/+0.00510593  (68% CL)
+nll S+B -> -4.55195  nll B -> -1.40498
+Done in 0.02 min (cpu), 0.08 min (real)
+
+Job finished at Tue Mar 14 01:54:45 CET 2017 on node 
+ under linux version Scientific Linux CERN SLC release 6.8 (Carbon)
+
+CERN statistics: This process used approximately : 0:01:05 KSI2K hours (65 KSI2K seconds)
+                 This process corresponds to     : 0:04:15 HS06  hours (255 HS06  seconds)

@@ -1,0 +1,13 @@
+#! /bin/sh
+
+$LSB_TRAPSIGS
+$LSB_RCP1
+$LSB_RCP2
+$LSB_RCP3
+# LSBATCH: User input
+/usr/local/lsf/etc/job_starter 'sh /afs/cern.ch/user/e/ecoleman/CMSSW_7_4_7/src/CombineHarvester/TOP16019/scripts/../wrapLXBATCHJob.sh /afs/cern.ch/user/e/ecoleman/CMSSW_7_4_7/src/CombineHarvester/TOP16019/scripts "python makeDataCard.py 1p8w 172.5 ; ./getMorphFiles.py -i \"datacards/bias_1p8w_172.5/*/*.txt\"                  -o datacards/bias_1p8w_172.5                  --biasWid 1p8w ; text2workspace.py -b datacards/bias_1p8w_172.5/morphDatacard.txt                   -o datacards/bias_1p8w_172.5/morph.root                   --default-morphing shape2 ; cd datacards/bias_1p8w_172.5 ; combine -M MaxLikelihoodFit --redefineSignalPOIs gamma -n TopWid1D_w1p8w_m172.5 datacards/bias_1p8w_172.5/morph.root"'
+ExitStat=$?
+wait
+# LSBATCH: End user input
+true
+exit `expr $? "|" $ExitStat`

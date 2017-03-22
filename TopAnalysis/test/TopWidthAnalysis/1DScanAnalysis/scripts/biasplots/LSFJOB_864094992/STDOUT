@@ -1,0 +1,14 @@
+Running Minos for POI 
+Real time 0:00:00, CP time 0.100
+
+
+ --- MaxLikelihoodFit ---
+Best fit gamma: 2.60018  -0.312614/+0.297663  (68% CL)
+nll S+B -> -51.7625  nll B -> -9.86682
+Done in 0.01 min (cpu), 0.02 min (real)
+
+Job finished at Tue Mar 14 01:49:37 CET 2017 on node 
+ under linux version Scientific Linux CERN SLC release 6.8 (Carbon)
+
+CERN statistics: This process used approximately : 0:00:59 KSI2K hours (59 KSI2K seconds)
+                 This process corresponds to     : 0:03:52 HS06  hours (232 HS06  seconds)

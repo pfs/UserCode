@@ -1,0 +1,130 @@
+
+Running TOP-16-019 analysis.
+datacards/bias_0p2w_172.5/0p2w/datacard.txt
+>> Bin: highptEE1b_incmlb  Process: DY
+>>>> Mass point: 0.2
+>> Shape systematics: 0
+>> lnN morphing systematics: 0
+0.2       
+702.65    
+RooRealVar::CMS_th1x = 15  L(0 - 30) B(30) 
+RooRealVar::CMS_th1x_highptEE1b_incmlb = 15 C  L(0 - 30) B(30) 
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooMorphingPdf::highptEE1b_incmlb_DY_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooRealVar::CMS_th1x
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooMorphingPdf::highptEE1b_incmlb_DY_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing FastVerticalInterpHistPdf2::highptEE1b_incmlb_DY_0.2_vmorph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooRealVar::CMS_th1x_highptEE1b_incmlb
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooProduct::highptEE1b_incmlb_DY_morph_norm
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooSpline1D::interp_rate_highptEE1b_incmlb_DY
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooProduct::highptEE1b_incmlb_DY_morph_norm
+>> Bin: highptEE1b_incmlb  Process: Multiboson
+>>>> Mass point: 0.2
+>> Shape systematics: 0
+>> lnN morphing systematics: 0
+0.2       
+27.014    
+RooRealVar::CMS_th1x = 15  L(0 - 30) B(30) 
+RooRealVar::CMS_th1x_highptEE1b_incmlb = 15 C  L(0 - 30) B(30) 
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooMorphingPdf::highptEE1b_incmlb_Multiboson_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x for import of RooMorphingPdf::highptEE1b_incmlb_Multiboson_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooMorphingPdf::highptEE1b_incmlb_Multiboson_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing FastVerticalInterpHistPdf2::highptEE1b_incmlb_Multiboson_0.2_vmorph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x_highptEE1b_incmlb for import of RooMorphingPdf::highptEE1b_incmlb_Multiboson_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooProduct::highptEE1b_incmlb_Multiboson_morph_norm
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooSpline1D::interp_rate_highptEE1b_incmlb_Multiboson
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooProduct::highptEE1b_incmlb_Multiboson_morph_norm
+>> Bin: highptEE1b_incmlb  Process: W
+>>>> Mass point: 0.2
+>> Shape systematics: 0
+>> lnN morphing systematics: 0
+0.2       
+0.03      
+RooRealVar::CMS_th1x = 15  L(0 - 30) B(30) 
+RooRealVar::CMS_th1x_highptEE1b_incmlb = 15 C  L(0 - 30) B(30) 
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooMorphingPdf::highptEE1b_incmlb_W_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x for import of RooMorphingPdf::highptEE1b_incmlb_W_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooMorphingPdf::highptEE1b_incmlb_W_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing FastVerticalInterpHistPdf2::highptEE1b_incmlb_W_0.2_vmorph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x_highptEE1b_incmlb for import of RooMorphingPdf::highptEE1b_incmlb_W_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooProduct::highptEE1b_incmlb_W_morph_norm
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooSpline1D::interp_rate_highptEE1b_incmlb_W
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooProduct::highptEE1b_incmlb_W_morph_norm
+>> Bin: highptEE1b_incmlb  Process: tW
+>>>> Mass point: 0.2
+>> Shape systematics: 0
+>> lnN morphing systematics: 0
+0.2       
+746.28    
+RooRealVar::CMS_th1x = 15  L(0 - 30) B(30) 
+RooRealVar::CMS_th1x_highptEE1b_incmlb = 15 C  L(0 - 30) B(30) 
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooMorphingPdf::highptEE1b_incmlb_tW_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x for import of RooMorphingPdf::highptEE1b_incmlb_tW_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooMorphingPdf::highptEE1b_incmlb_tW_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing FastVerticalInterpHistPdf2::highptEE1b_incmlb_tW_0.2_vmorph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x_highptEE1b_incmlb for import of RooMorphingPdf::highptEE1b_incmlb_tW_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooProduct::highptEE1b_incmlb_tW_morph_norm
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooSpline1D::interp_rate_highptEE1b_incmlb_tW
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooProduct::highptEE1b_incmlb_tW_morph_norm
+>> Bin: highptEE1b_incmlb  Process: tbart
+>>>> Mass point: 0.2
+>> Shape systematics: 0
+>> lnN morphing systematics: 0
+0.2       
+6775.2    
+RooRealVar::CMS_th1x = 15  L(0 - 30) B(30) 
+RooRealVar::CMS_th1x_highptEE1b_incmlb = 15 C  L(0 - 30) B(30) 
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooMorphingPdf::highptEE1b_incmlb_tbart_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x for import of RooMorphingPdf::highptEE1b_incmlb_tbart_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooMorphingPdf::highptEE1b_incmlb_tbart_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing FastVerticalInterpHistPdf2::highptEE1b_incmlb_tbart_0.2_vmorph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x_highptEE1b_incmlb for import of RooMorphingPdf::highptEE1b_incmlb_tbart_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooProduct::highptEE1b_incmlb_tbart_morph_norm
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooSpline1D::interp_rate_highptEE1b_incmlb_tbart
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooProduct::highptEE1b_incmlb_tbart_morph_norm
+>> Bin: highptEE1b_incmlb  Process: tbartV
+>>>> Mass point: 0.2
+>> Shape systematics: 0
+>> lnN morphing systematics: 0
+0.2       
+39.861    
+RooRealVar::CMS_th1x = 15  L(0 - 30) B(30) 
+RooRealVar::CMS_th1x_highptEE1b_incmlb = 15 C  L(0 - 30) B(30) 
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooMorphingPdf::highptEE1b_incmlb_tbartV_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x for import of RooMorphingPdf::highptEE1b_incmlb_tbartV_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooMorphingPdf::highptEE1b_incmlb_tbartV_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing FastVerticalInterpHistPdf2::highptEE1b_incmlb_tbartV_0.2_vmorph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x_highptEE1b_incmlb for import of RooMorphingPdf::highptEE1b_incmlb_tbartV_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooProduct::highptEE1b_incmlb_tbartV_morph_norm
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooSpline1D::interp_rate_highptEE1b_incmlb_tbartV
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooProduct::highptEE1b_incmlb_tbartV_morph_norm
+>> Bin: highptEE1b_incmlb  Process: tch
+>>>> Mass point: 0.2
+>> Shape systematics: 0
+>> lnN morphing systematics: 0
+0.2       
+1.564     
+RooRealVar::CMS_th1x = 15  L(0 - 30) B(30) 
+RooRealVar::CMS_th1x_highptEE1b_incmlb = 15 C  L(0 - 30) B(30) 
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooMorphingPdf::highptEE1b_incmlb_tch_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x for import of RooMorphingPdf::highptEE1b_incmlb_tch_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooMorphingPdf::highptEE1b_incmlb_tch_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing FastVerticalInterpHistPdf2::highptEE1b_incmlb_tch_0.2_vmorph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::CMS_th1x_highptEE1b_incmlb for import of RooMorphingPdf::highptEE1b_incmlb_tch_morph
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooProduct::highptEE1b_incmlb_tch_morph_norm
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) importing RooSpline1D::interp_rate_highptEE1b_incmlb_tch
+[#1] INFO:ObjectHandling -- RooWorkspace::import(morph) using existing copy of RooRealVar::gamma for import of RooProduct::highptEE1b_incmlb_tch_morph_norm
+[LoadShapes] Extracting shapes for Process:
+--------------------------------------------------------------------------------------------------------
+mass   analysis  era    channel  bin                          id  process          sig  rate       shape
+--------------------------------------------------------------------------------------------------------
+*                                highptEE1b_incmlb            0   tbart            1    1          0    
+[LoadShapes] Mappings:
+*       *       0                    morph:$BIN_$PROCESS_morph                     
+[LoadShapes] Resolved Mapping:
+*       *       0                    morph:highptEE1b_incmlb_tbart_morph                     
+[LoadShapes] Mapping type is RooAbsPdf/RooAbsData
+[LoadShapes] RooMorphingPdf::highptEE1b_incmlb_tbart_morph[ CMS_th1x=CMS_th1x gamma=gamma =(highptEE1b_incmlb_tbart_0.2_vmorph) ] = 0.0462969
+[LoadShapes] Normalisation RooAbsReal found
+[LoadShapes] RooProduct::highptEE1b_incmlb_tbart_morph_norm[ interp_rate_highptEE1b_incmlb_tbart ] = 
+
+ *** Break *** segmentation violation

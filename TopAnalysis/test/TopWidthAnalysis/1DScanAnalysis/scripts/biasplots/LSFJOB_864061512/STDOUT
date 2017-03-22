@@ -1,0 +1,80 @@
+@(#)CERN job starter $Date: 2010/06/23 14:22:16 $
+Working directory is </pool/lsf/ecoleman/864061512> on <p01001532885286.cern.ch>
+
+/afs/cern.ch/user/e/ecoleman/CMSSW_7_4_7
+/afs/cern.ch/user/e/ecoleman/CMSSW_7_4_7/src/CombineHarvester/TOP16019/scripts
+
+
+--------------------------------------------------
+python makeDataCard.py 0p4w 172.5 
+--------------------------------------------------
+
+
+Traceback (most recent call last):
+  File "makeDataCard.py", line 4, in <module>
+    import ROOT
+  File "/cvmfs/cms.cern.ch/slc6_amd64_gcc491/lcg/root/6.02.00-odfocd5/lib/ROOT.py", line 103, in <module>
+    import libPyROOT as _root
+KeyboardInterrupt
+
+
+--------------------------------------------------
+ ./getMorphFiles.py -i "datacards/bias_0p4w_172.5/*/*.txt"                  -o datacards/bias_0p4w_172.5                  --biasWid 0p4w 
+--------------------------------------------------
+
+
+SysError in <TFile::TFile>: file datacards/bias_0p4w_172.5/debug.root can not be opened (No such file or directory)
+--------------------------------------------------------------------------------------------------------
+mass   analysis  era    channel  bin                          id  process               rate       shape
+--------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------
+mass   analysis  era    channel  bin                          id  process          sig  rate       shape
+--------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+mass   analysis  era    channel  bin                          id  process          sig  nuisance                                      type     value         sh_d sh_u
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+name                                                                   value      error_d   error_u frozen groups
+-----------------------------------------------------------------------------------------------------------------
+norm_$BIN:rateParam
+>> Map keys that were not used to create a Systematic:
+()
+>> Process entries that did not get a Systematic:
+>> Process entries that did get a Systematic:
+
+
+--------------------------------------------------
+ text2workspace.py -b datacards/bias_0p4w_172.5/morphDatacard.txt                   -o datacards/bias_0p4w_172.5/morph.root                   --default-morphing shape2 
+--------------------------------------------------
+
+
+Traceback (most recent call last):
+  File "/afs/cern.ch/user/e/ecoleman/CMSSW_7_4_7/bin/slc6_amd64_gcc491/text2workspace.py", line 33, in <module>
+    file = open(options.fileName, "r")
+IOError: [Errno 2] No such file or directory: 'datacards/bias_0p4w_172.5/morphDatacard.txt'
+
+
+--------------------------------------------------
+ cd datacards/bias_0p4w_172.5 
+--------------------------------------------------
+
+
+sh: line 0: cd: datacards/bias_0p4w_172.5: No such file or directory
+
+
+--------------------------------------------------
+ combine -M MaxLikelihoodFit --redefineSignalPOIs gamma -n TopWid1D_w0p4w_m172.5 datacards/bias_0p4w_172.5/morph.root
+--------------------------------------------------
+
+
+>>> including systematics
+>>> method used to compute upper limit is MaxLikelihoodFit
+>>> random number generator seed is 123456
+Error when running the combination:
+	File /afs/cern.ch/user/e/ecoleman/CMSSW_7_4_7/src/CombineHarvester/TOP16019/scripts/datacards/bias_0p4w_172.5/morph.root does not exist
+
+Job finished at Mon Mar 13 23:35:39 CET 2017 on node 
+ under linux version Scientific Linux CERN SLC release 6.8 (Carbon)
+
+CERN statistics: This process used approximately : 0:00:13 KSI2K hours (13 KSI2K seconds)
+                 This process corresponds to     : 0:00:52 HS06  hours (52 HS06  seconds)

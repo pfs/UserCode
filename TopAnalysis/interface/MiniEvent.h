@@ -56,11 +56,6 @@ struct MiniEvent_t
   //Int_t pf_pvAssoc[5000],pf_vtxRef[5000];
   Float_t pf_pt[5000],pf_eta[5000],pf_phi[5000],pf_m[5000],pf_puppiWgt[5000];
   Float_t pf_dxy[5000],pf_dz[5000]; //pf_dxyUnc[5000],pf_dzUnc[5000];
-
-  //CTPPS leaves
-  Int_t nfwdtrk,fwdtrk_arm[50],fwdtrk_pot[50];
-  Float_t fwdtrk_x[50],fwdtrk_x_unc[50];
-  Float_t fwdtrk_y[50],fwdtrk_y_unc[50];
 };
 
 void createMiniEventTree(TTree *t,MiniEvent_t &ev);

@@ -5,8 +5,6 @@
 <use name="FWCore/ServiceRegistry"/>
 <use name="DataFormats/VertexReco"/>
 <use name="DataFormats/PatCandidates"/>
-<use name="DataFormats/CTPPSReco"/>
-<use name="DataFormats/CTPPSDetId"/>
 <use name="DataFormats/Math"/>
 <use name="DataFormats/Common"/>
 <use name="CommonTools/UtilAlgos"/>

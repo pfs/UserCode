@@ -82,7 +82,7 @@ void RunFourTopsAnalyzer(TString filename,
   tmvaReader->AddVariable("n_jets",                &n_jets);
   tmvaReader->AddVariable("n_bjets",               &n_bjets);
   tmvaReader->AddVariable("n_leptons",             &n_leptons);
-  tmvaReader->BookMVA( "BDT", "test/summer2017/FourTopsML_BDT_606.weights.xml");
+  tmvaReader->BookMVA( "BDT", "/afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/FourTopsML_BDT_606.weights.xml");
 
   //CREATE OUTPUT TREE
   TTree outTree("TMVAanalysis","NTuple tree for TMVA analysis");

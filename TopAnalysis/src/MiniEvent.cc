@@ -266,11 +266,14 @@ void attachToMiniEventTree(TTree *t,MiniEvent_t &ev,bool full)
   t->SetBranchAddress("met_filterBits", &ev.met_filterBits);
 
   //CTPPS local tracks
-  t->SetBranchAddress("nfwdtrk",    &ev.nfwdtrk);
-  t->SetBranchAddress("fwdtrk_arm",  ev.fwdtrk_arm);
-  t->SetBranchAddress("fwdtrk_pot",  ev.fwdtrk_pot);
-  t->SetBranchAddress("fwdtrk_x",    ev.fwdtrk_x);
-  t->SetBranchAddress("fwdtrk_x_unc",ev.fwdtrk_x_unc);
-  t->SetBranchAddress("fwdtrk_y",    ev.fwdtrk_y);
-  t->SetBranchAddress("fwdtrk_y_unc",ev.fwdtrk_y_unc);
+  if (ev.isData)
+  {
+    t->SetBranchAddress("nfwdtrk",    &ev.nfwdtrk);
+    t->SetBranchAddress("fwdtrk_arm",  ev.fwdtrk_arm);
+    t->SetBranchAddress("fwdtrk_pot",  ev.fwdtrk_pot);
+    t->SetBranchAddress("fwdtrk_x",    ev.fwdtrk_x);
+    t->SetBranchAddress("fwdtrk_x_unc",ev.fwdtrk_x_unc);
+    t->SetBranchAddress("fwdtrk_y",    ev.fwdtrk_y);
+    t->SetBranchAddress("fwdtrk_y_unc",ev.fwdtrk_y_unc);
+  }
 }

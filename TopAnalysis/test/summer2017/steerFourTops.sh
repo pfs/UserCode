@@ -11,7 +11,8 @@ if [ "$#" -ne 1 ]; then
 fi
 
 export LSB_JOB_REPORT_MAIL=N
-queue=2nd
+#queue=2nd
+queue=condor
 githash=b312177
 lumi=35922
 lumiUnc=0.025

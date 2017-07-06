@@ -64,6 +64,6 @@ struct MiniEvent_t
 };
 
 void createMiniEventTree(TTree *t,MiniEvent_t &ev);
-void attachToMiniEventTree(TTree *t, MiniEvent_t &ev,bool full=false);
+void attachToMiniEventTree(TTree *t, MiniEvent_t &ev, bool full = false, bool treeIsData = true);
 
 #endif

@@ -261,6 +261,8 @@ TString SelectionTool::flagFinalState(MiniEvent_t &ev, std::vector<Particle> pre
     else if (ch==13*13) chTag = "MM";
     else if (ch==11*11) chTag = "EE";
     leptons_=passllid;
+    vetoLeptons_=getLeptons(preselleptons,SelectionTool::PASSLVETO, 0., 99., &leptons_);
+    atleastVetoLeptons_=getLeptons(preselleptons,SelectionTool::PASSLVETO);
   }
   else if(passlid.size()==1){
     int ch(abs(passlid[0].id()) );
@@ -268,6 +270,7 @@ TString SelectionTool::flagFinalState(MiniEvent_t &ev, std::vector<Particle> pre
     else if (ch==11) chTag = "E";
     leptons_=passlid;
     vetoLeptons_=getLeptons(preselleptons,SelectionTool::PASSLVETO, 0., 99., &leptons_);
+    atleastVetoLeptons_=getLeptons(preselleptons,SelectionTool::PASSLVETO);
   }
 
   //select jets based on the leptons

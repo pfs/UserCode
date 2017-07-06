@@ -43,9 +43,68 @@ void RunFourTopsAnalyzer(TString filename,
   
   TMVA::Reader *tmvaReader = new TMVA::Reader( "!Color:!Silent" );
   //FIXME TOP: add all the variables you need to use here and update the xml file location
-  Float_t tmva_var1;
-  tmvaReader->AddVariable( "var1", &tmva_var1 );
-  tmvaReader->BookMVA( "BDT", "/afs/cern.ch/user/p/psilva/public/forTop/FourTopsML_BDT.weights.xml");
+  Float_t lepton_ht;
+  Float_t lepton_3_chIso;
+  Float_t lepton_4_chIso;
+  Float_t lepton_3_minIso;
+  Float_t lepton_4_minIso;
+  Float_t jet_1_highest_csv;
+  Float_t jet_2_highest_csv;
+  Float_t jet_3_highest_csv;
+  Float_t jet_4_highest_csv;
+  Float_t jet_ht;
+  Float_t jet_btag_ht;
+  Float_t jet_non_btag_ht;
+  Float_t jet_smallest_angle;
+  Float_t jet_smallest_angle_2b;
+  Float_t met_pt;
+  Float_t n_jets;
+  Float_t n_bjets;
+  Float_t n_leptons;
+
+  Float_t event_weight;
+
+  tmvaReader->AddVariable("jet_1_highest_csv",     &jet_1_highest_csv);
+  tmvaReader->AddVariable("jet_2_highest_csv",     &jet_2_highest_csv);
+  tmvaReader->AddVariable("jet_3_highest_csv",     &jet_3_highest_csv);
+  tmvaReader->AddVariable("jet_4_highest_csv",     &jet_4_highest_csv);
+  tmvaReader->AddVariable("jet_ht",                &jet_ht);
+  tmvaReader->AddVariable("jet_btag_ht",           &jet_btag_ht);
+  tmvaReader->AddVariable("jet_non_btag_ht",       &jet_non_btag_ht);
+  tmvaReader->AddVariable("jet_smallest_angle",    &jet_smallest_angle);
+  tmvaReader->AddVariable("jet_smallest_angle_2b", &jet_smallest_angle_2b);
+  tmvaReader->AddVariable("lepton_ht",             &lepton_ht);
+  tmvaReader->AddVariable("lepton_3_chIso",        &lepton_3_chIso);
+  tmvaReader->AddVariable("lepton_4_chIso",        &lepton_4_chIso);
+  tmvaReader->AddVariable("lepton_3_minIso",       &lepton_3_minIso);
+  tmvaReader->AddVariable("lepton_4_minIso",       &lepton_4_minIso);
+  tmvaReader->AddVariable("met_pt",                &met_pt);
+  tmvaReader->AddVariable("n_jets",                &n_jets);
+  tmvaReader->AddVariable("n_bjets",               &n_bjets);
+  tmvaReader->AddVariable("n_leptons",             &n_leptons);
+  tmvaReader->BookMVA( "BDT", "test/summer2017/FourTopsML_BDT_606.weights.xml");
+
+  //CREATE OUTPUT TREE
+  TTree outTree("TMVAanalysis","NTuple tree for TMVA analysis");
+  outTree.Branch("lepton_ht", &lepton_ht,"lepton_ht/F");
+  outTree.Branch("lepton_3_chIso", &lepton_3_chIso,"lepton_3_chIso/F");
+  outTree.Branch("lepton_4_chIso", &lepton_4_chIso,"lepton_4_chIso/F");
+  outTree.Branch("lepton_3_minIso", &lepton_3_minIso,"lepton_3_minIso/F");
+  outTree.Branch("lepton_4_minIso", &lepton_4_minIso,"lepton_4_minIso/F");
+  outTree.Branch("jet_1_highest_csv", &jet_1_highest_csv,"jet_1_highest_csv/F");
+  outTree.Branch("jet_2_highest_csv", &jet_2_highest_csv,"jet_2_highest_csv/F");
+  outTree.Branch("jet_3_highest_csv", &jet_3_highest_csv,"jet_3_highest_csv/F");
+  outTree.Branch("jet_4_highest_csv", &jet_4_highest_csv,"jet_4_highest_csv/F");
+  outTree.Branch("jet_ht", &jet_ht,"jet_ht/F");
+  outTree.Branch("jet_btag_ht", &jet_btag_ht,"jet_btag_ht/F");
+  outTree.Branch("jet_non_btag_ht", &jet_non_btag_ht,"jet_non_btag_ht/F");
+  outTree.Branch("jet_smallest_angle", &jet_smallest_angle,"jet_smallest_angle/F");
+  outTree.Branch("jet_smallest_angle_2b", &jet_smallest_angle_2b,"jet_smallest_angle_2b/F");
+  outTree.Branch("met_pt",&met_pt,"met_pt/F");
+  outTree.Branch("event_weight",&event_weight,"event_weight/F");
+  outTree.Branch("n_jets",&n_jets,"n_jets/F");
+  outTree.Branch("n_bjets",&n_bjets,"n_bjets/F");
+  outTree.Branch("n_leptons",&n_leptons,"n_leptons/F");
 
   //PREPARE OUTPUT
   TString baseName=gSystem->BaseName(outname); 
@@ -107,7 +166,9 @@ void RunFourTopsAnalyzer(TString filename,
       //////////////////
       // CORRECTIONS //
       ////////////////
+      double csvl = 0.5426;
       double csvm = 0.8484;
+      double csvt = 0.9535;
       addBTagDecisions(ev, csvm, csvm);
       if(!ev.isData) ev = smearJetEnergies(ev);
            
@@ -116,9 +177,14 @@ void RunFourTopsAnalyzer(TString filename,
       /////////////////////////
       TString chTag = selector.flagFinalState(ev);
       if(chTag=="") continue;
-      std::vector<Particle> &leptons     = selector.getSelLeptons(); 
+      std::vector<Particle> &leptons     = selector.getAtLeastVetoLeptons();
+      std::vector<Particle> &LLIDleptons = selector.getSelLeptons();
+      std::vector<Particle> &vetoLeptons = selector.getVetoLeptons(); 
       std::vector<Jet>      &jets        = selector.getJets();  
-      if(leptons.size()<2) continue;
+      //if(leptons.size()<2) continue;
+      //if (leptons.size() < 1) continue;
+
+      if (leptons.size() < 4 || LLIDleptons.size() < 2) continue;
       
       //count n b-jets
       int sel_nbjets(0);
@@ -136,6 +202,7 @@ void RunFourTopsAnalyzer(TString filename,
         wgt  = (normH? normH->GetBinContent(1) : 1.0);
         
         // pu weight
+        //if (puWgtGr[period][0]? false : true) continue;
         double puWgt(puWgtGr[period][0]->Eval(ev.g_pu));
         std::vector<double>puPlotWgts(1,puWgt);
         ht.fill("puwgtctr",1,puPlotWgts);
@@ -175,9 +242,111 @@ void RunFourTopsAnalyzer(TString filename,
       ht.fill("nleptons", leptons.size(), plotwgts);
 
       //FIXME TOP: assign all the values to the variables here before evaluating the bdt discriminator
-      tmva_var1=1;
+      //control histograms
+
+      n_jets = (float) jets.size();
+      n_bjets = (float) sel_nbjets;
+      n_leptons = (float) leptons.size();
+
+      // Fill only lepton with highest pt
+      
+      lepton_3_chIso = 0.;
+      lepton_4_chIso = 0.;
+      lepton_3_minIso = 0.;
+      lepton_4_minIso = 0.;
+
+      if (leptons.size() > 0)
+      {
+
+        if (leptons.size() >= 4)
+        {
+          auto chIsoSort = [ev](Particle &p1, Particle &p2)
+          { 
+            return ev.l_chargedHadronIso[p1.originalReference()] < ev.l_chargedHadronIso[p2.originalReference()];
+          };
+          auto minIsoSort = [ev](Particle &p1, Particle &p2)
+          { 
+            return ev.l_miniIso[p1.originalReference()] < ev.l_miniIso[p2.originalReference()];
+          };
+          std::vector<Particle> leptons_chIsoSorted  = leptons;
+          std::vector<Particle> leptons_minIsoSorted = leptons;
+          std::sort(leptons_chIsoSorted.begin(), leptons_chIsoSorted.end(), chIsoSort);
+          std::sort(leptons_minIsoSorted.begin(), leptons_minIsoSorted.end(), minIsoSort);
+
+          lepton_3_chIso = ev.l_chargedHadronIso[leptons_chIsoSorted[2].originalReference()];
+          lepton_4_chIso = ev.l_chargedHadronIso[leptons_chIsoSorted[3].originalReference()];
+          lepton_3_minIso = ev.l_chargedHadronIso[leptons_minIsoSorted[2].originalReference()];
+          lepton_4_minIso = ev.l_chargedHadronIso[leptons_minIsoSorted[3].originalReference()];
+        }
+      }
+
+      lepton_ht = 0.;
+      for (size_t i=0;i<leptons.size();i++) lepton_ht += leptons[i].pt();
+
+      jet_1_highest_csv = 0;
+      jet_2_highest_csv = 0;
+      jet_3_highest_csv = 0;
+      jet_4_highest_csv = 0;
+
+      auto greater_than = [](double i, double j) { return i > j; };
+
+      auto sort_jet_csv = [greater_than](auto ev, auto jets)
+      {
+        std::vector<float> csv_sorted;
+        for (size_t i=0;i<jets.size();i++) csv_sorted.push_back(ev.j_csv[jets[i].getJetIndex()]);
+        std::sort(csv_sorted.begin(),csv_sorted.end(),greater_than);
+        return csv_sorted;
+      };
+
+      std::vector<float> csv_sorted = sort_jet_csv(ev,jets);
+      if (csv_sorted.size() > 0) jet_1_highest_csv = csv_sorted[0];
+      if (csv_sorted.size() > 1) jet_2_highest_csv = csv_sorted[1];
+      if (csv_sorted.size() > 2) jet_3_highest_csv = csv_sorted[2];
+      if (csv_sorted.size() > 3) jet_4_highest_csv = csv_sorted[3];
+
+      jet_smallest_angle = TMath::Pi();
+      for (size_t i=0;i<jets.size();i++) 
+      {
+        if (jets[i].pt() == 0) continue;
+        for (size_t j=0;j<leptons.size();j++)
+        {
+          if (leptons[j].pt() == 0) continue;
+          if (jets[i].p4().Angle(leptons[j].p4().Vect()) < jet_smallest_angle)
+            jet_smallest_angle = jets[i].p4().Angle(leptons[j].p4().Vect());
+        }
+      }
+
+      jet_smallest_angle_2b = TMath::Pi();
+      if (sel_nbjets >= 2) for (size_t i=0;i<jets.size();i++)
+      {
+        if (jets[i].flavor() != 5) continue;
+        for (size_t j=i+1;j<jets.size();j++)
+        {
+          if (jets[j].flavor() != 5) continue;
+          if (jets[i].p4().Angle(jets[j].p4().Vect()) < jet_smallest_angle_2b)
+            jet_smallest_angle_2b = jets[i].p4().Angle(jets[j].p4().Vect());
+        }
+      }
+
+      jet_ht = 0.;
+      for (size_t i=0;i<jets.size();i++) jet_ht += jets[i].pt();
+
+      jet_btag_ht = 0.;
+      jet_non_btag_ht = 0.;
+      for (size_t i=0;i<jets.size();i++) 
+      {
+        if (ev.j_btag[jets[i].getJetIndex()]) jet_btag_ht += jets[i].pt();
+        else jet_non_btag_ht += jets[i].pt();
+      }
+
+      met_pt = ev.met_pt[0];
+
+      event_weight = plotwgts[0];
+      
       float bdt=tmvaReader->EvaluateMVA("BDT");
       ht.fill("bdt", bdt, plotwgts);
+
+      outTree.Fill();
     }
   
   //close input file

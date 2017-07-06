@@ -23,6 +23,7 @@ class SelectionTool {
   TString flagFinalState(MiniEvent_t &ev, std::vector<Particle> preselleptons={});
   std::vector<Particle> &getSelLeptons()  { return leptons_; }
   std::vector<Particle> &getVetoLeptons() { return vetoLeptons_; }
+  std::vector<Particle> &getAtLeastVetoLeptons() { return atleastVetoLeptons_; }
   std::vector<Jet>      &getJets()        { return jets_; }
   TLorentzVector        &getMET()         { return met_; }
 
@@ -49,6 +50,7 @@ class SelectionTool {
   bool hasTriggerBit(TString triggerName,unsigned int word);
   bool isSingleElectronPD_,isSingleMuonPD_,isDoubleEGPD_,isDoubleMuonPD_,isMuonEGPD_;
   std::vector<Particle> leptons_,vetoLeptons_,genLeptons_;
+  std::vector<Particle> atleastVetoLeptons_;
   std::vector<Jet> jets_,genJets_;
   TLorentzVector met_;
   bool debug_;

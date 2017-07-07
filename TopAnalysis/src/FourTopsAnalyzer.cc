@@ -360,5 +360,6 @@ void RunFourTopsAnalyzer(TString filename,
   for (auto& it : ht.get2dPlots())  { 
     it.second->SetDirectory(fOut); it.second->Write(); 
   }
+  outTree.Write();
   fOut->Close();
 }

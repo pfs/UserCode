@@ -203,7 +203,7 @@ def main():
 
                     cfg.write('#!/bin/bash\n')
                     cfg.write('WORKDIR=`pwd`\n')
-                    cfg.write('WORKDIR=$WORKDIR/test/summer2017/Chunks')
+                    cfg.write('WORKDIR=$WORKDIR/test/summer2017/FourTops/Chunks')
                     cfg.write('echo "Working directory is ${WORKDIR}"\n')
                     cfg.write('cd %s\n'%cmsswBase)
                     cfg.write('eval `scram r -sh`\n')

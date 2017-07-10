@@ -28,10 +28,10 @@ NC='\e[0m'
 case $WHAT in
 
     SEL )
-        queue=local
+        queue=condor
 	python scripts/runLocalAnalysis.py -i ${eosdir} \
             --only test/summer2017/4tops_samples.json --exactonly \
-            -q ${queue} -o ${outdir} --njobs 8 \
+            -q ${queue} -o ${outdir} \
             --era era2016 -m FourTopsAnalyzer::RunFourTopsAnalyzer --ch 0 --runSysts;
 	;;
 

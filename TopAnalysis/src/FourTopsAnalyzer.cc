@@ -118,7 +118,8 @@ void RunFourTopsAnalyzer(TString filename,
   TH1 *genPU=(TH1 *)f->Get("analysis/putrue");
   TH1 *triggerList=(TH1 *)f->Get("analysis/triggerList");
   TTree *t = (TTree*)f->Get("analysis/data");
-  attachToMiniEventTree(t,ev,true,false);
+  if (isData) attachToMiniEventTree(t,ev,true,true);
+  else attachToMiniEventTree(t,ev,true,false);
   Int_t nentries(t->GetEntriesFast());
   if (debug) nentries = 10000; //restrict number of entries for testing
   t->GetEntry(0);

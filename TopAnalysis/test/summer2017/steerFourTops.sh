@@ -19,7 +19,7 @@ lumiUnc=0.025
 whoami=`whoami`
 myletter=${whoami:0:1}
 eosdir=/store/cmst3/group/top/ReReco2016/${githash}
-outdir=test/summer2017/FourTops
+outdir=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/summer2017/FourTops
 wwwdir=~/www/FourTops
 
 

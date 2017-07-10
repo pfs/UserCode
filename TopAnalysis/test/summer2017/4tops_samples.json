@@ -1,5 +1,5 @@
 {
-"MC13TeV_TTTT"   :  [0.0092,   0, "/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM", "t#bar{t}t#bar{t}",           "#91bfdb", true, false, 1],
+"MC13TeV_TTTT"   :  [0.92,   0, "/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM", "t#bar{t}t#bar{t} x 100",           "#91bfdb", true, false, 1],
 "MC13TeV_TTJets2l2nu_amcatnlo":  [87.31,    0, "/TTJets_Dilept_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM", "t#bar{t}#rightarrow2l",          "#fc8d59", true, false, 1]
 }
 

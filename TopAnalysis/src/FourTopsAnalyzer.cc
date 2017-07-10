@@ -144,7 +144,7 @@ void RunFourTopsAnalyzer(TString filename,
   ht.addHist("njets",    new TH1F("njets",";Jet multiplicity;Events",15,-0.5,14.5));
   ht.addHist("nbjets",   new TH1F("nbjets",";b jet multiplicity;Events",10,-0.5,9.5));
   ht.addHist("nleptons", new TH1F("nleptons",";Lepton multiplicity;Events",6,-0.5,5.5));
-  ht.addHist("bdt",      new TH1F("bdt",";BDT;Events",50,-2,2));
+  ht.addHist("bdt",      new TH1F("bdt",";BDT;Events",50,-1,1));
 
   std::cout << "init done" << std::endl;
 

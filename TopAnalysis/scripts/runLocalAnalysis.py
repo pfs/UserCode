@@ -202,7 +202,7 @@ def main():
                 with open('%s/%s.sh'%(FarmDirectory,cfgFile),'w') as cfg:
 
                     cfg.write('#!/bin/bash\n')
-                    cfg.write('WORKDIR=`pwd`\n')
+                    cfg.write('WORKDIR=`pwd`/test/summer2017/FourTops/Chunks\n')
                     cfg.write('echo "Working directory is ${WORKDIR}"\n')
                     cfg.write('cd %s\n'%cmsswBase)
                     cfg.write('eval `scram r -sh`\n')

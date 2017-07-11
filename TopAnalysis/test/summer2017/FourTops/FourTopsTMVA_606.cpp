@@ -14,15 +14,34 @@ void FourTopsTMVA_606()
     
     (TMVA::gConfig().GetVariablePlotting()).fMaxNumOfAllowedVariablesForScatterPlots = 1000;
     
-    TChain *TTChain       = new TChain("TMVAanalysis");
-    TChain *FourTopsChain = new TChain("TMVAanalysis");
+    TChain *FourTopsChain  = new TChain("TMVAanalysis");
+    TChain *TTChain        = new TChain("TMVAanalysis");
+    TChain *SingleTopChain = new TChain("TMVAanalysis");
+    TChain *WChain         = new TChain("TMVAanalysis");
+    TChain *DYChain        = new TChain("TMVAanalysis");
+    TChain *BosonChain     = new TChain("TMVAanalysis");
+    TChain *ToNuChain      = new TChain("TMVAanalysis");
 
-    TTChain->Add("MC13TeV_TTJets2l2nu_amcatnlo.root");
     FourTopsChain->Add("MC13TeV_TTTT.root");
-    
-    printf("TTChain = %lld events\n",TTChain->GetEntries());
-    printf("FourTopsChain = %lld events\n",FourTopsChain->GetEntries());
-    getchar();
+    TTChain->Add("MC13TeV_TTJets2l2nu_amcatnlo.root");
+    SingleTopChain->Add("MC13TeV_SingleTbar_tW.root");
+    SingleTopChain->Add("MC13TeV_SingleT_tW.root");
+    SingleTopChain->Add("MC13TeV_SingleTbar_t.root");
+    SingleTopChain->Add("MC13TeV_SingleT_t.root");
+    WChain->Add("MC13TeV_W0Jets.root");
+    WChain->Add("MC13TeV_W1Jets.root");
+    WChain->Add("MC13TeV_W2Jets.root");
+    DYChain->Add("MC13TeV_DY50toInf_mlm.root");
+    DYChain->Add("MC13TeV_DY10to50.root");
+    BosonChain->Add("MC13TeV_ZZTo2L2Nu.root");
+    BosonChain->Add("MC13TeV_ZZTo2L2Q.root");
+    BosonChain->Add("MC13TeV_WWToLNuQQ.root");
+    BosonChain->Add("MC13TeV_WWTo2L2Nu.root");
+    BosonChain->Add("MC13TeV_WZTo3LNu.root");
+    ToNuChain->Add("MC13TeV_TTWToLNu.root");
+    ToNuChain->Add("MC13TeV_TTWToQQ.root");
+    ToNuChain->Add("MC13TeV_TTZToQQ.root");
+    ToNuChain->Add("MC13TeV_TTZToLLNuNu.root");
     
     TString outFileName("FourTopsTMVA_out.root");
     TFile *outFile = new TFile(outFileName, "RECREATE");
@@ -31,6 +50,11 @@ void FourTopsTMVA_606()
 
     factory->AddSignalTree(FourTopsChain, 1.0);
     factory->AddBackgroundTree(TTChain, 1.0);
+    factory->AddBackgroundTree(SingleTopChain, 1.0);
+    factory->AddBackgroundTree(WChain, 1.0);
+    factory->AddBackgroundTree(DYChain, 1.0);
+    factory->AddBackgroundTree(BosonChain, 1.0);
+    factory->AddBackgroundTree(ToNuChain, 1.0);
     
     factory->AddVariable("jet_1_highest_csv",'F');
     factory->AddVariable("jet_2_highest_csv",'F');

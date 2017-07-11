@@ -52,7 +52,7 @@ case $WHAT in
     ;;
 
     PLOTALL )
-    commonOpts="-i ${outdir} --puNormSF puwgtctr -j data/era2016/samples-fourtops.json -l ${lumi}  --saveLog --mcUnc ${lumiUnc} --noStack"
+    commonOpts="-i ${outdir} --puNormSF puwgtctr -j data/era2016/samples-fourtops.json -l ${lumi}  --saveLog --mcUnc ${lumiUnc}"
     python scripts/plotter.py ${commonOpts}; 
     ;;
 

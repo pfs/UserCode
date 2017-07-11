@@ -29,22 +29,36 @@ case $WHAT in
 
     SEL )
         queue=condor
-	python scripts/runLocalAnalysis.py -i ${eosdir} \
+        python scripts/runLocalAnalysis.py -i ${eosdir} \
             --only test/summer2017/4tops_samples.json --exactonly \
-            -q ${queue} -o ${outdir} \
+            -q ${queue} -o ${outdir} --jobflavour longlunch\
             --era era2016 -m FourTopsAnalyzer::RunFourTopsAnalyzer --ch 0 --runSysts;
-	;;
+    ;;
+
+    SELALL )
+        python scripts/runLocalAnalysis.py -i ${eosdir} \
+            --only data/era2016/samples-fourtops.json --exactonly \
+            -q condor -o ${outdir} --jobflavour workday\
+            --era era2016 -m FourTopsAnalyzer::RunFourTopsAnalyzer --ch 0 --runSysts;
+    ;;
 
     MERGE )
-	./scripts/mergeOutputs.py ${outdir};
-	;;
+    ./scripts/mergeOutputs.py ${outdir};
+    ;;
+
     PLOT )
-	commonOpts="-i ${outdir} --puNormSF puwgtctr -j test/summer2017/4tops_samples.json -l ${lumi}  --saveLog --mcUnc ${lumiUnc} --noStack"
-	python scripts/plotter.py ${commonOpts}; 
-	;;
+    commonOpts="-i ${outdir} --puNormSF puwgtctr -j test/summer2017/4tops_samples.json -l ${lumi}  --saveLog --mcUnc ${lumiUnc} --noStack"
+    python scripts/plotter.py ${commonOpts}; 
+    ;;
+
+    PLOTALL )
+    commonOpts="-i ${outdir} --puNormSF puwgtctr -j data/era2016/samples-fourtops.json -l ${lumi}  --saveLog --mcUnc ${lumiUnc} --noStack"
+    python scripts/plotter.py ${commonOpts}; 
+    ;;
+
     WWW )
-	mkdir -p ${wwwdir}/sel
-	cp ${outdir}/plots/*.{png,pdf} ${wwwdir}/sel
-	cp test/index.php ${wwwdir}/sel
-	;;
+    mkdir -p ${wwwdir}/sel
+    cp ${outdir}/plots/*.{png,pdf} ${wwwdir}/sel
+    cp test/index.php ${wwwdir}/sel
+    ;;
 esac

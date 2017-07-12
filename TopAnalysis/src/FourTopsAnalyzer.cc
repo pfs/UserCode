@@ -203,7 +203,7 @@ void RunFourTopsAnalyzer(TString filename,
         wgt  = (normH? normH->GetBinContent(1) : 1.0);
         
         // pu weight
-        if (puWgtGr[period][0]? false : true) continue;
+        //if (puWgtGr[period][0]? false : true) continue;
         double puWgt(puWgtGr[period][0]->Eval(ev.g_pu));
         std::vector<double>puPlotWgts(1,puWgt);
         ht.fill("puwgtctr",1,puPlotWgts);

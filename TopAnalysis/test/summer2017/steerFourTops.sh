@@ -38,7 +38,7 @@ case $WHAT in
     SELALL )
         python scripts/runLocalAnalysis.py -i ${eosdir} \
             --only data/era2016/samples-fourtops.json --exactonly \
-            -q condor -o ${outdir} --jobflavour workday\
+            -q condor -o ${outdir} --jobflavour tomorrow\
             --era era2016 -m FourTopsAnalyzer::RunFourTopsAnalyzer --ch 0 --runSysts;
     ;;
 

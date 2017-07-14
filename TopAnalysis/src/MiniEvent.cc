@@ -136,7 +136,7 @@ void createMiniEventTree(TTree *t,MiniEvent_t &ev)
 }
 
 //
-void attachToMiniEventTree(TTree *t, MiniEvent_t &ev, bool full, bool treeIsData)
+void attachToMiniEventTree(TTree *t, MiniEvent_t &ev, bool full, bool hasCTPPS)
 {
   //event header
   t->SetBranchAddress("isData",    &ev.isData);
@@ -266,7 +266,7 @@ void attachToMiniEventTree(TTree *t, MiniEvent_t &ev, bool full, bool treeIsData
   t->SetBranchAddress("met_filterBits", &ev.met_filterBits);
 
   //CTPPS local tracks
-  if (treeIsData)
+  if (hasCTPPS)
   {
     t->SetBranchAddress("nfwdtrk",    &ev.nfwdtrk);
     t->SetBranchAddress("fwdtrk_arm",  ev.fwdtrk_arm);

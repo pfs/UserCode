@@ -61,6 +61,10 @@ void RunFourTopsAnalyzer(TString filename,
   Float_t n_jets;
   Float_t n_bjets;
   Float_t n_leptons;
+  Float_t n_mu_p;
+  Float_t n_mu_m;
+  Float_t n_ele_p;
+  Float_t n_ele_m;
 
   Float_t event_weight;
 
@@ -105,6 +109,11 @@ void RunFourTopsAnalyzer(TString filename,
   outTree.Branch("n_jets",&n_jets,"n_jets/F");
   outTree.Branch("n_bjets",&n_bjets,"n_bjets/F");
   outTree.Branch("n_leptons",&n_leptons,"n_leptons/F");
+
+  outTree.Branch("n_mu_p",&n_mu_p,"n_mu_p/F");
+  outTree.Branch("n_mu_m",&n_mu_m,"n_mu_m/F");
+  outTree.Branch("n_ele_p",&n_ele_p,"n_ele_p/F");
+  outTree.Branch("n_ele_m",&n_ele_m,"n_ele_m/F");
 
   //PREPARE OUTPUT
   TString baseName=gSystem->BaseName(outname); 
@@ -248,6 +257,19 @@ void RunFourTopsAnalyzer(TString filename,
       n_jets = (float) jets.size();
       n_bjets = (float) sel_nbjets;
       n_leptons = (float) leptons.size();
+
+      n_mu_p = 0.;
+      n_mu_m = 0.;
+      n_ele_p = 0.;
+      n_ele_m = 0.;
+
+      for (size_t i=0;i<leptons.size();i++)
+      {
+        if (leptons[i].id() == 13 && leptons[i].charge() > 0.) n_mu_p++;
+        else if (leptons[i].id() == 13 && leptons[i].charge() < 0.) n_mu_m++;
+        else if (leptons[i].id() == 11 && leptons[i].charge() > 0.) n_ele_p++;
+        else if (leptons[i].id() == 11 && leptons[i].charge() < 0.) n_ele_m++;
+      }
 
       // Fill only lepton with highest pt
       

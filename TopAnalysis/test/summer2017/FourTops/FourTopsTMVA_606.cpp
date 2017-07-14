@@ -23,7 +23,7 @@ void FourTopsTMVA_606()
     TChain *ToNuChain      = new TChain("TMVAanalysis");
 
     FourTopsChain->Add("MC13TeV_TTTT.root");
-    TTChain->Add("MC13TeV_TTJets2l2nu_amcatnlo.root");
+    TTChain->Add("MC13TeV_TTJets.root");
     SingleTopChain->Add("MC13TeV_SingleTbar_tW.root");
     SingleTopChain->Add("MC13TeV_SingleT_tW.root");
     SingleTopChain->Add("MC13TeV_SingleTbar_t.root");

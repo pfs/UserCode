@@ -1,0 +1,6 @@
+executable = /afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/condor_TMVATrain.sh
+output = /afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/condor_TMVATrain.out
+error = /afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/condor_TMVATrain.err
+log = /afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/condor_TMVATrain.log
++JobFlavour = "tomorrow"
+queue 1

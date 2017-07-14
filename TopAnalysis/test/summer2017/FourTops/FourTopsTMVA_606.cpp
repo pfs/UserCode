@@ -79,6 +79,11 @@ void FourTopsTMVA_606()
     factory->AddVariable("n_bjets",'F');
     factory->AddVariable("n_leptons",'F');
 
+    factory->AddVariable("n_mu_p",'F');
+    factory->AddVariable("n_mu_m",'F');
+    factory->AddVariable("n_ele_p",'F');
+    factory->AddVariable("n_ele_m",'F');
+
     TCut mycuts = ""; // Signal cut
     TCut mycutb = ""; // Background cut
 
@@ -94,7 +99,7 @@ void FourTopsTMVA_606()
     //factory->BookMethod(TMVA::Types::kFisher,"Fisher","V"); // Fisher discriminants (linear discriminant analysis)
     //factory->BookMethod(TMVA::Types::kFDA,"FDA","V"); // Function discriminant analysis (FDA)
     //factory->BookMethod(TMVA::Types::kMLP,"MLP_ANN","V:NeuronType=tanh:VarTransform=N:NCycles=1000:HiddenLayers=N+10,N"); // ROOT neural network
-    //factory->BookMethod(TMVA::Types::kMLP,"MLP_ANN","V:VarTransform=N"); // ROOT neural network
+    factory->BookMethod(TMVA::Types::kMLP,"MLP_ANN","V:VarTransform=N"); // ROOT neural network
     //factory->BookMethod(TMVA::Types::kSVM,"SVM","V:VarTransform=N"); // Support Vector Machine
     factory->BookMethod(TMVA::Types::kBDT,"BDT","V"); // Boosted Decision Tree
     //factory->BookMethod(TMVA::Types::kRuleFit,"RuleFit","V"); // Predictive learning via rule ensembles

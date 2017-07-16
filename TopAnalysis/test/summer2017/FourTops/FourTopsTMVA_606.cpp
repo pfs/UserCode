@@ -22,7 +22,7 @@ void FourTopsTMVA_606()
     TChain *BosonChain     = new TChain("TMVAanalysis");
     TChain *ToNuChain      = new TChain("TMVAanalysis");
 
-    string dir("/afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/");
+    string dir("/afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/FourTops/");
     FourTopsChain-> Add((dir+string("MC13TeV_TTTT.root")).c_str());
     TTChain->       Add((dir+string("MC13TeV_TTJets.root")).c_str());
     SingleTopChain->Add((dir+string("MC13TeV_SingleTbar_tW.root")).c_str());

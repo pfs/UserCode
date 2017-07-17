@@ -42,6 +42,14 @@ case $WHAT in
             --era era2016 -m FourTopsAnalyzer::RunFourTopsAnalyzer --ch 0 --runSysts;
     ;;
 
+    SELCUSTOM )
+        queue=local
+        python scripts/runLocalAnalysis.py -i ${eosdir} \
+            --only test/summer2017/custom_samples.json --exactonly \
+            -q ${queue} -o ${outdir} --njobs 8 \
+            --era era2016 -m FourTopsAnalyzer::RunFourTopsAnalyzer --ch 0 --runSysts;
+    ;;
+
     MERGE )
     ./scripts/mergeOutputs.py ${outdir};
     ;;

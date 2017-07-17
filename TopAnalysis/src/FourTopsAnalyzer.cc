@@ -202,6 +202,7 @@ void RunFourTopsAnalyzer(TString filename,
       //count n b-jets
       int sel_nbjets(0);
       for(size_t ij=0; ij<jets.size(); ij++) sel_nbjets += (jets[ij].flavor()==5);
+      if (jets.size() < 4 || sel_nbjets < 2) continue;
 
       ////////////////////
       // EVENT WEIGHTS //

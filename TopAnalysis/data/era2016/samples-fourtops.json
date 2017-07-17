@@ -104,15 +104,6 @@
         false,
         1
     ],
-    "MC13TeV_TTWToLNu": [0.2043,
-        0,
-        "/TTWJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v3/MINIAODSIM",
-        "t#bar{t}+V",
-        "#F600FA",
-        false,
-        false,
-        1
-    ],
     "MC13TeV_TTWToQQ": [0.4062,
         0,
         "/TTWJetsToQQ_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM",
@@ -161,17 +152,6 @@
     "MC13TeV_TTTT_isrdn": [0.0092, 0, "/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-isrdown-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM", "t#bar{t}t#bar{t} isr dn", "#999999", false, false, 1],
     "MC13TeV_TTTT_fsrup": [0.0092, 0, "/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-fsrup-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM", "t#bar{t}t#bar{t} fsr up", "#999999", false, false, 1],
     "MC13TeV_TTTT_fsrdn": [0.0092, 0, "/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-fsrdown-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM", "t#bar{t}t#bar{t} fsr dn", "#999999", false, false, 1],
-
-
-    "Data_QCDMultijets": [1.0,
-        0,
-        "",
-        "Multijets",
-        "#e0f3f8",
-        false,
-        false,
-        1
-    ],
 
     "Data13TeV_SingleMuon_2016B": [1.0, 1, "/SingleMuon/Run2016B-03Feb2017_ver2-v2/MINIAOD", "Data", 1, false, false, 1],
     "Data13TeV_SingleMuon_2016C": [1.0, 1, "/SingleMuon/Run2016C-03Feb2017-v1/MINIAOD", "Data", 1, false, false, 1],

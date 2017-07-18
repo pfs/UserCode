@@ -210,6 +210,7 @@ class Plot(object):
             print type(self.data)
             if self.data is None: 
                 print 'self.data is NoneType'
+                print self.name
                 self.finalize()
                 print type(self.data)
             leg.AddEntry( self.data, self.data.GetTitle(),'p')

@@ -568,8 +568,11 @@ def convertToPoissonErrorGr(h):
     try:
         htype=h.ClassName()
     except:
+        print 'Unable to obtain class name. Returning NoneType object.'
         return None
-    if htype.find('TH1')<0 : return None
+    if htype.find('TH1')<0 :
+        print 'Not a TH1 object. Returning NoneType object.'
+        return None
 
     #check https://twiki.cern.ch/twiki/bin/view/CMS/PoissonErrorBars
     alpha = 1 - 0.6827;

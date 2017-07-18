@@ -97,7 +97,7 @@ def main():
                 for flav in [(1,sample[3]+'+l'),(4,sample[3]+'+c'),(5,sample[3]+'+b',sample[4])]:
                     subProcs.append(('%d_%s'%(flav[0],tag),flav[1],sample[4]+3*len(subProcs)))
             for sp in subProcs:
-
+                print 'Opening %s/%s.root\n'%(opt.inDir, sp[0])
                 fIn=ROOT.TFile.Open('%s/%s.root' % ( opt.inDir, sp[0]) )
                 if not fIn : continue
 

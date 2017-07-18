@@ -146,6 +146,7 @@ def main():
                             else:
                                 histos.append(obj)
                                 histos[-1].SetTitle(sp[1])
+                        elif not obj.InheritsFrom('TH1'): continue
                         else:
                             fixExtremities(obj, False, False)
                             histos.append(obj)

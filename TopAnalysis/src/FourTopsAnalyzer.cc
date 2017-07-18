@@ -153,7 +153,7 @@ void RunFourTopsAnalyzer(TString filename,
   HistTool ht;
   ht.setNsyst(0);
   ht.addHist("puwgtctr", new TH1F("puwgtctr",";Weight sums;Events",2,0,2));
-  ht.addHist("nvtx",     new TH1F("nvtx",";Vertex multiplicity;Events",55,-0.5,49.5));
+  ht.addHist("nvtx",     new TH1F("nvtx",";Vertex multiplicity;Events",50,-0.5,49.5));
   ht.addHist("njets",    new TH1F("njets",";Jet multiplicity;Events",15,-0.5,14.5));
   ht.addHist("nbjets",   new TH1F("nbjets",";b jet multiplicity;Events",10,-0.5,9.5));
   ht.addHist("nleptons", new TH1F("nleptons",";Lepton multiplicity;Events",6,-0.5,5.5));

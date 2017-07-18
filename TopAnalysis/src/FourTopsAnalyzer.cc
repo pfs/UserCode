@@ -91,6 +91,7 @@ void RunFourTopsAnalyzer(TString filename,
   tmvaReader->AddVariable("n_ele_p",               &n_ele_p);
   tmvaReader->AddVariable("n_ele_m",               &n_ele_m);
   tmvaReader->BookMVA( "BDT", "/afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/FourTopsML_BDT_606.weights.xml");
+  tmvaReader->BookMVA("MLP_ANN","/afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/FourTopsML_MLP_ANN_606.weights.xml")
 
   //CREATE OUTPUT TREE
   TTree outTree("TMVAanalysis","NTuple tree for TMVA analysis");
@@ -158,6 +159,7 @@ void RunFourTopsAnalyzer(TString filename,
   ht.addHist("nbjets",   new TH1F("nbjets",";b jet multiplicity;Events",10,-0.5,9.5));
   ht.addHist("nleptons", new TH1F("nleptons",";Lepton multiplicity;Events",6,-0.5,5.5));
   ht.addHist("bdt",      new TH1F("bdt",";BDT;Events",50,-1,1));
+  ht.addHist("mlp_ann",  new TH1F("mlp_ann",";MLP_ANN; Events",50,0.,1.));
 
   std::cout << "init done" << std::endl;
 
@@ -370,8 +372,10 @@ void RunFourTopsAnalyzer(TString filename,
 
       event_weight = plotwgts[0];
       
-      float bdt=tmvaReader->EvaluateMVA("BDT");
+      float bdt = tmvaReader->EvaluateMVA("BDT");
       ht.fill("bdt", bdt, plotwgts);
+      float mlp_ann = tmvaReader->EvaluateMVA("MLP_ANN");
+      ht.fill("mlp_ann", mlp_ann, plotwgts);
 
       outTree.Fill();
     }

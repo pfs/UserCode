@@ -207,7 +207,11 @@ class Plot(object):
         nlegCols = 0
 
         if self.dataH is not None:
-            if self.data is None: self.finalize()
+            print type(self.data)
+            if self.data is None: 
+                print 'self.data is NoneType'
+                self.finalize()
+                print type(self.data)
             leg.AddEntry( self.data, self.data.GetTitle(),'p')
             nlegCols += 1
         for h in self.mc:

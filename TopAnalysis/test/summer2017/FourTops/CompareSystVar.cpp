@@ -14,7 +14,7 @@ void CompareSystVar()
 
     std::string histograms[] = {"nbjets", "njets", "nleptons", "nvtx"};
 
-    TFile *out = new TFile("Compare_TTTT.root");
+    TFile *out = new TFile("Compare_TTTT.root","RECREATE");
     TCanvas *canvas;
     TH1F *hist;
 

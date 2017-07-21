@@ -20,11 +20,11 @@ void CompareSystVar()
 
     for (short i = 0; i < 4; i++)
     {
-        canvas = new TCanvas(histograms[i],histograms[i],800,600);
+        canvas = new TCanvas(histograms[i].c_str(),histograms[i].c_str(),800,600);
         canvas->cd();
         for (short j = 0; j < 5; j++)
         {
-            hist = (TH1F*) FourTops_addr[j]->Get(histograms[i]);
+            hist = (TH1F*) FourTops_addr[j]->Get(histograms[i].c_str());
             hist->Draw("SAME");
         }
         out->cd();

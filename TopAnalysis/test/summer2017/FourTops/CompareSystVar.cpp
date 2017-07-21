@@ -34,7 +34,7 @@ void CompareSystVar()
             hist->SetLineColor(markerColour[j]);
             hist->SetMarkerColor(markerColour[j]);
             hist->Draw("SAME");
-            legend->AddEntry(hist, fileName[j], "lep");
+            legend->AddEntry(hist, fileName[j].c_str(), "lep");
         }
         legend->Draw();
         out->cd();

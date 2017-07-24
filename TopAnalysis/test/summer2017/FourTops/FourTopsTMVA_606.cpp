@@ -21,6 +21,7 @@ void FourTopsTMVA_606()
     TChain *DYChain        = new TChain("TMVAanalysis");
     TChain *BosonChain     = new TChain("TMVAanalysis");
     TChain *ToNuChain      = new TChain("TMVAanalysis");
+    TChain *RareChain      = new TChain("TMVAAnalysis");
 
     string dir("/afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/FourTops/");
     FourTopsChain-> Add((dir+string("MC13TeV_TTTT.root")).c_str());
@@ -39,10 +40,24 @@ void FourTopsTMVA_606()
     BosonChain->    Add((dir+string("MC13TeV_WWToLNuQQ.root")).c_str());
     BosonChain->    Add((dir+string("MC13TeV_WWTo2L2Nu.root")).c_str());
     BosonChain->    Add((dir+string("MC13TeV_WZTo3LNu.root")).c_str());
-    ToNuChain->     Add((dir+string("MC13TeV_TTWToLNu.root")).c_str());
     ToNuChain->     Add((dir+string("MC13TeV_TTWToQQ.root")).c_str());
     ToNuChain->     Add((dir+string("MC13TeV_TTZToQQ.root")).c_str());
     ToNuChain->     Add((dir+string("MC13TeV_TTZToLLNuNu.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_tZq.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_ZZ4L.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_GGHZZ4L.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_VHtoNonbb.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_WWW.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_WWZ.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_ZZZ.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_TTWW.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_TTTW.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_TTWZ.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_TTZZ.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_TTWH.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_TTZH.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_TTHH.root")).c_str());
+    RareChain->     Add((dir+string("MC13TeV_TTTJ.root")).c_str());
     
     TString outFileName("FourTopsTMVA_out.root");
     TFile *outFile = new TFile(outFileName, "RECREATE");
@@ -56,6 +71,7 @@ void FourTopsTMVA_606()
     factory->AddBackgroundTree(DYChain, 1.0);
     factory->AddBackgroundTree(BosonChain, 1.0);
     factory->AddBackgroundTree(ToNuChain, 1.0);
+    factory->AddBackgroundTree(RareChain, 1.0);
     
     factory->AddVariable("jet_1_highest_csv",'F');
     factory->AddVariable("jet_2_highest_csv",'F');

@@ -21,7 +21,7 @@ void FourTopsTMVA_606()
     TChain *DYChain        = new TChain("TMVAanalysis");
     TChain *BosonChain     = new TChain("TMVAanalysis");
     TChain *ToNuChain      = new TChain("TMVAanalysis");
-    TChain *RareChain      = new TChain("TMVAAnalysis");
+    TChain *RareChain      = new TChain("TMVAanalysis");
 
     string dir("/afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/FourTops/");
     FourTopsChain-> Add((dir+string("MC13TeV_TTTT.root")).c_str());

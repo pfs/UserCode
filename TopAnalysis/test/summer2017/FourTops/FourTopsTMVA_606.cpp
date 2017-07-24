@@ -17,7 +17,7 @@ void FourTopsTMVA_606()
     TChain *FourTopsChain  = new TChain("TMVAanalysis");
     TChain *TTChain        = new TChain("TMVAanalysis");
     TChain *SingleTopChain = new TChain("TMVAanalysis");
-    TChain *WChain         = new TChain("TMVAanalysis");
+    //TChain *WChain         = new TChain("TMVAanalysis");
     TChain *DYChain        = new TChain("TMVAanalysis");
     TChain *BosonChain     = new TChain("TMVAanalysis");
     TChain *ToNuChain      = new TChain("TMVAanalysis");
@@ -30,9 +30,9 @@ void FourTopsTMVA_606()
     SingleTopChain->Add((dir+string("MC13TeV_SingleT_tW.root")).c_str());
     SingleTopChain->Add((dir+string("MC13TeV_SingleTbar_t.root")).c_str());
     SingleTopChain->Add((dir+string("MC13TeV_SingleT_t.root")).c_str());
-    WChain->        Add((dir+string("MC13TeV_W0Jets.root")).c_str());
-    WChain->        Add((dir+string("MC13TeV_W1Jets.root")).c_str());
-    WChain->        Add((dir+string("MC13TeV_W2Jets.root")).c_str());
+    //WChain->        Add((dir+string("MC13TeV_W0Jets.root")).c_str());
+    //WChain->        Add((dir+string("MC13TeV_W1Jets.root")).c_str());
+    //WChain->        Add((dir+string("MC13TeV_W2Jets.root")).c_str());
     DYChain->       Add((dir+string("MC13TeV_DY50toInf_mlm.root")).c_str());
     DYChain->       Add((dir+string("MC13TeV_DY10to50.root")).c_str());
     BosonChain->    Add((dir+string("MC13TeV_ZZTo2L2Nu.root")).c_str());
@@ -67,7 +67,7 @@ void FourTopsTMVA_606()
     factory->AddSignalTree(FourTopsChain, 1.0);
     factory->AddBackgroundTree(TTChain, 1.0);
     factory->AddBackgroundTree(SingleTopChain, 1.0);
-    factory->AddBackgroundTree(WChain, 1.0);
+    //factory->AddBackgroundTree(WChain, 1.0);
     factory->AddBackgroundTree(DYChain, 1.0);
     factory->AddBackgroundTree(BosonChain, 1.0);
     factory->AddBackgroundTree(ToNuChain, 1.0);

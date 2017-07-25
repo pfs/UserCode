@@ -94,6 +94,9 @@ void FourTopsXSect()
 
     for (int i=0;i<dataFileName.size();i++)
         dataFilePtr.push_back(new TFile((dir+dataFileName[i]).c_str()));
+
+    printf("bgFilePtr.size() = %d\n",bgFilePtr.size());
+    printf("dataFilePtr.size() = %d\n",dataFilePtr.size());
     
     std::vector<string> histograms = {"bdt","mlp_ann"};
     double factor[histograms.size()];
@@ -102,6 +105,7 @@ void FourTopsXSect()
 
     for (int i=0;i<histograms.size();i++)
     {
+        printf("Now working on %s\n",histograms[i]);
         histCache = (TH1F*) sigFile->Get(histograms[i].c_str());
 
         int numBins = histCache->GetNbinsX();
@@ -116,18 +120,21 @@ void FourTopsXSect()
             y_bg[j] = 0.;
             y_data[j] = 0.;
         }
+        printf("y_sig filled\n");
 
         for (int k=0;k<bgFilePtr.size();k++) 
         {
             histCache = (TH1F*) bgFilePtr[k]->Get(histograms[i].c_str());
             for (int j=0;j<numBins;j++) y_bg[j] += histCache->GetBinContent(j+1);
         }
+        printf("y_bg filled\n");
 
         for (int k=0;k<dataFilePtr.size();k++)
         {
             histCache = (TH1F*) dataFilePtr[k]->Get(histograms[i].c_str());
             for (int j=0;j<numBins;j++) y_data[j] += histCache->GetBinContent(j+1);
         }
+        printf("y_data filled\n");
 
         printf("%s",histograms[i].c_str());
         printf("\n---------------------------------------\n");

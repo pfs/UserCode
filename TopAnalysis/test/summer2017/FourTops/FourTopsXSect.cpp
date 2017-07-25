@@ -121,7 +121,7 @@ void FourTopsXSect()
     for (int i=0;i<histograms.size();i++)
     {
         printf("Now working on %s\n",histograms[i].c_str());
-        histCache = (TH1F*) sigFile->Get((histograms[i]+"/"+histograms[i]+"_"+sigProcess).c_str());
+        histCache = (TH1F*) plotterFile->Get((histograms[i]+"/"+histograms[i]+"_"+sigProcess).c_str());
 
         int numBins = histCache->GetNbinsX();
         
@@ -139,13 +139,13 @@ void FourTopsXSect()
 
         for (int k=0;k<bgProcess.size();k++) 
         {
-            histCache = (TH1F*) bgFilePtr[k]->Get((histograms[i]+"/"+histograms[i]+"_"+bgProcess[k]).c_str());
+            histCache = (TH1F*) plotterFile->Get((histograms[i]+"/"+histograms[i]+"_"+bgProcess[k]).c_str());
             printf("histograms[i] obtained\n");
             for (int j=0;j<numBins;j++) y_bg[j] += histCache->GetBinContent(j+1);
         }
         printf("y_bg filled\n");
 
-        histCache = (TH1F*) dataFilePtr[k]->Get((histograms[i]+"/"+histograms[i]).c_str());
+        histCache = (TH1F*) plotterFile->Get((histograms[i]+"/"+histograms[i]).c_str());
         printf("histograms[i] obtained\n");
         for (int j=0;j<numBins;j++) y_data[j] += histCache->GetBinContent(j+1);
         printf("y_data filled\n");

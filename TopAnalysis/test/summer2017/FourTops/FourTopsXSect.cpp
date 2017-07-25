@@ -17,7 +17,7 @@ void FourTopsXSect()
         "MC13TeV_DY50toInf_mlm.root",
         "MC13TeV_DY10to50.root",
         "MC13TeV_ZZTo2L2Nu.root",
-        "MC13TeV_ZZTo2L2Q.root)",
+        "MC13TeV_ZZTo2L2Q.root",
         "MC13TeV_WWToLNuQQ.root",
         "MC13TeV_WWTo2L2Nu.root",
         "MC13TeV_WZTo3LNu.root",
@@ -67,7 +67,7 @@ void FourTopsXSect()
         "Data13TeV_MuonEG_2016G.root",
         "Data13TeV_MuonEG_2016Hv2.root",
         "Data13TeV_MuonEG_2016Hv3.root",
-        "Data13TeV_SingleElectron_2016B.root"
+        "Data13TeV_SingleElectron_2016B.root",
         "Data13TeV_SingleElectron_2016C.root",
         "Data13TeV_SingleElectron_2016D.root",
         "Data13TeV_SingleElectron_2016E.root",

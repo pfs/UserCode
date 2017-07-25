@@ -7,7 +7,7 @@ void FourTopsXSect()
     string dir("/afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/FourTops/");
 
     string sigFileName("MC13TeV_TTTT.root");
-    std::list<string> bgFileName =
+    std::vector<string> bgFileName =
     {
         "MC13TeV_TTJets.root",
         "MC13TeV_SingleTbar_tW.root",
@@ -41,7 +41,7 @@ void FourTopsXSect()
         "MC13TeV_TTTJ.root"
     }
 
-    std::list<string> dataFileName = 
+    std::vector<string> dataFileName = 
     {
         "Data13TeV_DoubleEG_2016B.root",
         "Data13TeV_DoubleEG_2016C.root",
@@ -86,8 +86,8 @@ void FourTopsXSect()
     }
 
     TFile *sigFile = new TFile((dir+sigFileName).c_str());
-    std::list<TFile*> bgFilePtr = new std::list<TFile*>();
-    std::list<TFile*> dataFilePtr = new std::list<TFile*>();
+    std::vector<TFile*> bgFilePtr = new std::list<TFile*>();
+    std::vector<TFile*> dataFilePtr = new std::list<TFile*>();
 
     for (int i=0;i<bgFileName.size();i++) 
         bgFilePtr.push_back(new TFile((dir+bgFileName[i]).c_str()));
@@ -135,7 +135,7 @@ void FourTopsXSect()
         for (int i=0;i<numBins;i++) printf("%lf ",y_sig[i]);
         printf("\nBACKGROUND\n");
         for (int i=0;i<numBins;i++) printf("%lf ",y_bg[i]);
-        printf("\DATA\n");
+        printf("\nDATA\n");
         for (int i=0;i<numBins;i++) printf("%lf ",y_data[i]);
     }
 }

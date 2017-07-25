@@ -86,5 +86,5 @@ void FourTopsXSect()
     }
 
     printf("\n==================RESULTS=====================\n");
-    for (int i=0;i<histograms.size();i++) printf("%s\t%lf\n",histograms[i],factor[i]);
+    for (int i=0;i<histograms.size();i++) printf("%s\t%lf\n",histograms[i].c_str(),factor[i]);
 }

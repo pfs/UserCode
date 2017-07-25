@@ -39,7 +39,7 @@ void FourTopsXSect()
         "MC13TeV_TTZH.root",
         "MC13TeV_TTHH.root",
         "MC13TeV_TTTJ.root"
-    }
+    };
 
     std::vector<string> dataFileName = 
     {
@@ -83,11 +83,11 @@ void FourTopsXSect()
         "Data13TeV_SingleMuon_2016G.root",
         "Data13TeV_SingleMuon_2016Hv2.root",
         "Data13TeV_SingleMuon_2016Hv3.root"
-    }
+    };
 
     TFile *sigFile = new TFile((dir+sigFileName).c_str());
-    std::vector<TFile*> bgFilePtr = new std::vector<TFile*>();
-    std::vector<TFile*> dataFilePtr = new std::vector<TFile*>();
+    std::vector<TFile*> bgFilePtr();
+    std::vector<TFile*> dataFilePtr();
 
     for (int i=0;i<bgFileName.size();i++) 
         bgFilePtr.push_back(new TFile((dir+bgFileName[i]).c_str()));
@@ -102,7 +102,7 @@ void FourTopsXSect()
 
     for (int i=0;i<histograms.size();i++)
     {
-        histCache = sigFile->Get(histograms[i]);
+        histCache = sigFile->Get(histograms[i].c_str());
 
         int numBins = histCache->GetNbinsX();
         
@@ -119,17 +119,17 @@ void FourTopsXSect()
 
         for (int k=0;k<bgFilePtr.size();k++) 
         {
-            histCache = bgFilePtr[k]->Get(histograms[i]);
+            histCache = bgFilePtr[k]->Get(histograms[i].c_str());
             for (int j=0;j<numBins;j++) y_bg[j] += histCache->GetBinContent(j+1);
         }
 
         for (int k=0;k<dataFilePtr.size();k++)
         {
-            histCache = dataFilePtr[k]->Get(histograms[i]);
+            histCache = dataFilePtr[k]->Get(histograms[i].c_str());
             for (int j=0;j<numBins;j++) y_data[j] += histCache->GetBinContent(j+1);
         }
 
-        printf(histograms[i]);
+        printf("%s",histograms[i]);
         printf("\n---------------------------------------\n");
         printf("SIGNAL\n");
         for (int i=0;i<numBins;i++) printf("%lf ",y_sig[i]);

@@ -34,6 +34,9 @@ void CompareSystVar()
             hist->SetLineColor(markerColour[j]);
             hist->SetMarkerColor(markerColour[j]);
             hist->SetStats(false);
+            if (histogram[i] == "bdt") hist->Rebin(5);
+            else if (histogram[i] == "mlp_ann") hist->Rebin(5);
+            else if (histogram[i] == "nvtx") hist->Rebin(5);
             hist->Draw("SAME");
             legend->AddEntry(hist, fileName[j].c_str(), "lep");
         }

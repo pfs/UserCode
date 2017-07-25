@@ -21,7 +21,7 @@ void FourTopsXSect()
         "MC13TeV_WWToLNuQQ.root",
         "MC13TeV_WWTo2L2Nu.root",
         "MC13TeV_WZTo3LNu.root",
-        "MC13TeV_TTWToQQ.root",
+        //"MC13TeV_TTWToQQ.root",
         "MC13TeV_TTZToQQ.root",
         "MC13TeV_TTZToLLNuNu.root",
         "MC13TeV_tZq.root",
@@ -105,7 +105,7 @@ void FourTopsXSect()
 
     for (int i=0;i<histograms.size();i++)
     {
-        printf("Now working on %s\n",histograms[i]);
+        printf("Now working on %s\n",histograms[i].c_str());
         histCache = (TH1F*) sigFile->Get(histograms[i].c_str());
 
         int numBins = histCache->GetNbinsX();

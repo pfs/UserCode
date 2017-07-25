@@ -6,6 +6,7 @@ void FourTopsXSect()
 {
     string dir("/afs/cern.ch/user/v/vwachira/CMSSW_8_0_28/src/TopLJets2015/TopAnalysis/test/summer2017/FourTops/");
 
+    /*
     string sigFileName("MC13TeV_TTTT.root");
     std::vector<string> bgFileName =
     {
@@ -97,7 +98,21 @@ void FourTopsXSect()
 
     printf("bgFilePtr.size() = %d\n",bgFilePtr.size());
     printf("dataFilePtr.size() = %d\n",dataFilePtr.size());
-    
+    */
+
+    TFile *plotterFile = new TFile("plots/plotter.root");
+    string sigProcess = "t#bar{t}t#bar{t} x 100";
+    std::vector<string> bgProcess =
+    {
+        "t#bar{t}",
+        "Single top",
+        "W",
+        "DY",
+        "Multiboson",
+        "t#bar{t}+V",
+        "Rares"
+    };
+
     std::vector<string> histograms = {"bdt","mlp_ann"};
     double factor[histograms.size()];
 
@@ -106,7 +121,7 @@ void FourTopsXSect()
     for (int i=0;i<histograms.size();i++)
     {
         printf("Now working on %s\n",histograms[i].c_str());
-        histCache = (TH1F*) sigFile->Get(histograms[i].c_str());
+        histCache = (TH1F*) sigFile->Get((histograms[i]+"/"+histograms[i]+"_"+sigProcess).c_str());
 
         int numBins = histCache->GetNbinsX();
         
@@ -122,20 +137,17 @@ void FourTopsXSect()
         }
         printf("y_sig filled\n");
 
-        for (int k=0;k<bgFilePtr.size();k++) 
+        for (int k=0;k<bgProcess.size();k++) 
         {
-            histCache = (TH1F*) bgFilePtr[k]->Get(histograms[i].c_str());
+            histCache = (TH1F*) bgFilePtr[k]->Get((histograms[i]+"/"+histograms[i]+"_"+bgProcess[k]).c_str());
             printf("histograms[i] obtained\n");
             for (int j=0;j<numBins;j++) y_bg[j] += histCache->GetBinContent(j+1);
         }
         printf("y_bg filled\n");
 
-        for (int k=0;k<dataFilePtr.size();k++)
-        {
-            histCache = (TH1F*) dataFilePtr[k]->Get(histograms[i].c_str());
-            printf("histograms[i] obtained\n");
-            for (int j=0;j<numBins;j++) y_data[j] += histCache->GetBinContent(j+1);
-        }
+        histCache = (TH1F*) dataFilePtr[k]->Get((histograms[i]+"/"+histograms[i]).c_str());
+        printf("histograms[i] obtained\n");
+        for (int j=0;j<numBins;j++) y_data[j] += histCache->GetBinContent(j+1);
         printf("y_data filled\n");
 
         printf("%s",histograms[i].c_str());

@@ -125,6 +125,7 @@ void FourTopsXSect()
         for (int k=0;k<bgFilePtr.size();k++) 
         {
             histCache = (TH1F*) bgFilePtr[k]->Get(histograms[i].c_str());
+            printf("histograms[i] obtained\n");
             for (int j=0;j<numBins;j++) y_bg[j] += histCache->GetBinContent(j+1);
         }
         printf("y_bg filled\n");
@@ -132,6 +133,7 @@ void FourTopsXSect()
         for (int k=0;k<dataFilePtr.size();k++)
         {
             histCache = (TH1F*) dataFilePtr[k]->Get(histograms[i].c_str());
+            printf("histograms[i] obtained\n");
             for (int j=0;j<numBins;j++) y_data[j] += histCache->GetBinContent(j+1);
         }
         printf("y_data filled\n");

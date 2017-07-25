@@ -86,8 +86,8 @@ void FourTopsXSect()
     }
 
     TFile *sigFile = new TFile((dir+sigFileName).c_str());
-    std::vector<TFile*> bgFilePtr = new std::list<TFile*>();
-    std::vector<TFile*> dataFilePtr = new std::list<TFile*>();
+    std::vector<TFile*> bgFilePtr = new std::vector<TFile*>();
+    std::vector<TFile*> dataFilePtr = new std::vector<TFile*>();
 
     for (int i=0;i<bgFileName.size();i++) 
         bgFilePtr.push_back(new TFile((dir+bgFileName[i]).c_str()));
@@ -95,7 +95,7 @@ void FourTopsXSect()
     for (int i=0;i<dataFileName.size();i++)
         dataFilePtr.push_back(new TFile((dir+dataFileName[i]).c_str()));
     
-    std::list<string> histograms = {"bdt","mlp_ann"};
+    std::vector<string> histograms = {"bdt","mlp_ann"};
     double factor[histograms.size()];
 
     TH1F *histCache;

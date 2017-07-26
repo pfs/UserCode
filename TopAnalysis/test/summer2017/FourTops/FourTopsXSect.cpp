@@ -27,9 +27,9 @@ void FourTopsXSect()
     TH1F *histCache;
 
     double SDGoal = 1.; // 68% CL
-    SDGoal = 1.645; // 90% CL
-    SDGoal = 1.96; // 95% CL
-    SDGoal = 2.576; // 99% CL
+    //SDGoal = 1.645; // 90% CL
+    //SDGoal = 1.96; // 95% CL
+    //SDGoal = 2.576; // 99% CL
 
     for (int i=0;i<histograms.size();i++)
     {
@@ -115,14 +115,14 @@ void FourTopsXSect()
         factor_stat_err_pos[i] = x1;
 
         x1 = 0.0001;
-        double F_at_zero = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig;
-        x1 = 0.0001+(factor[i]-0.0001)/(lowest_F-F_at_zero)*(-F_at_zero);
+        double F_at_zero = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - SDGoal/2.;
+        x1 = 0.0001+(factor[i]-0.0001)/(-SDGoal/2.-F_at_zero)*(-F_at_zero);
 
         do
         {
             error = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - SDGoal/2;
             if (TMath::Abs(error) < 1e-6) break;
-            x1 = 0.0001 + (x1-0.0001)/(error-F_at_zero+lowest_F+SDGoal/2.)*(-F_at_zero+lowest_F+SDGoal/2.);
+            x1 = 0.0001 + (x1-0.0001)/(error-F_at_zero)*(-F_at_zero);
             printf("\nfactor_stat_err_neg: %lf\terror: %lf",x1,error);
             //getchar(); 
         } while (TMath::Abs(error) >= 1e-6);

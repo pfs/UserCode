@@ -26,6 +26,11 @@ void FourTopsXSect()
 
     TH1F *histCache;
 
+    double SDGoal = 1.; // 68% CL
+    SDGoal = 1.645; // 90% CL
+    SDGoal = 1.96; // 95% CL
+    SDGoal = 2.576; // 99% CL
+
     for (int i=0;i<histograms.size();i++)
     {
         //printf("Now working on %s\n",histograms[i].c_str());
@@ -80,6 +85,7 @@ void FourTopsXSect()
 
         for (int j=0;j<numBins;j++)
         {
+            if (y_sig[j] <= 0) continue;
             sum_sig += y_sig[j];
             sum_data += y_data_nobg[j];
             sum_data_log_sig += y_data_nobg[j]*TMath::Log(y_sig[j]);
@@ -93,11 +99,11 @@ void FourTopsXSect()
 
         do
         {
-            error = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - 0.5;
-            if (TMath::Abs(error) < 1e-12) break;
+            error = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - SDGoal/2.;
+            if (TMath::Abs(error) < 1e-6) break;
             x1 = factor[i] + (x1 - factor[i])/(error-lowest_F)*(-lowest_F);
-            printf("\nfactor_stat_err_pos: %lf",x1);
-        } while (TMath::Abs(error) >= 1e-12);
+            printf("\nfactor_stat_err_pos: %lf\terror: %lf",x1,error);
+        } while (TMath::Abs(error) >= 1e-6);
 
         factor_stat_err_pos[i] = x1;
 
@@ -107,11 +113,11 @@ void FourTopsXSect()
 
         do
         {
-            error = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - 0.5;
-            if (TMath::Abs(error) < 1e-12) break;
+            error = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - SDGoal/2;
+            if (TMath::Abs(error) < 1e-6) break;
             x1 = 0.0001 + (x1-0.0001)/(error-F_at_zero)*(-F_at_zero);
-            printf("\nfactor_stat_err_neg: %lf",x1);
-        } while (TMath::Abs(error) >= 1e-12);
+            printf("\nfactor_stat_err_pos: %lf\terror: %lf",x1,error);
+        } while (TMath::Abs(error) >= 1e-6);
 
         factor_stat_err_neg[i] = x1;
     }

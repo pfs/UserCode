@@ -95,7 +95,7 @@ void FourTopsXSect()
         {
             error = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - 0.5;
             if (TMath::Abs(error) < 1e-12) break;
-            x1 = factor[i] + (x1 - factor[i])/(cache-lowest_F)*(-lowest_F);
+            x1 = factor[i] + (x1 - factor[i])/(error-lowest_F)*(-lowest_F);
             printf("\nfactor_stat_err_pos: %lf",x1);
         } while (TMath::Abs(error) >= 1e-12);
 

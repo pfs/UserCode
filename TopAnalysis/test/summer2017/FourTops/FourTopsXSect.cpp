@@ -21,6 +21,8 @@ void FourTopsXSect()
 
     std::vector<string> histograms = {"bdt","mlp_ann"};
     double factor[histograms.size()];
+    double factor_stat_err_pos[histograms.size()];
+    double factor_stat_err_neg[histograms.size()];
 
     TH1F *histCache;
 
@@ -72,19 +74,48 @@ void FourTopsXSect()
             if (y_data_nobg[j] < 0) y_data_nobg[j] = 0;
         }
 
-        double sig_sq = 0.;
-        double sig_data = 0.;
+        double sum_sig = 0.;
+        double sum_data = 0.;
+        double sum_data_log_sig = 0.;
 
-        for (int j=0;j<numBins;j++) 
+        for (int j=0;j<numBins;j++)
         {
-            sig_sq += y_sig[j]*y_sig[j];
-            sig_data += y_sig[j]*y_data[j];
+            sum_sig += y_sig[j];
+            sum_data += y_data_nobg[j];
+            sum_data_log_sig += y_data_nobg[j]*TMath::Log(y_sig[j]);
         }
 
-        factor[i] = sig_data/sig_sq;
+        factor[i] = sum_data / sum_sig;
+        double lowest_F = -TMath::Log(factor[i])*sum_data + factor[i]*sum_sig - sum_data_log_sig;
 
+        double x1 = factor[i]+0.1;
+        double error = 0.;
+
+        do
+        {
+            error = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - 0.5;
+            if (TMath::Abs(error) < 1e-12) break;
+            x1 = factor[i] + (x1 - factor[i])/(cache-lowest_F)*(-lowest_F);
+            printf("\nfactor_stat_err_pos: %lf",x1);
+        } while (TMath::Abs(error) >= 1e-12);
+
+        factor_stat_err_pos[i] = x1;
+
+        x1 = 0.0001;
+        double F_at_zero = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig;
+        x1 = 0.0001+(factor[i]-0.0001)/(lowest_F-F_at_zero)*(-F_at_zero);
+
+        do
+        {
+            error = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - 0.5;
+            if (TMath::Abs(error) < 1e-12) break;
+            x1 = 0.0001 + (x1-0.0001)/(error-F_at_zero)*(-F_at_zero);
+            printf("\nfactor_stat_err_neg: %lf",x1);
+        } while (TMath::Abs(error) >= 1e-12);
+
+        factor_stat_err_neg[i] = x1;
     }
 
     printf("\n==================RESULTS=====================\n");
-    for (int i=0;i<histograms.size();i++) printf("%s\t%lf\n",histograms[i].c_str(),factor[i]);
+    for (int i=0;i<histograms.size();i++) printf("%s\t%lf\t+ %lf\t- %lf\n",histograms[i].c_str(),factor[i],factor_stat_err_pos[i],factor_stat_err_neg[i]);
 }

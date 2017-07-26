@@ -107,7 +107,7 @@ void FourTopsXSect()
         {
             error = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - SDGoal/2.;
             if (TMath::Abs(error) < 1e-6) break;
-            x1 = factor[i] + (x1 - factor[i])/(error-lowest_F)*(-lowest_F);
+            x1 = factor[i] + (x1 - factor[i])/(error-SDGoal/2.)*(-SDGoal/2.);
             printf("\nfactor_stat_err_pos: %lf\terror: %lf",x1,error);
 	    getchar();
         } while (TMath::Abs(error) >= 1e-6);
@@ -122,7 +122,7 @@ void FourTopsXSect()
         {
             error = -TMath::Log(x1)*sum_data + x1*sum_sig - sum_data_log_sig - lowest_F - SDGoal/2;
             if (TMath::Abs(error) < 1e-6) break;
-            x1 = 0.0001 + (x1-0.0001)/(error-F_at_zero)*(-F_at_zero);
+            x1 = 0.0001 + (x1-0.0001)/(error-F_at_zero+lowest_F+SDGoal/2.)*(-F_at_zero+lowest_F+SDGoal/2.);
             printf("\nfactor_stat_err_pos: %lf\terror: %lf",x1,error);
 	    getchar(); 
         } while (TMath::Abs(error) >= 1e-6);

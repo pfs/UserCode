@@ -65,8 +65,34 @@ case $WHAT in
     ;;
 
     WWW )
+<<<<<<< HEAD
     mkdir -p ${wwwdir}/sel
     cp ${outdir}/plots/*.{png,pdf} ${wwwdir}/sel
     cp test/index.php ${wwwdir}/sel
     ;;
+=======
+	mkdir -p ${wwwdir}/sel
+	cp ${outdir}/plots/*.{png,pdf} ${wwwdir}/sel
+	cp test/index.php ${wwwdir}/sel
+	;;
+    DATACARD )
+
+        #addBinByBin specifies if the threshold for which bin-by-bin uncertainties should be added
+        #            30% relative stat unc is usually fine as threshold
+        #rebin       helps to reduce stat fluctuations
+        #specs       specifies the analysis line in python/xsecSystSpecs.py which defines which systematics
+        #            should be assigned to each process
+
+        python scripts/createDataCard.py \
+            -i  /afs/cern.ch/user/p/psilva/public/forTop/plotter.root \
+            --systInput /afs/cern.ch/user/p/psilva/public/forTop/syst_plotter.root \
+            -o test/summer2017/datacard_4tops \
+            --specs FourTops \
+            --signal tbarttbart \
+            -d bdt \
+            -c "" \
+            --rebin 10 \
+            --addBinByBin 0.3            
+         ;;
+>>>>>>> 7b8cf48a9cddd3b68876a8fcac5a6bff6fe15542
 esac

@@ -28,7 +28,7 @@ case $WHAT in
         #to run on the batck use "-q condor"
 	python scripts/runLocalAnalysis.py -i ${eosdir} \
             --only test/summer2017/mttbar_samples.json --exactonly \
-            -q condor \
+            --njobs 1 -q local \
             -o ${outdir} \
             --era era2016 -m MttbarAnalyzer::RunMttbarAnalyzer --ch 0 --runSysts;
 	;;

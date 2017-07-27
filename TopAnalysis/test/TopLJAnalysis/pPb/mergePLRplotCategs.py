@@ -3,7 +3,8 @@
 import ROOT
 import sys
 
-from runDataFit import lumi
+lumi=(174.5,8.725)
+#from runDataFit import lumi
 
 plots={'pdfcomp1':None,
        'pdfcomp0':None,

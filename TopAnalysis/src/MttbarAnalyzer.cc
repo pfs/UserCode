@@ -90,6 +90,9 @@ void RunMttbarAnalyzer(TString filename,
   ht.addHist("nbjets",       new TH1F("nbjets",      ";b jet multiplicity;Events",10,-0.5,9.5));
   ht.addHist("ht",           new TH1F("ht",          ";H_{T} [GeV];Events",50,0,250));
   ht.addHist("mttbar",   new TH1F("mttbar",  ";M_{ttbar} [GeV];Events",100,300,1000));
+  ht.addHist("mttbar_random",   new TH1F("mttbar_random",  ";M_{ttbar} [GeV];Events",100,300,1000));
+  ht.addHist("mttbar_deltaR",   new TH1F("mttbar_deltaR",  ";M_{ttbar} [GeV];Events",100,300,1000));
+  ht.addHist("mttbar_chi",   new TH1F("mttbar_chi",  ";M_{ttbar} [GeV];Events",100,0,1000));
 
   std::cout << "init done" << std::endl;
 
@@ -113,7 +116,7 @@ void RunMttbarAnalyzer(TString filename,
       ////////////////
       double csvm = 0.8484;
       addBTagDecisions(ev, csvm, csvm);
-      if(!ev.isData) ev = smearJetEnergies(ev);
+      if(!ev.isData) smearJetEnergies(ev);
            
       ///////////////////////////
       // RECO LEVEL SELECTION //
@@ -168,9 +171,6 @@ void RunMttbarAnalyzer(TString filename,
         plotwgts[0]=wgt;
       }
 
-      //visible system
-      TLorentzVector visSystem(leptons[0].p4()+bJets[0].p4()+bJets[1].p4()+lightJets[0].p4()+lightJets[1].p4());
-      
       //determine the neutrino kinematics
       TLorentzVector met(0,0,0,0);
       met.SetPtEtaPhiM(ev.met_pt[0],0,ev.met_phi[0],0.);
@@ -178,9 +178,89 @@ void RunMttbarAnalyzer(TString filename,
       neutrinoPzComputer.SetLepton(leptons[0].p4());
       float nupz=neutrinoPzComputer.Calculate();
       TLorentzVector neutrinoP4(met.Px(),met.Py(),nupz ,TMath::Sqrt(TMath::Power(met.Pt(),2)+TMath::Power(nupz,2)));
-          
+
+      //Closest lightjets
+      double min_lightjets = lightJets[0].p4().DeltaR(lightJets[1].p4());
+      int min_1_l=0,min_2_l=1;
+      for(int i=0; i<(int)lightJets.size(); i++)
+      {
+        for(int j=i+1; j<(int)lightJets.size(); j++) {
+            if (min_lightjets>lightJets[i].p4().DeltaR(lightJets[j].p4())) {
+                min_1_l=i;
+                min_2_l=j;
+                min_lightjets=lightJets[i].p4().DeltaR(lightJets[j].p4());
+            }
+        }
+      }
+
+      //All pairs of lightJets together with bJets
+      float num_random=0.;
+      summary.mttbar_random=0.;
+      for (int i=0;i<(int)bJets.size();i++) {
+	for (int k=0;k<(int)lightJets.size();k++) {
+		for (int l=k+1;l<(int)lightJets.size();l++) {
+			num_random++;
+			summary.mttbar_random=summary.mttbar_random+(bJets[i].p4()+lightJets[k].p4()+lightJets[l].p4()).M();
+      			ht.fill("mttbar_random", (bJets[i].p4()+lightJets[k].p4()+lightJets[l].p4()).M(),   plotwgts);
+		}
+	}
+      }
+      summary.mttbar_random=summary.mttbar_random/num_random;      
+
+      //Closest b-jets
+      double min_bjets = bJets[0].p4().DeltaR(bJets[1].p4());
+      int min_1_b=0,min_2_b=1;
+      for(int i=0; i<(int)bJets.size(); i++)
+      {
+        for(int j=i+1; j<(int)bJets.size(); j++) {
+            if (min_bjets>bJets[i].p4().DeltaR(bJets[j].p4())) {
+                min_1_b=i;
+                min_2_b=j;
+                min_bjets=bJets[i].p4().DeltaR(bJets[j].p4());
+            }
+        }
+      }     
+
+      //Minimum chi-squared pair of lightJets together with bJets
+      int min_chi_l1=0,min_chi_l2=1,min_chi_b1=0,min_chi_b2=0;
+      double m_w=80.4,m_t=172.4,r1=7.,r2=10.,r3=7.,r4=10.;
+      TLorentzVector j1_m=lightJets[0].p4();
+      TLorentzVector j2_m=lightJets[1].p4();
+      TLorentzVector b1_m=bJets[0].p4();
+      TLorentzVector b2_m=bJets[1].p4();
+      TLorentzVector lepton_m=leptons[0].p4();
+      TLorentzVector neutrino_m=neutrinoP4;
+      double min_chi=TMath::Power((m_w-(j1_m+j2_m).M())/r1,2)+TMath::Power((m_t-(j1_m+j2_m+b1_m).M())/r2,2)+TMath::Power((m_w-(lepton_m+neutrino_m).M())/r3,2)+TMath::Power((m_t-(lepton_m+neutrino_m+b2_m).M())/r4,2);
+      for (int i=0;i<(int)bJets.size();i++) {
+	for(int j=i+1;j<(int)bJets.size();j++) {
+		for (int k=0;k<(int)lightJets.size();k++) {
+			for (int l=k+1;l<(int)lightJets.size();l++) {
+				j1_m=lightJets[k].p4();
+				j2_m=lightJets[l].p4();
+				b1_m=bJets[i].p4();
+				b2_m=bJets[j].p4();
+				double chi_squared=TMath::Power((m_w-(j1_m+j2_m).M())/r1,2)+TMath::Power((m_t-(j1_m+j2_m+b1_m).M())/r2,2)+TMath::Power((m_w-(lepton_m+neutrino_m).M())/r3,2)+TMath::Power((m_t-(lepton_m+neutrino_m+b2_m).M())/r4,2);
+				if (chi_squared<min_chi) {
+					min_chi_b1=i;
+					min_chi_b2=j;
+					min_chi_l1=k;
+					min_chi_l2=l;
+					min_chi=chi_squared;
+				}
+			}
+		}
+	}
+      }
+      
+      //visible system
+      TLorentzVector visSystem(leptons[0].p4()+bJets[0].p4()+bJets[0].p4()+lightJets[0].p4()+lightJets[0].p4());
+      TLorentzVector visSystem_chi(leptons[0].p4()+bJets[min_chi_b1].p4()+bJets[min_chi_b2].p4()+lightJets[min_chi_l1].p4()+lightJets[min_chi_l2].p4());
+      TLorentzVector visSystem_deltaR(leptons[0].p4()+bJets[min_1_b].p4()+bJets[min_2_b].p4()+lightJets[min_1_l].p4()+lightJets[min_2_l].p4());
+
       //ttbar system
       TLorentzVector ttbarSystem(visSystem+neutrinoP4);
+      TLorentzVector ttbarSystem_chi(visSystem_chi+neutrinoP4);
+      TLorentzVector ttbarSystem_deltaR(visSystem_deltaR+neutrinoP4);
 
       //control histograms
       ht.fill("nvtx",     ev.nvtx,        plotwgts);
@@ -188,14 +268,18 @@ void RunMttbarAnalyzer(TString filename,
       ht.fill("njets",  jets.size(),  plotwgts);
       ht.fill("ht",         scalarht, plotwgts);          
       ht.fill("mttbar", ttbarSystem.M(),   plotwgts);
-
+      ht.fill("mttbar_chi", ttbarSystem_chi.M(),   plotwgts);
+      ht.fill("mttbar_deltaR", ttbarSystem_deltaR.M(),   plotwgts);
   
       //event weight
       summary.weight=wgt;
       summary.nvtx=ev.nvtx;
       summary.rho=ev.rho;
 
+      //mttbars
       summary.mttbar=ttbarSystem.M();
+      summary.mttbar_chi=ttbarSystem_chi.M();
+      summary.mttbar_deltaR=ttbarSystem_deltaR.M();
 
       //save lepton
       summary.l_pt=leptons[0].p4().Pt();
@@ -209,8 +293,10 @@ void RunMttbarAnalyzer(TString filename,
 
       //save jets
       summary.nj=jets.size();
-      summary.nb=bJets.size();
-      summary.nl=lightJets.size();
+      summary.nj=(float)summary.nj;
+      summary.nb=(float)bJets.size();
+      summary.nl=(float)lightJets.size();
+
       for(size_t ij=0; ij<jets.size(); ij++)
         {
           summary.j_pt[ij]=jets[ij].p4().Pt();
@@ -282,11 +368,17 @@ void RunMttbarAnalyzer(TString filename,
 void createMttbarSummaryTree(TTree *t,MttbarSummary_t &summary)
 {
   //event category
+  //mttbars
+  t->Branch("mttbar_chi",              &summary.mttbar_chi,           "mttbar_chi/F");
+  t->Branch("mttbar_deltaR",              &summary.mttbar_deltaR,           "mttbar_deltaR/F");
+  t->Branch("mttbar_random",              &summary.mttbar_random,           "mttbar_random/F");
+
   t->Branch("weight",      &summary.weight,      "weight/F");
   t->Branch("nj",          &summary.nj,          "nj/I");
-  t->Branch("nb",          &summary.nb,          "nb/I");
-  t->Branch("nl",          &summary.nl,          "nl/I");
-  t->Branch("nvtx",        &summary.nvtx,        "nvtx/I");
+  t->Branch("nj_f",          &summary.nj_f,          "nj_f/F");
+  t->Branch("nb",          &summary.nb,          "nb/F");
+  t->Branch("nl",          &summary.nl,          "nl/F");
+  t->Branch("nvtx",        &summary.nvtx,        "nvtx/F");
   t->Branch("rho",         &summary.rho,         "rho/F");
   t->Branch("gen_mttbar",         &summary.gen_mttbar,      "gen_mttbar/F");
   t->Branch("mttbar",              &summary.mttbar,           "mttbar/F");
@@ -296,7 +388,7 @@ void createMttbarSummaryTree(TTree *t,MttbarSummary_t &summary)
   t->Branch("l_m",              &summary.l_m,           "l_m/F");
   t->Branch("met_pt",              &summary.met_pt,           "met_pt/F");
   t->Branch("met_phi",              &summary.met_phi,           "met_phi/F");
-  t->Branch("nj",              &summary.nj,           "nj/I");
+  t->Branch("nj",              &summary.nj,           "nj/F");
   t->Branch("j_pt",          summary.j_pt,           "j_pt[nj]/F");
   t->Branch("j_eta",              summary.j_eta,           "j_eta[nj]/F");
   t->Branch("j_phi",              summary.j_phi,           "j_phi[nj]/F");

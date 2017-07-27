@@ -467,7 +467,7 @@ def readParticlePlotsFrom(args,opt):
         'ME-PS'          : ['t#bar{t} hdamp dn', 't#bar{t} hdamp up'],
         'ISR'            : ['t#bar{t} isr dn',   't#bar{t} isr up'],
         'm_{t}'          : ['t#bar{t} m=169.5',  't#bar{t} m=175.5'],
-        'PY8-HW++'       : ['t#bar{t} Herwig++'],
+        #'PY8-HW++'       : ['t#bar{t} Herwig++'],
         'Background'     : ['bckpfakes']
         }
     finalSystList={}
@@ -491,13 +491,16 @@ def readParticlePlotsFrom(args,opt):
             outname=obs
             sliceAxis=None if s is None else analysisaxis[(s,False)]
             if sliceAxis: outname += '%s'%s
-            #if not sliceAxis is None: continue
+            if not sliceAxis is None: continue
 
             #read unfolded data
-            fIn=ROOT.TFile('%s/%s_%s_inc.root'%(args[0],obs,s))
-            data=fIn.Get('corrected_data')
-            data.SetDirectory(0)
-            addSystematics(data,fIn,finalSystList,obsAxis,sliceAxis,opt.output,outname)
+            nomKey='%s_%s_0_inc'%(obs,s)
+            fIn=ROOT.TFile('%s/%s.root'%(args[0],nomKey))
+            uePlots['Data']=UEPlot(nomKey,obs,obsAxis)
+            uePlots['Data'].addVariation('Data',None, fIn.Get('corrected_data') )
+            for syst in finalSystList:
+                for v in finalSystList[syst]:
+                    uePlots['Data'].addVariation(syst,v,fIn.Get('corrected_data%s'%v))
             fIn.Close()
 
             #read sets to compare            
@@ -505,29 +508,24 @@ def readParticlePlotsFrom(args,opt):
             fSyst=ROOT.TFile.Open(args[2])
             signalVars=[]
             for varTitle,subVars in COMPARISONSETS:
-
-                subVarHistColl=[]
                 for x,xvars in subVars:
-                    
-                    histoColl=[]
-                    for ixvar in xvars:
-                        key='%s_%s_inc_None_False'%(obs,s)
-                        key='%s/%s_%s'%(key,key,ixvar)
-                        for f in [fGen,fSyst]:
-                            try:
-                                histoColl.append( f.Get(key).Clone(ixvar) )
-                                histoColl[-1].SetDirectory(0)
-                                normalizePerSlice(histoColl[-1],obsAxis,sliceAxis)
-                                break
-                            except:                       
-                                pass
+                    if x!='nominal' : continue
 
-                    subVarHistColl.append( (x,histoColl) )
-                signalVars.append( (varTitle,subVarHistColl) )
+                    key='%s_None_False'%nomKey
+                    key='%s/%s_%s'%(key,key,xvars[0])
+                    h=None
+                    for f in [fGen,fSyst]:
+                        try:
+                            h=f.Get(key).Clone(ixvar)
+                            break
+                        except:                       
+                            pass
+                    if h is None: continue
+                    uePlots[compSet]=UEPlot(nomKey+'mc%d'%icomp,compSet,obsAxis)
+                    uePlots[compSet].addVariation(x,None,h)
 
-            buildPlot(data,signalVars,obsAxis,sliceAxis,opt,outname)
-
-
+            fGen.Close()
+            fSyst.Close()
 
 """
 """

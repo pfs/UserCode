@@ -7,12 +7,16 @@
 
 struct MttbarSummary_t
 {
+  //new
+  float mttbar_chi,mttbar_deltaR,mttbar_random;
+
   float weight;
-  int nvtx;
+  float nvtx;
   float rho;
   float l_pt,l_eta,l_phi,l_m;
   float met_pt, met_phi;
-  int nj,nb,nl;
+  int nj;
+  float nj_f,nb,nl;
   float j_pt[100],j_eta[100],j_phi[100],j_m[100],j_csv[100];
   float j_nch[100],j_PtD[100],j_PtDs[100],j_width[100],j_tau21[100],j_tau32[100],j_tau43[100],j_zg[100];
   float ue_nch,ue_chsumpt,ue_chsumpz;

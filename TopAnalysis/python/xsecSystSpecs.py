@@ -83,6 +83,20 @@ def xsecSystSpecs(analysis='TOP-16-006'):
             ('wCombScale',           { 'W': ['genUnc4','genUnc8'] },   False, False, False),
             ]
 
+    #FourTops
+    if analysis=='FourTops':
+
+        rateSysts=[
+            ('lumi_13TeV',       1.025,    'lnN',    []  ,[]),
+            ]
+
+        sampleSysts=[
+            #four tops modelling
+            ('ISR',            {'tbarttbart'         : ['tbarttbartisrup','tbarttbartisrdn'] },                True ,  True, False),
+            ('FSR',            {'tbarttbart'         : ['tbarttbartfsrup','tbarttbartfsrdn'] },                True ,  True, False),
+            ]
+
+
     if analysis=='TopRadius':
         rateSysts=[]
         sampleSysts=[]

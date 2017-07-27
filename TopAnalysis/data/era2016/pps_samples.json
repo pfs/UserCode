@@ -1,0 +1,15 @@
+{
+"Data13TeV_SingleMuon_2016B":  [1.0,  1, "/SingleMuon/Run2016B-18Apr2017_ver2-v2/MINIAOD",  "Data", 1, false, false, 1],
+"Data13TeV_SingleMuon_2016C":  [1.0,  1, "/SingleMuon/Run2016C-18Apr2017-v1/MINIAOD",  "Data", 1, false, false, 1],
+"Data13TeV_SingleMuon_2016G":  [1.0,  1, "/SingleMuon/Run2016G-18Apr2017-v1/MINIAOD",  "Data", 1, false, false, 1],
+
+"Data13TeV_SingleElectron_2016B":[1.0,  1,   "/SingleElectron/Run2016B-18Apr2017_ver2-v2/MINIAOD",  "Data", 1, false, false, 1],
+"Data13TeV_SingleElectron_2016C":[1.0,  1,   "/SingleElectron/Run2016C-18Apr2017-v1/MINIAOD",  "Data", 1, false, false, 1],
+"Data13TeV_SingleElectron_2016G":[1.0,  1,   "/SingleElectron/Run2016G-18Apr2017-v1/MINIAOD",  "Data", 1, false, false, 1]
+}
+
+
+
+
+
+

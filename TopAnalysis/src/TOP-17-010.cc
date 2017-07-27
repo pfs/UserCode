@@ -324,7 +324,7 @@ void RunTop17010(TString filename,
                 }
             }
           
-          bfragWgt=computeBFragmentationWeight(ev,fragWeights["downFrag"]);
+          bfragWgt=computeBFragmentationWeight(ev,fragWeights["centralFrag"]);
 
 	  //update nominal event weight
 	  wgt=triggerCorrWgt.first*eSelCorrWgt.first*mSelCorrWgt.first*puWgt*bfragWgt*norm;
@@ -424,7 +424,7 @@ void RunTop17010(TString filename,
                   jecUncs[iju]->setJetPt(twev.j_pt[ij]);
                   Float_t unc=jecUncs[iju]->getUncertainty(true);
                   if(jecUncSrcs[iju]=="FlavorPureGluon" && abs(twev.gj_flav[ij])!=21) unc=0;
-                  if(jecUncSrcs[iju]=="FlavorPureQuark" && (abs(twev.gj_flav[ij])>4 || abs(twev.gj_flav[ij])==0)) unc=0;
+                  if(jecUncSrcs[iju]=="FlavorPureQuark" && (abs(twev.gj_flav[ij])>=4 || abs(twev.gj_flav[ij])==0)) unc=0;
                   if(jecUncSrcs[iju]=="FlavorPureCharm" && abs(twev.gj_flav[ij])!=4) unc=0;
                   if(jecUncSrcs[iju]=="FlavorPureBottom"&& abs(twev.gj_flav[ij])!=5) unc=0;
                   twev.j_jes[ij].push_back( unc );
@@ -437,7 +437,7 @@ void RunTop17010(TString filename,
       if(chTag=="MM") twev.cat=13*13;
       if(chTag=="EM") twev.cat=11*13;
       if(chTag=="EE") twev.cat=11*11;
-      twev.nw=14;
+      twev.nw=15;
       twev.weight[0]=wgt;
       twev.weight[1]=wgt*puWgtUp/puWgt;
       twev.weight[2]=wgt*puWgtDn/puWgt;
@@ -452,7 +452,7 @@ void RunTop17010(TString filename,
       twev.weight[11]=wgt*computeSemilepBRWeight(ev,semilepBRwgts["semilepbrUp"]);
       twev.weight[12]=wgt*computeBFragmentationWeight(ev,fragWeights["downFrag"])/bfragWgt;
       twev.weight[13]=wgt*computeBFragmentationWeight(ev,fragWeights["upFrag"])/bfragWgt;
-      twev.weight[14]=wgt*computeBFragmentationWeight(ev,fragWeights["PetersonFrag"]);
+      twev.weight[14]=wgt*computeBFragmentationWeight(ev,fragWeights["PetersonFrag"])/bfragWgt;
       if(ev.g_nw>0)
 	{
 	  twev.nw+=ev.g_nw;

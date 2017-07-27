@@ -91,6 +91,7 @@ def main():
             if filtTag in tag :
                 submit=True
         if not submit : continue
+        print tag,sample
         submitProduction(tag=tag,
                          lfnDirBase=lfnDirBase,
                          dataset=sample[2],

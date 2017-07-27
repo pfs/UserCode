@@ -590,7 +590,11 @@ def splitForMinSigma(h, output, obs, reco, ptcut, factor = 0.5):
     bins  = [h.GetXaxis().GetXmin()]
     exact = [h.GetXaxis().GetXmin()]
     
+    integral = h.Integral()
+    print('integral', integral)
+    binfraction = 0.
     for i in range(1, h.GetNbinsX()+1):
+      binfraction += h.ProjectionX('px', i, i).Integral()/integral
       mean  = slices[1].GetBinContent(i)
       meanError = slices[1].GetBinError(i)
       if (mean == 0 or meanError/mean > 0.1): continue
@@ -608,7 +612,10 @@ def splitForMinSigma(h, output, obs, reco, ptcut, factor = 0.5):
         if (mean + sigma < h.GetXaxis().GetXmax()):
           exact.append(mean+sigma)
           newbinedge = h.GetXaxis().GetBinUpEdge((h.GetXaxis().FindBin(mean+sigma)))
-          if (newbinedge > bins[-1]): bins.append(newbinedge)
+          if (newbinedge > bins[-1] and binfraction > 0.01):
+              bins.append(newbinedge)
+              print('accepted bin', binfraction)
+              binfraction = 0.
     
     bins[-1] = h.GetXaxis().GetXmax()
     

@@ -12,17 +12,17 @@ fi
 export LSB_JOB_REPORT_MAIL=N
 
 
-queue=2nd
-githash=b312177
+queue=workday
 lumi=35922
 lumiSpecs="" #--lumiSpecs EE:11391"
 lumiUnc=0.025
 whoami=`whoami`
 myletter=${whoami:0:1}
-eosdir=/store/cmst3/group/top/ReReco2016/${githash}
+eosdir=/store/cmst3/group/top/ReReco2016/b312177
+dataeos=/store/cmst3/group/top/ReReco2016/be52dbe_03Feb2017
 summaryeosdir=/store/cmst3/group/top/TopUE
 outdir=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/UEanalysis/
-wwwdir=~/www/TOP-17-015-v2
+wwwdir=~/www/TOP-17-015
 
 
 RED='\e[31m'
@@ -47,7 +47,9 @@ case $WHAT in
 	;;
 
     SEL )
-	python scripts/runLocalAnalysis.py -i ${eosdir}      -q ${queue} -o ${summaryeosdir}      --era era2016 -m TOP-UE::RunTopUE --ch 0 --runSysts;
+        commonOpts="-q ${queue} -o ${summaryeosdir}      --era era2016 -m TOP-UE::RunTopUE --ch 0 --runSysts";
+	python scripts/runLocalAnalysis.py -i ${eosdir}  --farmappendix TopUEMC ${commonOpts} --only MC;
+	python scripts/runLocalAnalysis.py -i ${dataeos} --farmappendix TopUEMC ${commonOpts} --only Data;
 	;;
 
     MERGESEL )
@@ -89,11 +91,13 @@ case $WHAT in
 
         mkdir -p UEanalysis/analysis/plots/rawana
 	commonOpts="-l ${lumi} --saveLog --mcUnc ${lumiUnc} --procSF DY:${outdir}/plots/.dyscalefactors.pck";
-        #filter="--only _0_" #None_inc,ptttbar_inc,nj_inc"
-	#python scripts/plotter.py -i UEanalysis/analysis -j data/era2016/samples.json      ${commonOpts} ${filter}
-	#python scripts/plotter.py -i UEanalysis/analysis -j data/era2016/syst_samples.json ${commonOpts} ${filter} --silent --outName syst_plotter.root;	
-        #python test/TopUEAnalysis/UETools.py -o UEanalysis/analysis/plots/ -i  UEanalysis/analysis/MC13TeV_TTJets.root
-	python test/TopUEAnalysis/showFinalRecoDistribution.py UEanalysis/analysis/plots/plotter.root UEanalysis/analysis/plots/syst_plotter.root
+	python scripts/plotter.py -i UEanalysis/analysis -j data/era2016/samples.json      ${commonOpts};
+	python scripts/plotter.py -i UEanalysis/analysis -j data/era2016/syst_samples.json ${commonOpts} --silent --outName syst_plotter.root;	
+        python test/TopUEAnalysis/UETools.py -o UEanalysis/analysis/plots/ -i  UEanalysis/analysis/MC13TeV_TTJets.root
+	python test/TopUEAnalysis/showFinalRecoDistribution.py \
+            UEanalysis/analysis/plots/plotter.root \
+            UEanalysis/analysis/plots/syst_plotter.root \
+            --out UEanalysis/analysis/plots/reco;
         #python test/TopUEAnalysis/showFinalUnfoldedDistribution.py \
         #    UEanalysis/analysis/plots/plotter.root \
         #    UEanalysis/analysis/plots/syst_plotter.root \
@@ -102,22 +106,49 @@ case $WHAT in
 	
 	;;
     WWWANA )
-	mkdir -p ${wwwdir}/rawana
-        cp UEanalysis/analysis/plots/*.{png,pdf,dat} ${wwwdir}/rawana
-	cp  UEanalysis/analysis/plots/rawana/*.{png,pdf,dat} ${wwwdir}/rawana
-        cp test/index.php ${wwwdir}/rawana
+	mkdir -p ${wwwdir}/rawana        
+        #cp UEanalysis/analysis/plots/*.{png,pdf,dat} ${wwwdir}/rawana
+	#cp  UEanalysis/analysis/plots/rawana/*.{png,pdf,dat} ${wwwdir}/rawana
+        #cp test/index.php ${wwwdir}/rawana
+        mkdir -p ${wwwdir}/reco
+        cp UEanalysis/analysis/plots/reco/*{png,pdf} ${wwwdir}/reco
+        cp test/index.php ${wwwdir}/reco
 	;;
     UNFOLD )
         commonOpts="--plotter UEanalysis/analysis/plots/plotter.root --syst UEanalysis/analysis/plots/syst_plotter.root -d UEanalysis/analysis/Chunks/"
         #python test/TopUEAnalysis/runUEUnfolding.py ${commonOpts} -s 0
 
-        #for i in chmult chflux chfluxz chavgpt chavgpz sphericity aplanarity C D; do                  
-        #    for s in None nj; do # ptttbar ptll; do
-        #        python test/TopUEAnalysis/runUEUnfolding.py ${commonOpts} -s 1 --histo ${i}_${s}_inc;            
-        #        python test/TopUEAnalysis/runUEUnfolding.py ${commonOpts} -s 2 --histo ${i}_${s}_inc;
-        #        python test/TopUEAnalysis/showUnfoldSummary.py -i UEanalysis/unfold/${i}_${s}_inc.root;                                   
-        #    done
-        #done
+        for ovar in chmult chflux chfluxz chavgpt chavgpz sphericity aplanarity C D; do                  
+
+            #inclusive
+            #python test/TopUEAnalysis/runUEUnfolding.py ${commonOpts} -s 1 --histo ${ovar}_None_0_inc;            
+            #python test/TopUEAnalysis/runUEUnfolding.py ${commonOpts} -s 2 --histo ${ovar}_None_0_inc;
+            #python test/TopUEAnalysis/showUnfoldSummary.py -i UEanalysis/unfold/${ovar}_None_0_inc.root;                                   
+        
+            #differential
+            for svar in nj chmult; do
+
+                if [ "$svar" = "$ovar" ]
+                then
+                    continue
+                fi
+
+                bins=`seq 1 3`;
+                if [ "$svar" = "chmult" ] 
+                then
+                    bins=`seq 1 9`;
+                fi
+
+                for bin in $bins; do
+                    echo $ovar $svar $bin
+                    python test/TopUEAnalysis/runUEUnfolding.py ${commonOpts} -s 1 --histo ${ovar}_${svar}_${bin}_inc;            
+                    python test/TopUEAnalysis/runUEUnfolding.py ${commonOpts} -s 2 --histo ${ovar}_${svar}_${bin}_inc;
+                    python test/TopUEAnalysis/showUnfoldSummary.py -i UEanalysis/unfold/${ovar}_${svar}_${bin}_inc.root;                                   
+                done
+            done
+        done
+        ;;
+    PLOTUNFOLD )
         python test/TopUEAnalysis/showFinalUnfoldedDistribution.py \
             UEanalysis/unfold UEanalysis/analysis/plots/plotter.root \
             UEanalysis/analysis/plots/syst_plotter.root \

@@ -127,8 +127,8 @@ void createMiniEventTree(TTree *t,MiniEvent_t &ev)
 
   //CTPPS local tracks
   t->Branch("nfwdtrk",    &ev.nfwdtrk,       "nfwdtrk/I");
-  t->Branch("fwdtrk_arm",  ev.fwdtrk_arm,    "fwdtrk_arm[nfwdtrk]/F");
-  t->Branch("fwdtrk_pot",  ev.fwdtrk_pot,    "fwdtrk_pot[nfwdtrk]/F");
+  t->Branch("fwdtrk_arm",  ev.fwdtrk_arm,    "fwdtrk_arm[nfwdtrk]/I");
+  t->Branch("fwdtrk_pot",  ev.fwdtrk_pot,    "fwdtrk_pot[nfwdtrk]/I");
   t->Branch("fwdtrk_x",    ev.fwdtrk_x,      "fwdtrk_x[nfwdtrk]/F");
   t->Branch("fwdtrk_x_unc",ev.fwdtrk_x_unc,  "fwdtrk_x_unc[nfwdtrk]/F");
   t->Branch("fwdtrk_y",    ev.fwdtrk_y,      "fwdtrk_y[nfwdtrk]/F");

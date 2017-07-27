@@ -54,8 +54,6 @@ void RunTopJetShape(TString filename,
   /////////////////////
   // INITIALIZATION //
   ///////////////////
-  TRandom* random = new TRandom(0); // random seed for period selection
-  std::vector<RunPeriod_t> runPeriods=getRunPeriods(era);
 
   bool isTTbar( filename.Contains("_TTJets") or (normH and TString(normH->GetTitle()).Contains("_TTJets")));
   bool isData( filename.Contains("Data") );
@@ -102,9 +100,8 @@ void RunTopJetShape(TString filename,
   std::map<TString, std::vector<TGraph *> > puWgtGr;
   if( !isData ) puWgtGr=getPileupWeightsMap(era,genPU);
   
-  
   //LEPTON EFFICIENCIES
-  LeptonEfficiencyWrapper lepEffH(filename.Contains("Data13TeV"),era);
+  LeptonEfficiencyWrapper lepEffH(filename.Contains("Data13TeV"),era+"GH");
 
 
   //B-TAG CALIBRATION
@@ -112,8 +109,8 @@ void RunTopJetShape(TString filename,
   std::map<TString, std::map<BTagEntry::JetFlavor, BTagCalibrationReader *> > btvsfReaders = getBTVcalibrationReadersMap(era, BTagEntry::OP_MEDIUM);
 
   //dummy calls
-  btvsfReaders[runPeriods[0].first][BTagEntry::FLAV_B]->eval_auto_bounds("central", BTagEntry::FLAV_B,   0., 30.);
-  btvsfReaders[runPeriods[0].first][BTagEntry::FLAV_UDSG]->eval_auto_bounds("central", BTagEntry::FLAV_UDSG,   0., 30.);
+  btvsfReaders["GH"][BTagEntry::FLAV_B]->eval_auto_bounds("central", BTagEntry::FLAV_B,   0., 30.);
+  btvsfReaders["GH"][BTagEntry::FLAV_UDSG]->eval_auto_bounds("central", BTagEntry::FLAV_UDSG,   0., 30.);
 
   std::map<BTagEntry::JetFlavor, TGraphAsymmErrors *>    expBtagEffPy8 = readExpectedBtagEff(era);
   TString btagExpPostFix("");
@@ -139,6 +136,10 @@ void RunTopJetShape(TString filename,
   JetCorrectorParameters *jecParam = new JetCorrectorParameters(jecUncUrl.Data(), jecVar);
   JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty( *jecParam );
   
+  //JER SMEARING
+  TString resolutionFile(era+"/Spring16_25nsV10_MC_PtResolution_AK4PFchs.txt");
+  gSystem->ExpandPathName(resolutionFile);
+  JME::JetResolution *jer = new JME::JetResolution(resolutionFile.Data());
   
   //BFRAG UNCERTAINTIES
   std::map<TString, TGraph*> bfrag = getBFragmentationWeights(era);
@@ -279,8 +280,8 @@ void RunTopJetShape(TString filename,
       resetTopJetShapeEvent(tjsev);
       if(iev%int(nentries/100)==0) printf ("[%3.0f%%] done\n", 100.*(float)iev/(float)nentries);
       
-      //assign randomly a run period
-      TString period = assignRunPeriod(runPeriods,random);
+      //assign run period GH
+      TString period = "GH";
       
       //////////////////
       // CORRECTIONS //
@@ -304,23 +305,30 @@ void RunTopJetShape(TString filename,
       if(!ev.isData) {
         //jec
         if (vSystVar[0] == "jec") {
-          ev = applyJetCorrectionUncertainty(ev, jecUnc, jecVar, vSystVar[2]);
+          applyJetCorrectionUncertainty(ev, jecUnc, jecVar, vSystVar[2]);
         }
         //jer
         if (vSystVar[0] == "jer") {
-          ev = smearJetEnergies(ev, vSystVar[1]);
+          smearJetEnergies(ev, jer, vSystVar[1]);
         }
-        else ev = smearJetEnergies(ev);
+        else smearJetEnergies(ev, jer);
         //b tagging
         if (vSystVar[0] == "btag") {
           if (vSystVar[1] == "heavy") {
-            ev = updateBTagDecisions(ev, btvsfReaders[period],expBtagEff,expBtagEffPy8,myBTagSFUtil,vSystVar[2],"central");
+            updateBTagDecisions(ev, btvsfReaders[period],expBtagEff,expBtagEffPy8,myBTagSFUtil,vSystVar[2],"central");
           }
           if (vSystVar[1] == "light") {
-            ev = updateBTagDecisions(ev, btvsfReaders[period],expBtagEff,expBtagEffPy8,myBTagSFUtil,"central",vSystVar[2]);
+            updateBTagDecisions(ev, btvsfReaders[period],expBtagEff,expBtagEffPy8,myBTagSFUtil,"central",vSystVar[2]);
           }
         }
-        else ev = updateBTagDecisions(ev, btvsfReaders[period],expBtagEff,expBtagEffPy8,myBTagSFUtil);
+        else updateBTagDecisions(ev, btvsfReaders[period],expBtagEff,expBtagEffPy8,myBTagSFUtil);
+        //tracking efficiency
+        if (vSystVar[0] == "tracking") {
+          // "up": no correction
+          // "down": apply twice
+          if (vSystVar[1] == "down") applyTrackingEfficiencySF(ev, pow(lepEffH.getTrackingCorrection(ev.nvtx, period).first,2));
+        }
+        else applyTrackingEfficiencySF(ev, lepEffH.getTrackingCorrection(ev.nvtx, period).first);
       }
       
       ///////////////////////////
@@ -373,10 +381,16 @@ void RunTopJetShape(TString filename,
         
         // pu weight
         double puWgt(puWgtGr[period][0]->Eval(ev.g_pu));
+        if (std::isnan(puWgt)) puWgt = 1.;
+        if (puWgt == 0.) puWgt = 1.;
         allPlots["puwgtctr"]->Fill(1,puWgt);
         wgt *= puWgt;
-        varweights.push_back(std::make_pair(puWgtGr[period][1]->Eval(ev.g_pu), true)); // 1
-        varweights.push_back(std::make_pair(puWgtGr[period][2]->Eval(ev.g_pu), true)); // 2
+        double puWgt1(puWgtGr[period][1]->Eval(ev.g_pu));
+        if (std::isnan(puWgt1)) puWgt1 = 1.;
+        varweights.push_back(std::make_pair(puWgt1/puWgt, true)); // 1
+        double puWgt2(puWgtGr[period][2]->Eval(ev.g_pu));
+        if (std::isnan(puWgt2)) puWgt2 = 1.;
+        varweights.push_back(std::make_pair(puWgt2/puWgt, true)); // 2
         
         // lepton trigger*selection weights
         if (singleLepton) {
@@ -726,7 +740,7 @@ void RunTopJetShape(TString filename,
        
         
         //decide the lepton channel at particle level
-        std::vector<Particle> genVetoLeptons = selector.getGenLeptons(ev,15.,2.5);
+        std::vector<Particle> genVetoLeptons = selector.getGenLeptons(ev,15.,2.4);
         std::vector<Particle> genLeptons     = selector.getGenLeptons(ev,30.,2.1);
         TString genChTag = selector.flagGenFinalState(ev, genLeptons);
         std::vector<Jet> genJets = selector.getGenJets();
@@ -912,14 +926,16 @@ void RunTopJetShape(TString filename,
 double calcGA(double beta, double kappa, Jet jet, bool includeNeutrals, bool usePuppi, double ptcut) {
   int mult = 0;
   double sumpt = 0.;
+  TLorentzVector axis(0., 0., 0., 0.);
   for (auto p : jet.particles()) {
     if (not includeNeutrals and p.charge() == 0) continue;
     if (ptcut > p.pt()) continue;
     double weight = usePuppi ? p.puppi() : 1.;
     if (weight > 0.) ++mult;
     sumpt  += p.pt()*weight;
+    axis += p.momentum()*weight;
   }
-  if (mult < 1) return -1.;
+  if (mult < 2) return -1.;
   //std::cout << "sumpt" << beta << kappa << iptcut << icharge << ": " << sumpt << std::endl;
   
   double ga = 0.;
@@ -927,7 +943,7 @@ double calcGA(double beta, double kappa, Jet jet, bool includeNeutrals, bool use
     if (not includeNeutrals and p.charge() == 0) continue;
     if (ptcut > p.pt()) continue;
     double weight = usePuppi ? p.puppi() : 1.;
-    ga += weight * pow(p.p4().Pt()/sumpt, kappa) * pow(jet.p4().DeltaR(p.p4())/0.4, beta);
+    ga += weight * pow(p.p4().Pt()/sumpt, kappa) * pow(deltaR(axis, p.momentum())/0.4, beta);
   }
   
   //std::cout << "ga" << beta << kappa << iptcut << icharge << ": " << ga << std::endl;

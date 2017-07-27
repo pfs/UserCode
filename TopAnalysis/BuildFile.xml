@@ -6,6 +6,8 @@
 <use name="CondFormats/JetMETObjects"/>
 <use name="CondTools/BTau"/>
 <use name="TopQuarkAnalysis/TopTools"/>
+<use name="JetMETCorrections/Modules"/>
+<use name="CondFormats/JetMETObjects"/>
 <use name="rivet"/>
 <use name="fastjet"/>
 <use name="fastjet-contrib"/>

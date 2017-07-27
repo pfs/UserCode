@@ -128,7 +128,12 @@ get distributions from file
 def getDistsFrom(directory,keyFilter=''):
     obs=None
     exp={}
-    dirName=directory.GetName()
+    dirName=None
+    try:
+        dirName=directory.GetName()
+    except:
+        return obs,exp
+
     for key in directory.GetListOfKeys():
         if len(keyFilter)>0 and key.GetName()!='%s_%s'%(dirName,keyFilter) : continue
         obj=directory.Get(key.GetName())        

@@ -184,7 +184,7 @@ if not options.doAll :
     print obsErrYArr
 
     for ix in xrange(0,len(xarr)):
-        x[ix] = float(xarr[ix])
+        x[ix] = float(xarr[ix])/100
         y[ix] = float(yarr[ix])
         if not options.unblind: continue
         obsY[ix]=obsYArr[ix]
@@ -193,7 +193,12 @@ if not options.doAll :
         if options.prepost != "post" and not options.addpre: continue
         preY[ix]=preYArr[ix]
 
+    ty = [a for (b,a) in sorted(zip(x,y))]
+    tx = sorted(x)
 
+    for ix in xrange(0,len(x)) :
+        x[ix] = tx[ix]
+        y[ix] = ty[ix]
 
     clsGr=ROOT.TGraph(x,y)
     clsGr.GetXaxis().SetTitle("Generator-level #Gamma_{t} [GeV]")
@@ -339,7 +344,7 @@ if options.doAll :
 
         # loop over widths, parse array info
         for wid in rawWidList :
-            latexWid = wid.replace('p','.').replace('w','$\\times\\Gamma_{\\rm SM}$')
+            latexWid = float(wid.replace('p','.').replace('w','$\\times\\Gamma_{\\rm SM}$'))
 
             statsFileName="%s/stats__%s__%s.txt"%(options.indir,wid,dist)
             for line in open(statsFileName,"r"):

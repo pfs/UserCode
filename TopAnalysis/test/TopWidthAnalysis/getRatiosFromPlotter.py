@@ -15,10 +15,10 @@ def main():
     parser = optparse.OptionParser(usage)
     parser.add_option('-i', '--inDir',       dest='inDir' ,      help='input directory',                default="./plotter.root",       type='string')
     parser.add_option('-d', '--divideFile',  dest='inDiv' ,      help='comparison input plotter',       default="./syst_plotter.root",  type='string')
-    parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=41.6,                   type=float)
+    parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=35.9,                   type=float)
     parser.add_option(      '--saveLog',     dest='saveLog' ,    help='save log versions of the plots', default=False,             action='store_true')
-    parser.add_option('--wids',  dest='wids'  , help='widths to compare to nominal in div', default="4.0",                   type='string')
-    parser.add_option('--obs',   dest='obs'   , help='observables to process', default="incmlb,sncmlb,mt2mlb", type='string')
+    parser.add_option('--wids',  dest='wids'  , help='widths to compare to nominal in div', default="8.0",                   type='string')
+    parser.add_option('--obs',   dest='obs'   , help='observables to process', default="incmlb", type='string')
     parser.add_option('--dists', dest='dists' , help='non-observable distributions to process', default="tmass",             type='string')
     parser.add_option('--sigs',  dest='sigs'  , help='signal processes to plot ratios for',     default="t#bar{t}",          type='string')
     parser.add_option('--ptCh',  dest='ptchs' , help='pt categories to consider',               default="highpt,lowpt",      type='string')
@@ -39,7 +39,7 @@ def main():
     obsList =opt.obs.split(',')
     sigList =opt.sigs.split(',')
 
-    # useful settings (currenty magic)
+    # useful settings
     divWid="1.0"
 
     #show plots
@@ -51,12 +51,12 @@ def main():
 
     # collect a list of all distributions to plot
     plots = [("%s_%sw/%s_%sw_%s"%(dist,wid,dist,wid,sig),
-        "%s_%sw/%s_%sw_%s widthx4"%(dist,divWid,dist,divWid,sig))
+        "%s_%sw/%s_%sw_%s widthx8"%(dist,divWid,dist,divWid,sig))
                 for dist in distList
                 for wid in widList
                 for sig in sigList]
     plots+= [("%s%s%s_%s_%sw/%s%s%s_%s_%sw_%s"%(ptC,ch,bc,obs,wid,ptC,ch,bc,obs,wid,sig),
-        "%s%s%s_%s_%sw/%s%s%s_%s_%sw_%s widthx4"%(ptC,ch,bc,obs,divWid,ptC,ch,bc,obs,divWid,sig))
+        "%s%s%s_%s_%sw/%s%s%s_%s_%sw_%s widthx8"%(ptC,ch,bc,obs,divWid,ptC,ch,bc,obs,divWid,sig))
                 for ptC in ptChList
                 for ch in chList
                 for bc in bcatList
@@ -103,6 +103,7 @@ def main():
 
         CMS_lumi.CMS_lumi(canvas,4,0)
         canvas.SaveAs("%s/%s.pdf"%(outDir,p[0].split('/')[1].replace('.','w').replace('#','').replace('{','').replace('}','')))
+        canvas.SaveAs("%s/%s.png"%(outDir,p[0].split('/')[1].replace('.','w').replace('#','').replace('{','').replace('}','')))
 
     for wid,obs,sig in [(a,b,c) for a in widList for b in obsList for c in sigList]:
         miniCanvas=ROOT.TCanvas()
@@ -131,7 +132,7 @@ def main():
             bc  = bcatList[ibc]
 
             wgtHist=wgtFin.Get("%s%s%s_%s_%sw/%s%s%s_%s_%sw_%s"%(ptC,ch,bc,obs,wid,ptC,ch,bc,obs,wid,sig)).Clone()
-            divHists["%i %i %i"%(iptC,ich,ibc)]=divFin.Get("%s%s%s_%s_%sw/%s%s%s_%s_%sw_%s widthx4"%(ptC,ch,bc,obs,divWid,ptC,ch,bc,obs,divWid,sig)).Clone()
+            divHists["%i %i %i"%(iptC,ich,ibc)]=divFin.Get("%s%s%s_%s_%sw/%s%s%s_%s_%sw_%s widthx8"%(ptC,ch,bc,obs,divWid,ptC,ch,bc,obs,divWid,sig)).Clone()
 
             divHist=divHists["%i %i %i"%(iptC,ich,ibc)]
             divHist.Divide(wgtHist)
@@ -159,6 +160,7 @@ def main():
             #CMS_lumi.CMS_lumi(miniCanvas,4,0)
 
         miniCanvas.SaveAs("%s/RatioGrid_%s_%s_%s.pdf"%(outDir,obs,sig,wid.replace('#','').replace('{','').replace('}','')))
+        miniCanvas.SaveAs("%s/RatioGrid_%s_%s_%s.png"%(outDir,obs,sig,wid.replace('#','').replace('{','').replace('}','')))
 
     # use full dataset for comparison
     for wid,sig in [(a,c) for a in widList for c in sigList]:
@@ -193,7 +195,7 @@ def main():
 
                 wgtHist=wgtFin.Get("%s%s%s_%s_%sw/%s%s%s_%s_%sw_%s"%(ptC,ch,bc,obs,wid,ptC,ch,bc,obs,wid,sig)).Clone()
                 xHist=wgtFin.Get("%s%s%s_%s_1.0w/%s%s%s_%s_1.0w_%s"%(ptC,ch,bc,obs,ptC,ch,bc,obs,sig)).Clone()
-                divHist=divFin.Get("%s%s%s_%s_%sw/%s%s%s_%s_%sw_%s widthx4"%(ptC,ch,bc,obs,divWid,ptC,ch,bc,obs,divWid,sig)).Clone()
+                divHist=divFin.Get("%s%s%s_%s_%sw/%s%s%s_%s_%sw_%s widthx8"%(ptC,ch,bc,obs,divWid,ptC,ch,bc,obs,divWid,sig)).Clone()
 
                 wgtHist.SetDirectory(0)
                 xHist.SetDirectory(0)
@@ -221,7 +223,7 @@ def main():
             totObsHist=obsHists[obs]["1x"]
             totObsHist.SetDirectory(0)
             totObsHist.Divide(obsHists[obs]["4x"])
-            totObsHist.GetYaxis().SetTitle("1#timesSM Events / 4#times Events")
+            totObsHist.GetYaxis().SetTitle("1#timesSM Events / 8.0#times Events")
             totObsHist.GetYaxis().SetTitleSize(0.065)
             totObsHist.GetYaxis().SetRangeUser(0.7,1.3)
             totObsHist.GetXaxis().SetTitleSize(0.065)

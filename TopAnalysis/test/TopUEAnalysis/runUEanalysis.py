@@ -215,10 +215,16 @@ def defineAnalysisBinning(opt):
     varAxes={}
     for var in varResolutions:
 
-        #special case for jet multiplicity
+        #special case for jet multiplicity, ptll and ptttbar
         if var=='nj':
             genBin=[0,1,2,3]
             recBin=[0,1,2,3]
+        elif var=='ptll' : 
+            genBin=[0,50,100,150,300]
+            recBin=[0,50,100,150,300]
+        elif var in ['ptttbar'] : 
+            genBin=[0,40,80,120,300]
+            recBin=[0,40,80,120,300]
         else:
              
             #get resolution map and quantiles       
@@ -228,7 +234,6 @@ def defineAnalysisBinning(opt):
             if var in ['C','D','aplanarity','sphericity'] : nSigmaForBins=1.5
             #if var in ['chavgpt','chavgpz'] : nSigmaForBins=3
             if VARS[var][1] and var!='chmult' : nSigmaForBins=5
-            if var in ['ptll'] : nSigmaForBins=20
 
             lastAcceptResol=resolGr.GetErrorY(0)
             for n in xrange(1,resolGr.GetN()-1):
@@ -508,6 +513,7 @@ def main():
                 condor.write('executable = {0}/$(jobName).sh\n'.format(FarmDirectory))
                 condor.write('output     = {0}/output_$(jobName).out\n'.format(FarmDirectory))
                 condor.write('error      = {0}/output_$(jobName).err\n'.format(FarmDirectory))
+                condor.write('+JobFlavour = workday\n')
 
                 for fileName,_,cfgDir in tasklist:
                     

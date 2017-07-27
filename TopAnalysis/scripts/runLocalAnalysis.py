@@ -57,12 +57,16 @@ def main():
     parser.add_option(      '--charge',      dest='charge',      help='charge  [%default]',                                     default=0,          type=int)
     parser.add_option(      '--era',         dest='era',         help='era to use for corrections/uncertainties  [%default]',   default='era2016',       type='string')
     parser.add_option(      '--tag',         dest='tag',         help='normalize from this tag  [%default]',                    default=None,       type='string')
-    parser.add_option('-q', '--queue',       dest='queue',       help='if not local send to batch with condor  [%default]',     default='local',    type='string')    
+    parser.add_option('-q', '--queue',       dest='queue',       help='if not local send to batch with condor. queues are now called flavours, see http://batchdocs.web.cern.ch/batchdocs/local/submit.html#job-flavours   [%default]',     default='local',    type='string')    
     parser.add_option('-n', '--njobs',       dest='njobs',       help='# jobs to run in parallel  [%default]',                  default=0,    type='int')
     parser.add_option(      '--skipexisting',dest='skipexisting',help='skip jobs with existing output files  [%default]',       default=False,      action='store_true')
     parser.add_option(      '--exactonly',   dest='exactonly',   help='match only exact sample tags to process  [%default]',    default=False,      action='store_true')
     parser.add_option(      '--outputonly',        dest='outputonly',        help='filter job submission for a csv list of output files  [%default]',             default=None,       type='string')
+<<<<<<< HEAD
     parser.add_option(      '--jobflavour',  dest='jobflavour',  help='job flavour to be submitted in condor [%default]', default='longlunch', type='string')
+=======
+    parser.add_option(      '--farmappendix',        dest='farmappendix',        help='Appendix to condor FARM directory [%default]',             default=None,       type='string')
+>>>>>>> 7b8cf48a9cddd3b68876a8fcac5a6bff6fe15542
     (opt, args) = parser.parse_args()
 
     #parse selection lists
@@ -94,7 +98,7 @@ def main():
         allSystVars = ['jec_CorrelationGroupMPFInSitu', 'jec_RelativeFSR',
                        'jec_CorrelationGroupUncorrelated', 'jec_FlavorPureGluon', 'jec_FlavorPureQuark',
                        'jec_FlavorPureCharm', 'jec_FlavorPureBottom', 'jer',
-                       'btag_heavy', 'btag_light', 'csv_heavy', 'csv_light']
+                       'btag_heavy', 'btag_light', 'csv_heavy', 'csv_light', 'tracking']
         for var in allSystVars:
             varList.append(var+'_up')
             varList.append(var+'_down')
@@ -153,11 +157,12 @@ def main():
                 if not processThisTag : continue
 
             input_list=getEOSlslist(directory='%s/%s' % (opt.input,tag) )
-            nexisting = 0
             
-            for ifile in xrange(0,len(input_list)):
-                inF=input_list[ifile]
-                for systVar in varList:
+            for systVar in varList:
+                nexisting = 0
+                for ifile in xrange(0,len(input_list)):
+                    inF=input_list[ifile]
+                
                     outF=os.path.join(opt.output,'Chunks','%s_%d.root' %(tag,ifile))
                     if systVar != 'nominal' and not systVar in tag: outF=os.path.join(opt.output,'Chunks','%s_%s_%d.root' %(tag,systVar,ifile))
                     if (opt.skipexisting and os.path.isfile(outF)):
@@ -166,7 +171,7 @@ def main():
                     if (len(outputOnlyList) > 1 and not outF in outputOnlyList):
                         continue
                     task_list.append( (opt.method,inF,outF,opt.channel,opt.charge,opt.flav,opt.runSysts,systVar,opt.era,tag,opt.debug) )
-            if (opt.skipexisting and nexisting): print '--skipexisting: skipping %d of %d tasks as files already exist'%(nexisting,len(input_list))
+                if (opt.skipexisting and nexisting): print '--skipexisting: %s - skipping %d of %d tasks as files already exist'%(systVar,nexisting,len(input_list))
 
     #run the analysis jobs
     if opt.queue=='local':
@@ -179,7 +184,7 @@ def main():
             pool.map(RunMethodPacked, task_list)
     else:
         
-        FarmDirectory = '%s/FARM%s'%(cmsswBase,os.path.basename(opt.output))
+        FarmDirectory = '%s/FARM%s%s'%(cmsswBase,os.path.basename(opt.output),opt.farmappendix)
         os.system('mkdir -p %s'%FarmDirectory)
         
         print 'Preparing %d tasks to submit to the batch'%len(task_list)
@@ -190,8 +195,12 @@ def main():
             condor.write('executable = {0}/$(cfgFile).sh\n'.format(FarmDirectory))
             condor.write('output     = {0}/output_$(cfgFile).out\n'.format(FarmDirectory))
             condor.write('error      = {0}/output_$(cfgFile).err\n'.format(FarmDirectory))
+<<<<<<< HEAD
             condor.write('log        = {0}/output_$(cfgFile).log\n'.format(FarmDirectory))
             condor.write('+JobFlavour = "%s"\n'%opt.jobflavour)
+=======
+            condor.write('+JobFlavour = "{0}"\n'.format(opt.queue))
+>>>>>>> 7b8cf48a9cddd3b68876a8fcac5a6bff6fe15542
 
             jobNb=0
             for method,inF,outF,channel,charge,flav,runSysts,systVar,era,tag,debug in task_list:
@@ -221,15 +230,10 @@ def main():
                         cfg.write('rm ${WORKDIR}/%s'%localOutF)
                     elif outF!=localOutF:
                         cfg.write('  mv -v ${WORKDIR}/%s %s\n'%(localOutF,outF))
-                    #    cfg.write('if grep -q "There was a crash" ${WORKDIR}/run.log; then')
-                    #    cfg.write('  mv -v ${WORKDIR}/run.log %s\n'%(logfile+'.crash'))
-                    #    cfg.write('else')
-                    #    cfg.write('  mv -v ${WORKDIR}/run.log %s\n'%(logfile))
-                    #    cfg.write('fi')
 
                 os.system('chmod u+x %s/%s.sh'%(FarmDirectory,cfgFile))
 
-        print 'Submitting jobs to condor'
+        print 'Submitting jobs to condor, flavour "%s"'%(opt.queue)
         os.system('condor_submit %s/condor.sub'%FarmDirectory)
         
 

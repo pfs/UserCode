@@ -253,12 +253,12 @@ def main():
         return False
 
     # HARDCODE systematics
-    tWRateSystList=['tW']
+    tWRateSystList=['Singletop']
     ttRateSystList=['tbart']
-    tWIsSig=('tW'    in rawSignalList)
+    tWIsSig=('Singletop'    in rawSignalList)
     ttIsSig=('tbart' in rawSignalList)
     for wid in modWidList :
-        if tWIsSig : tWRateSystList += ["tW%s"%wid]
+        if tWIsSig : tWRateSystList += ["Singletop%s"%wid]
         if ttIsSig : ttRateSystList += ["tbart%s"%wid]
 
     rateSysts=[
@@ -272,7 +272,7 @@ def main():
           #('sel',              1.02,     'lnN',    tWRateSystList+ttRateSystList+['DY','W','tch','Multiboson','tbartV'], []),
     ]
 
-    Mtop       =['tbartm=171.5','tbartm=173.5']#,'tWm=169.5','tWm=175.5']
+    Mtop       =['tbartm=171.5','tbartm=173.5']#,'Singletopm=171.5','Singletopm=173.5']
     #ttParton_tt=['tbartscaledown','tbartscaleup']
     #ttParton_tW=['tWscaledown','tWscaleup']
     #ME={    "muF": ['%sgen%i'%(sig,ind) for sig in ['tbart'] for ind in [3,4]],
@@ -282,10 +282,10 @@ def main():
     #tWinterf=['tWDS']
     #amcNLO  =['tbartaMCNLO']
     #Herwig  =['tbartHerwig']
-    ISR     =['tbartisrdn','tbartisrup']
-    FSR     =['tbartfsrdn','tbartfsrup']
-    hdamp   =['tbarthdampdn','tbarthdampup']
-    undEve  =['tbartUEdn','tbartUEup']
+    ISR     =['tbartisrdn','tbartisrup']#,'Singletopisrdn','Singletopisrup']
+    FSR     =['tbartfsrdn','tbartfsrup']#,'Singletopfsrdn','Singletopfsrup']
+    hdamp   =['tbarthdampdn','tbarthdampup']#,'Singletophdampdn','Singletophdampup']
+    undEve  =['tbartUEdn','tbartUEup']#,'SingletopUEdn','SingletopUEup']
     #cflip   =['tbartcflip']
     #noSC    =['tbartnoSC']
 
@@ -305,8 +305,8 @@ def main():
     #noSCMap={}
 
     for wid in modWidList :
-        MtopMap[    'tbart%s'%wid]=['tbartm=171.5%s'  %(wid),'tbartm=173.5%s'%(wid)]
-        #MtopMap[    'tW%s'   %wid]=['tWm=171.5%s'     %(wid),'tWm=173.5%s'   %(wid)]
+        MtopMap[    'tbart%s'%wid]=['tbartm=171.5%s'    %(wid),'tbartm=173.5%s'%(wid)]
+        #MtopMap['Singletop%s'%wid]=['Singletopm=171.5%s'%(wid),'Singletopm=173.5%s'%(wid)]
 
         #ttPartonMap['tbart%s'%wid]=['tbartscaledown%s'%(wid),'tbartscaleup%s'%(wid)]
         #twPartonMap['tW%s'   %wid]=['tWscaledown%s'   %(wid),'tWscaleup%s'   %(wid)]
@@ -314,11 +314,16 @@ def main():
         #amcNLOMap['tbart%s'%wid]=['tbartaMCNLO%s'%(wid)]
         #HerwigMap['tbart%s'%wid]=['tbartHerwig%s'%(wid)]
         ISRMap['tbart%s'%wid]=['tbartisrdn%s'%(wid),'tbartisrup%s'%(wid)]
+        #ISRMap['Singletop%s'%wid]=['Singletopisrdn%s'%(wid),'Singletopisrup%s'%(wid)]
+
         FSRMap['tbart%s'%wid]=['tbartfsrdn%s'%(wid),'tbartfsrup%s'%(wid)]
+        #FSRMap['Singletop%s'%wid]=['Singletopfsrdn%s'%(wid),'Singletopfsrup%s'%(wid)]
+
         hdampMap['tbart%s'%wid]=['tbarthdampdn%s'%(wid),'tbarthdampup%s'%(wid)]
+        #hdampMap['Singletop%s'%wid]=['Singletophdampdn%s'%(wid),'Singletophdampup%s'%(wid)]
+
         UEMap['tbart%s'%wid]=['tbartUEdn%s'%(wid),'tbartUEup%s'%(wid)]
-        #cflMap['tbart%s'%wid]=['tbartcflip%s'%(wid)]
-        #noSCMap['tbart%s'%wid]=['tbartnoSC%s'%(wid)]
+        #UEMap['Singletop%s'%wid]=['SingletopUEdn%s'%(wid),'SingletopUEup%s'%(wid)]
 
         #tWinterfMap['tW%s'   %wid]=['tWDS%s'   %(wid)]
 
@@ -806,15 +811,25 @@ def main():
                 if len(upShapes)==0 : continue
 
                 #export to shapes file
-                if systVar == "trig" :
+                if systVar in ["sel","les","trig"] :
                     systVar=systVar+lfs
                 extraRateSyst={}
-                if systVar in ['jes']:
+                if systVar in ['ISR','FSR','hdamp','UE','btag','btag%s'%lfs,'ltag','les','les%s'%lfs,'jer','pu','sel','sel%s'%lfs,'toppt','jes','trig%s'%lfs] :
                     for proc in downShapes:
+                        nomproc = proc if "NOM" not in proc else proc.replace('NOM','1p0w')
+                        nevtsnm=exp[nomproc].Integral()
+
                         nevtsup,nevtsdn=upShapes[proc].Integral(),downShapes[proc].Integral()
                         if nevtsdn==0 : continue
+
+                        # compute rate
                         rateVarInProc=1.0+0.5*ROOT.TMath.Abs(1.0-nevtsup/nevtsdn)
                         extraRateSyst[proc]=rateVarInProc
+
+                        # normalize variations to nominal integral
+                        upShapes[  proc].Scale(nevtsnm/nevtsup)
+                        downShapes[proc].Scale(nevtsnm/nevtsdn)
+
                 saveToShapesFile(outFile,downShapes,lbCat+lfs+cat+"_"+dist+"_"+systVar+'Down')
                 saveToShapesFile(outFile,upShapes,lbCat+lfs+cat+"_"+dist+"_"+systVar+'Up')
 
@@ -841,6 +856,7 @@ def main():
 
                 #add extra rate systs
                 if len(extraRateSyst)>0:
+                    #if "trigMM" in systVar or "selMM" in systVar : continue
                     datacard.write('%26s lnN'%(systVar+'rate'))
                     for sig in signalList:
                         if ("%s%s"%(sig,modNomWid)) in exp and ("%s%s"%(sig,modNomWid)) in extraRateSyst:

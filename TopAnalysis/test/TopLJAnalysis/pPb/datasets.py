@@ -63,7 +63,9 @@ def defineDataset(data):
     if 'MC8.16TeV_TTbar_pPb_tighte' in data:
         dataset=OrderedDict()
 
-        dataset['l+jets']         = (['%s/PYQUEN_TTbar_PPb-EmbEPOS_EJets_RevertIsolation.root'%baseDir,
+        dataset['l+jets']         = (['%s/PYQUEN_TTbar_PbP-EmbEPOS_EJets.root'%baseDir,
+                                      '%s/PYQUEN_TTbar_PPb-EmbEPOS_EJets_RevertIsolation.root'%baseDir,
+                                      '%s/PYQUEN_TTbar_PbP-EmbEPOS_MuJets.root'%baseDir,
                                       '%s/PYQUEN_TTbar_PPb-EmbEPOS_MuJets_CheckForBugInJER.root'%baseDir],
                                       '#4575b4', [11,13],   True)
     if 'MC8.16TeV_TTbar_pPb_hypertighte' in data:
@@ -81,8 +83,16 @@ def defineDataset(data):
 
     if 'MC8.16TeV_WJets_pPb' in data:
         dataset=OrderedDict()
-        dataset['l+jets']         = (['%s/WToMuNu_anstahll-Embedded_PileUp_POWHEG_WToMuNu_MergedSign_CT14_EPPS16_8160GeV_pythia8_MergedDirs.root'%baseDir],
+        dataset['l+jets']         = (['%s/WToMuNu_anstahll-Embedded_PileUp_POWHEG_WToMuNu_MergedSign_CT14_EPPS16_8160GeV_pythia8_MergedDirs.root'%baseDir,
+                                      '%s/WtoENu_pPb-EmbEPOS_8p16_Pyquen_pPb816Summer16DR-pPbEmb_80X_mcRun2_pA_v4.root'%baseDir],
                                      '#4575b4', [11,13],   False)
+
+    if 'MC8.16TeV_DY_pPb' in data:
+        dataset=OrderedDict()
+        dataset['l+jets']         = (['%s/DYtoMuMu_M-30_pPb-EmbEPOS_8p16_Pyquen_pPb816Summer16DR-pPbEmb_80X_mcRun2_pA_v4.root'%baseDir,
+                                      '%s/DYtoEE_M-30_pPb-EmbEPOS_8p16_Pyquen_pPb816Summer16DR-pPbEmb_80X_mcRun2_pA_v4.root'%baseDir],
+                                     '#4575b4', [11,13],   False)
+
 
     if 'MC8TeV_WJets_pp' in data:
         dataset=OrderedDict()

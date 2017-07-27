@@ -91,6 +91,7 @@ After ntuples are processed, you can create the list of runs/lumi sections proce
 ```
 a=(`find grid/ -maxdepth 1 | grep crab_Data `)
 for i in ${a[@]}; do
+    crab kill ${i};
     crab status ${i};
     crab report ${i}; 
 done

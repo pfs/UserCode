@@ -32,7 +32,7 @@ def getEffSigma(var,pdf,wmin,wmax,step=0.1,epsilon=1e-4):
             wx = points[j][0] - points[i][0]
             if wx<width:
                 low,high,width = points[i][0],points[j][0],wx
-  return pdf.mean(var).getVal(),median,mode,high-low
+  return pdf.mean(var).getVal(),median,mode,0.5*width
 
 
 

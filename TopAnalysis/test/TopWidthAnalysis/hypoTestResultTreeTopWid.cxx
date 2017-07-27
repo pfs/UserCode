@@ -117,8 +117,19 @@ void hypoTestResultTreeTopWid(TString fOutName,
     /*
      * Outputting LaTeX table with useful statistics
      */
-    TH1D *hnullstat = new TH1D("hnullstat","Null Hypothesis",1000,-1000,1000);
-    TH1D *haltstat  = new TH1D("haltstat" ,"Alternate Hypothesis",1000,-1000,1000);
+    double maxToyValue = -2*tree->GetMinimum("q");
+    double minToyValue = -2*tree->GetMaximum("q");
+           maxToyValue = maxToyValue + 0.1*TMath::Abs(maxToyValue-minToyValue);
+           minToyValue = minToyValue - 0.1*TMath::Abs(maxToyValue-minToyValue);
+
+    std::cout<<"Max is: "<<maxToyValue<<" and min is "<<minToyValue<<std::endl;
+
+    TH1D *hnullstat = new TH1D("hnullstat","Null Hypothesis",
+                                    maxToyValue-minToyValue,
+                                    minToyValue,maxToyValue);
+    TH1D *haltstat  = new TH1D("haltstat" ,"Alternate Hypothesis",
+                                    maxToyValue-minToyValue,
+                                    minToyValue,maxToyValue);
     
     tree->Draw("-2*q>>hnullstat","type>0","goff");
     tree->Draw("-2*q>>haltstat" ,"type<0","goff");
@@ -127,8 +138,8 @@ void hypoTestResultTreeTopWid(TString fOutName,
     //
     // Get x position where toy histograms approximately intersect
     // 
-    gnull = new TF1("gnull","gaus",-1000,1000);
-    galt  = new TF1("galt", "gaus",-1000,1000);
+    gnull = new TF1("gnull","gaus",minToyValue,maxToyValue);
+    galt  = new TF1("galt", "gaus",minToyValue,maxToyValue);
     hnullstat->Fit(gnull); 
      haltstat->Fit(galt); 
 
@@ -144,8 +155,8 @@ void hypoTestResultTreeTopWid(TString fOutName,
     //
     std::cout << " - getting separation... " << std::endl;
 
-    Double_t galtNorm = galt->Integral(-1000,1000);
-    Double_t gnullNorm=gnull->Integral(-1000,1000);
+    Double_t galtNorm = galt->Integral(minToyValue,maxToyValue);
+    Double_t gnullNorm=gnull->Integral(minToyValue,maxToyValue);
     
     if(galtNorm == 0 or gnullNorm == 0) {
         std::cout<< " \n\nWARNING : INTEGRAL OF ONE FIT IS 0 \n\n " << std::endl;
@@ -153,11 +164,11 @@ void hypoTestResultTreeTopWid(TString fOutName,
 
     Double_t separation = 0;
     if(hnullstat->GetMean() <= haltstat->GetMean()) {
-       separation = galt->Integral(-1000,xint)/galtNorm
-                 + gnull->Integral(xint,1000)/gnullNorm;
+       separation = galt->Integral(minToyValue,xint)/galtNorm
+                 + gnull->Integral(xint,maxToyValue)/gnullNorm;
     } else {
-       separation = gnull->Integral(-1000,xint)/gnullNorm 
-                   + galt->Integral(xint,1000)/galtNorm;
+       separation = gnull->Integral(minToyValue,xint)/gnullNorm 
+                   + galt->Integral(xint,maxToyValue)/galtNorm;
     }
 
     separation = 1 - separation;
@@ -197,11 +208,11 @@ void hypoTestResultTreeTopWid(TString fOutName,
     Double_t nullFitMedian = gnull->GetParameter("Mean"); 
     Double_t  altFitMedian =  galt->GetParameter("Mean"); 
     if(nullFitMedian < altFitMedian) {
-      nullExceededDensity=gnull->Integral(altFitMedian,1000)/gnullNorm;
-       altExceededDensity= galt->Integral(-1000,nullFitMedian)/galtNorm;
+      nullExceededDensity=gnull->Integral(altFitMedian,maxToyValue)/gnullNorm;
+       altExceededDensity= galt->Integral(minToyValue,nullFitMedian)/galtNorm;
     } else {
-      nullExceededDensity=gnull->Integral(-1000,altFitMedian)/gnullNorm;
-       altExceededDensity= galt->Integral(nullFitMedian,1000)/galtNorm;
+      nullExceededDensity=gnull->Integral(minToyValue,altFitMedian)/gnullNorm;
+       altExceededDensity= galt->Integral(nullFitMedian,maxToyValue)/galtNorm;
     }
 
     Double_t CLsExp = altExceededDensity/0.5;
@@ -263,11 +274,12 @@ void hypoTestResultTreeTopWid(TString fOutName,
 
     std::cout << "Creating plots" << std::endl;
 
-    Double_t plotMinMax = 2*TMath::Max(TMath::Abs(gnull->GetParameter("Mean")-3*gnull->GetParameter(2)),
-                                     TMath::Abs( galt->GetParameter("Mean")-3* galt->GetParameter(2)))*1.2;
-
-    TH1D *hnull = new TH1D("hnull","Null Hypothesis",TMath::FloorNint(2*plotMinMax*100/40)/5,-plotMinMax,plotMinMax);
-    TH1D *halt  = new TH1D("halt" ,"Alternate Hypothesis",TMath::FloorNint(2*plotMinMax*100/40)/5,-plotMinMax,plotMinMax);
+    TH1D *hnull = new TH1D("hnull","Null Hypothesis",
+                            TMath::CeilNint((maxToyValue-minToyValue)/4),
+                            minToyValue,maxToyValue);
+    TH1D *halt  = new TH1D("halt" ,"Alternate Hypothesis",
+                            TMath::CeilNint((maxToyValue-minToyValue)/4),
+                            minToyValue,maxToyValue);
 
     tree->Draw("-2*q>>hnull","type>0","goff");
     tree->Draw("-2*q>>halt" ,"type<0","goff");

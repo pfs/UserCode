@@ -207,8 +207,8 @@ def main():
                                 w=w,
                                 tagTitle=cat,
                                 rangeX=(0,500),
-                                showComponents=[('S_wro*','wront permutations'),
-                                                ('S_cor*,S_wro*','correct permutations')],
+                                showComponents=[('S_wro*','wrong permutations'),
+                                                ('S_cor*,S_wro*','correct permutations')],                                
                                 outDir='./',
                                 paramList=[])
 

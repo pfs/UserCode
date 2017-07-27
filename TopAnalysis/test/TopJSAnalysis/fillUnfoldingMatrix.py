@@ -7,6 +7,7 @@ import os
 import time
 from array import *
 from math import sqrt
+from math import isnan
 
 flavorMap = {'all': -1, 'light': 1, 'bottom': 5, 'gluon': 0}
 
@@ -14,7 +15,9 @@ def fillHist(hmap, tree, nweights):
     for event in tree:
         weights = []
         for i in range(nweights+1):
-            weights.append(event.weight[i])
+            if not isnan(event.weight[i]):
+                weights.append(event.weight[i])
+            else: weights.append(0.)
         for obs,hmap_reco in hmap.iteritems():
             for reco,hmap_flavor in hmap_reco.iteritems():
                 for flavor,hmap_weight in hmap_flavor.iteritems():
@@ -70,7 +73,7 @@ def main():
                             help='observable [default: %default]')
     parser.add_option('-o', '--output',
                             dest='output', 
-                            default='unfolding/fill/Chunks',
+                            default='unfolding/fill',
                             help='Output directory [default: %default]')
     parser.add_option('--ri', '--rootinput',
                             dest='rootinput',
@@ -80,8 +83,9 @@ def main():
                             dest='skipexisting',
                             help='skip jobs with existing output files  [%default]',
                             default=False, action='store_true')
-    parser.add_option('-q', '--queue', dest='queue',  help='Batch queue to use [default: %default]', default='8nh')
+    parser.add_option('-q', '--queue', dest='queue',  help='Batch queue to use [default: %default]', default='longlunch')
     parser.add_option(      '--only',  dest='only',   help='csv list of samples to process (exact name, applies only for batch mode) [%default]', default=None, type='string')
+    parser.add_option(      '--skip',  dest='skip',   help='csv list of samples to exclude (exact name, applies only for batch mode) [%default]', default=None, type='string')
     parser.add_option('--nw', '--nweights', dest='nweights', help='number of weights to run [%default]', default=0, type='int')
     (opt, args) = parser.parse_args()
 
@@ -110,13 +114,18 @@ def main():
             for r in reco:
                 if o+'_'+r+'_responsematrix' in keys:
                     hmap[o][r] = {}
-                    obj = rootinfile.Get(o+'_'+r+'_responsematrix')
+                    obj = rootinfile.Get(o+'_'+r+'_responsematrix').Clone()
                     obj.Reset()
                     for f in flavors:
                         hmap[o][r][f] = {}
                         hmap[o][r][f][0] = obj.Clone(o+'_'+r+'_'+f+'_responsematrix')
                         for w in range(opt.nweights):
                             hmap[o][r][f][w+1] = obj.Clone(o+'_'+r+'_'+f+'_wgt'+str(w+1)+'_responsematrix')
+        
+        #rootinfile.Close()
+        os.system('mkdir -p %s' % opt.output)
+        rootoutfile = ROOT.TFile(rootoutfilepath, "RECREATE");    
+        rootoutfile.cd()
         
         tree = ROOT.TChain('tjsev')
         if opt.input == 'eos':
@@ -127,9 +136,6 @@ def main():
         
         fillHist(hmap, tree, opt.nweights)
 
-        os.system('mkdir -p %s' % opt.output)
-        rootoutfile = ROOT.TFile(rootoutfilepath, "RECREATE");    
-        rootoutfile.cd()    
         for obs,hmap_reco in hmap.iteritems():
             for reco,hmap_flavor in hmap_reco.iteritems():
                 for flavor,hmap_weight in hmap_flavor.iteritems():
@@ -146,28 +152,83 @@ def main():
             onlyList=opt.only.split(',')
         except:
             pass
+        skipList=[]
+        try:
+            skipList=opt.skip.split(',')
+        except:
+            pass
         #create the tasklist
         inputlist=[]
         if os.path.isdir(opt.input):
             for file_path in os.listdir(opt.input):
                 if file_path.endswith('.root'):
-                    rootoutfilepath = workdir+opt.output+'/'+os.path.basename(file_path)
+                    rootoutfilepath = workdir+opt.output+'/Chunks/'+os.path.basename(file_path)
                     if (opt.skipexisting and os.path.isfile(rootoutfilepath)): continue
                     #filter tags
                     if len(onlyList)>0:
                         if (not os.path.basename(file_path).rsplit('_',1)[0] in onlyList): continue
+                    if len(skipList)>0:
+                        if (os.path.basename(file_path).rsplit('_',1)[0] in skipList): continue
                     inputlist.append(os.path.join(opt.input,file_path))
         #print(inputlist)
-        print 'Running %d jobs to %s'%(len(inputlist),opt.queue)
-        njob = 1
-        for inputfile in inputlist:
-            outputdir=workdir+opt.output
-            localRun='python %s/src/TopLJets2015/TopAnalysis/test/TopJSAnalysis/fillUnfoldingMatrix.py --input %s --output %s --nweights %d'%(cmsswBase,inputfile,outputdir,opt.nweights)
-            if (opt.skipexisting): localRun += " --skipexisting"
-            cmd='bsub -q %s %s/src/TopLJets2015/TopAnalysis/scripts/wrapLocalAnalysisRun.sh \"%s\"' % (opt.queue,cmsswBase,localRun)
-            print 'Submitting job %d/%d: %s'%(njob,len(inputlist),os.path.basename(inputfile))
-            njob+=1
-            os.system(cmd)
+        #FIXME old
+        #print 'Running %d jobs to %s'%(len(inputlist),opt.queue)
+        #njob = 1
+        #for inputfile in inputlist:
+        #    outputdir=workdir+opt.output
+        #    localRun='python %s/src/TopLJets2015/TopAnalysis/test/TopJSAnalysis/fillUnfoldingMatrix.py --input %s --output %s --nweights %d'%(cmsswBase,inputfile,outputdir,opt.nweights)
+        #    if (opt.skipexisting): localRun += " --skipexisting"
+        #    cmd='bsub -q %s %s/src/TopLJets2015/TopAnalysis/scripts/wrapLocalAnalysisRun.sh \"%s\"' % (opt.queue,cmsswBase,localRun)
+        #    print 'Submitting job %d/%d: %s'%(njob,len(inputlist),os.path.basename(inputfile))
+        #    njob+=1
+        #    os.system(cmd)
+            
+        #FIXME new
+        FarmDirectory = '%s/FARM%s'%(cmsswBase,os.path.basename(opt.output))
+        os.system('mkdir -p %s'%FarmDirectory)
+        
+        print 'Preparing %d tasks to submit to the batch'%len(inputlist)
+        print 'Executables and condor wrapper are stored in %s'%FarmDirectory
+
+        with open ('%s/condor.sub'%FarmDirectory,'w') as condor:
+
+            condor.write('executable = {0}/$(cfgFile).sh\n'.format(FarmDirectory))
+            condor.write('output     = {0}/output_$(cfgFile).out\n'.format(FarmDirectory))
+            condor.write('error      = {0}/output_$(cfgFile).err\n'.format(FarmDirectory))
+            condor.write('+JobFlavour = "{0}"\n'.format(opt.queue))
+
+            jobNb=0
+            for inputfile in inputlist:
+
+                jobNb+=1
+                outF=workdir+opt.output+'/Chunks/'+os.path.basename(inputfile)
+                cfgFile='%s'%(os.path.splitext(os.path.basename(outF))[0])
+
+                condor.write('cfgFile=%s\n'%cfgFile)
+                condor.write('queue 1\n')
+                
+                with open('%s/%s.sh'%(FarmDirectory,cfgFile),'w') as cfg:
+
+                    cfg.write('#!/bin/bash\n')
+                    cfg.write('WORKDIR=`pwd`\n')
+                    cfg.write('echo "Working directory is ${WORKDIR}"\n')
+                    cfg.write('cd %s\n'%cmsswBase)
+                    cfg.write('eval `scram r -sh`\n')
+                    cfg.write('cd ${WORKDIR}\n')
+                    localOutF=os.path.basename(outF)
+                    nweights=opt.nweights
+                    if localOutF.rsplit('_',1)[0] == 'MC13TeV_TTJets': nweights = 20
+                    binningfile = '%s/src/TopLJets2015/TopAnalysis/unfolding/optimize/output.root'%(cmsswBase)
+                    runOpts='--input %s --rootinput %s --output . --nweights %d'\
+                        %(inputfile, binningfile, nweights)
+                    cfg.write('python %s/src/TopLJets2015/TopAnalysis/test/TopJSAnalysis/fillUnfoldingMatrix.py %s\n'%(cmsswBase,runOpts))
+                    if outF!=localOutF:
+                        cfg.write('mv -v ${WORKDIR}/%s %s\n'%(localOutF,outF))
+
+                os.system('chmod u+x %s/%s.sh'%(FarmDirectory,cfgFile))
+
+        print 'Submitting jobs to condor, flavour "%s"'%(opt.queue)
+        os.system('condor_submit %s/condor.sub'%FarmDirectory)
 
 if __name__ == "__main__":
 	sys.exit(main())

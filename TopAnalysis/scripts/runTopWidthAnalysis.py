@@ -37,23 +37,27 @@ def runTopWidthAnalysis(fileName,
                                'btagup','btagdn',
                                'ltagup','ltagdn',
                                'jerup','jerdn',
-                               'lesup','lesdn',
-                               'eesup','mesdn',
+                               'eesup','eesdn',
+                               'mesup','mesdn',
                                'trigup','trigdn',
                                'eselup','eseldn',
-                               'mselup','mseldn'],
+                               'mselup','mseldn',
+                               'bfragup','bfragdn','petersfrag',
+                               'semilepup','semilepdn'],
                         thsysts=[]):
 
     print '....analysing',fileName,'with output @',outFileName
 
     #open file
-    puNormSF=1.0
-    if isData:
+    isData=False if 'MC13TeV' in fileName else True
+    puNormSF=[1.0,1.0,1.0]
+    if not isData:
         fIn=ROOT.TFile.Open(fileName)
         puCorrH=fIn.Get('puwgtctr')
         nonWgt=puCorrH.GetBinContent(1)
-        wgt=puCorrH.GetBinContent(2)
-        if wgt>0 : puNormSF=nonWgt/wgt
+        for xbin in xrange(2,5):
+            wgt=puCorrH.GetBinContent(xbin)
+            if wgt>0 : puNormSF[xbin-2]=nonWgt/wgt
         fIn.Close()
 
     #instantiate the tree
@@ -61,7 +65,6 @@ def runTopWidthAnalysis(fileName,
     tree.AddFile(fileName)
 
     #check if this is data beforehand
-    isData=False if 'MC13TeV' in fileName else True
     if isData:
         widthList=[1.0]
         systs=['']
@@ -73,16 +76,24 @@ def runTopWidthAnalysis(fileName,
             systs += ['jesup_%d'%i,'jesdn_%d'%i]
 
         #generator level systematics for ttbar
-        if 'TTJets' in fileName and 'powheg' in fileName:
+        if 'TTJets' in fileName or 'SingleT_tW' in fileName:
             thsysts += ['topptup','topptdn','nloproddec']
-            for i in xrange(1,120):  thsysts += ['gen%d'%i]
+            ngenWgts=tree.nw-15
+            print 'Adding',ngenWgts,'gen-level weights for systs'
+            for i in xrange(1,ngenWgts):  thsysts += ['gen%d'%i]
+        else:
+            widthList=[1.0]
 
-    smWidth=1.324 # all powheg samples have been generated with the width @ 172.5 GeV
+    #powheg samples have running width 2%/1GeV
+    #see  https://github.com/jfernan2/genproductions/tree/8b309da3427fb5fdcc2dadc1860774f20adb517c/bin/Powheg/production
+    smWidth=1.31
     smMass=172.5
-    if '166v5' in fileName : smMass=166.5
-    if '169v5' in fileName : smMass=169.5
-    if '175v5' in fileName : smMass=175.5
-    if '178v5' in fileName : smMass=178.5
+    if '166v5' in fileName : smMass,smWidth=166.5,1.16
+    if '169v5' in fileName : smMass,smWidth=169.5,1.23
+    if '171v5' in fileName : smMass,smWidth=171.5,1.28    
+    if '173v5' in fileName : smMass,smWidth=173.5,1.34
+    if '175v5' in fileName : smMass,smWidth=175.5,1.39
+    if '178v5' in fileName : smMass,smWidth=178.5,1.48
 
     #define the relativistic Breit-Wigner function
     bwigner=ROOT.TF1('bwigner',
@@ -106,10 +117,10 @@ def runTopWidthAnalysis(fileName,
 
     #MC truth control histograms
     for w in widthList:
-        var='tmass_%3.1fw'%w
+        var='tmass_w%d'%int(100*w)
         observablesH[var]=ROOT.TH1F(var,';Top quark mass [GeV];Top quarks',100,150,200)
         for assig in ['cor','wro']:
-            var='%sgenmlbvsmtop_%3.1fw'%(assig,w)
+            var='%sgenmlbvsmtop_w%d'%(assig,int(100*w))
             observablesH[var]=ROOT.TH2F(var,';Mass(lepton,jet) [GeV];Top mass;l+j pairs',30,0,300,100,150,200)
 
     #RECO level histograms
@@ -137,24 +148,25 @@ def runTopWidthAnalysis(fileName,
             observablesH[var]=ROOT.TH1F(var,';Jet multiplicity;Events',6,2,8)
 
             for i in ['lowpt','highpt']:
+
                 for w in widthList:
-                    var=s+i+j+b+'_incmlb_%3.1fw'%w
+                    var=j+b+i+'_incmlb_w%d'%int(100*w)
                     observablesH[var]=ROOT.TH1F(var,';Mass(lepton,jet) (Inclusive) [GeV];l+j pairs',30,0,300)
 
-                    var=s+i+j+b+'_incmlb_%3.1fw_exp'%w
+                    var=j+b+i+'_incmlb_w%d_exp'%int(100*w)
                     nsysts=len(systs)
                     observablesH[var]=ROOT.TH2F(var,';Mass(lepton,jet) (Inclusive) [GeV];Systematics;l+j pairs',30,0,300,nsysts+1,0,nsysts+1)
                     for isyst in xrange(0,nsysts):
                         observablesH[var].GetYaxis().SetBinLabel(isyst+1,systs[isyst])
 
-                    var=s+i+j+b+'_incmlb_%3.1fw_gen'%w
+                    var=j+b+i+'_incmlb_w%d_gen'%int(100*w)
                     nsysts=len(thsysts)
                     observablesH[var]=ROOT.TH2F(var,';Mass(lepton,jet) (Inclusive) [GeV];Systematics;l+j pairs',30,0,300,nsysts+1,0,nsysts+1)
                     for isyst in xrange(0,nsysts):
                         observablesH[var].GetYaxis().SetBinLabel(isyst+1,thsysts[isyst])
 
-                    if w!=1.0 or len(s)>0 : continue
-                    var=i+j+b+'_pairing'
+                    if w!=1.0 : continue
+                    var=j+b+i+'_pairing'
                     observablesH[var]=ROOT.TH1F(var,';Pairing;l+j pairs',2,0,2)
                     observablesH[var].GetXaxis().SetBinLabel(1,'correct')
                     observablesH[var].GetXaxis().SetBinLabel(2,'wrong')
@@ -164,7 +176,7 @@ def runTopWidthAnalysis(fileName,
         observablesH[var].Sumw2()
 
     #loop over events in the tree and fill histos
-    totalEntries=tree.GetEntries()
+    totalEntries=tree.GetEntries() 
     for i in xrange(0,totalEntries):
 
         tree.GetEntry(i)
@@ -179,7 +191,7 @@ def runTopWidthAnalysis(fileName,
         if evcat==''            : continue
 
         #base event weight
-        baseEvWeight=puNormSF*tree.weight[0]
+        baseEvWeight=puNormSF[0]*tree.weight[0]
 
         #determine weighting factors for the width
         tops={}
@@ -199,7 +211,7 @@ def runTopWidthAnalysis(fileName,
             widthWeight[w]=weightTopWidth(tmassList,bwigner,w*smWidth,smWidth)
 
             #paranoid check for the reweighted mass based on the Breit-Wigner
-            var='tmass_%3.1fw'%w
+            var='tmass_w%d'%int(100*w)
             for mtop in tmassList:
                 observablesH[var].Fill(mtop,baseEvWeight*widthWeight[w])
 
@@ -241,13 +253,13 @@ def runTopWidthAnalysis(fileName,
                     if shiftHeavyFlav is not None : continue
 
                     jres=ROOT.TMath.Abs(1-tree.j_jer[ij])
-                    bjets[5].append( (ij,jp4*(1+jres)) )
-                    bjets[6].append( (ij,jp4*(1-jres)) )
+                    bjets[5].append( (ij,ROOT.TLorentzVector(jp4)*(1+jres)) )
+                    bjets[6].append( (ij,ROOT.TLorentzVector(jp4)*(1-jres)) )
 
                     for ijs in xrange(0,tree.j_jes[ij].size()):
-                        jscale=tree.j_jes[ij][ijs]
-                        bjets[7+ijs].append( (ij,jp4*(1+jscale)) )
-                        bjets[8+ijs].append( (ij,jp4*(1-jscale)) )
+                        jscale=abs(tree.j_jes[ij][ijs])
+                        bjets[7+ijs*2].append( (ij,ROOT.TLorentzVector(jp4)*(1+jscale)) )
+                        bjets[8+ijs*2].append( (ij,ROOT.TLorentzVector(jp4)*(1-jscale)) )
 
                 elif btagVal == 0 :
                     otherjets[ibvar].append( (ij,jp4) )
@@ -256,13 +268,13 @@ def runTopWidthAnalysis(fileName,
                     if shiftHeavyFlav is not None : continue
 
                     jres=ROOT.TMath.Abs(1-tree.j_jer[ij])
-                    otherjets[5].append( (ij,jp4*(1+jres)) )
-                    otherjets[6].append( (ij,jp4*(1-jres)) )
+                    otherjets[5].append( (ij,ROOT.TLorentzVector(jp4)*(1+jres)) )
+                    otherjets[6].append( (ij,ROOT.TLorentzVector(jp4)*(1-jres)) )
 
                     for ijs in xrange(0,tree.j_jes[ij].size()):
-                        jscale=tree.j_jes[ij][ijs]
-                        otherjets[7+ijs].append( (ij,jp4*(1+jscale)) )
-                        otherjets[8+ijs].append( (ij,jp4*(1-jscale)) )
+                        jscale=abs(tree.j_jes[ij][ijs])
+                        otherjets[7+ijs*2].append( (ij,ROOT.TLorentzVector(jp4)*(1+jscale)) )
+                        otherjets[8+ijs*2].append( (ij,ROOT.TLorentzVector(jp4)*(1-jscale)) )
 
         #build the dilepton
         dilepton=ROOT.TLorentzVector()
@@ -321,7 +333,7 @@ def runTopWidthAnalysis(fileName,
                 s=systs[isyst]
 
                 #event weight
-                evWeight=puNormSF*tree.weight[0]
+                evWeight=puNormSF[0]*tree.weight[0]
 
                 #base lepton kinematics
                 lp4=ROOT.TLorentzVector(stdlp4)
@@ -342,47 +354,60 @@ def runTopWidthAnalysis(fileName,
                 if s=='eesdn' and abs(tree.l_id[il])==11 : lp4 *= (1.0-lscale)
                 if s=='mesup' and abs(tree.l_id[il])==13:  lp4 *= (1.0+lscale)
                 if s=='mesdn' and abs(tree.l_id[il])==13 : lp4 *= (1.0-lscale)
-                if s=='puup'   : evWeight=puNormSF*tree.weight[1]
-                if s=='pudn'   : evWeight=puNormSF*tree.weight[2]
-                if s=='trigup':  evWeight=puNormSF*tree.weight[3]
-                if s=='trigdn':  evWeight=puNormSF*tree.weight[4]
-                if s=='eselup':  evWeight=puNormSF*tree.weight[5]
-                if s=='eseldn':  evWeight=puNormSF*tree.weight[6]
-                if s=='mselup':  evWeight=puNormSF*tree.weight[7]
-                if s=='mseldn':  evWeight=puNormSF*tree.weight[8]
+                if s=='puup'   : evWeight=puNormSF[1]*tree.weight[1]
+                if s=='pudn'   : evWeight=puNormSF[2]*tree.weight[2]
+                if s=='trigup':  evWeight=puNormSF[0]*tree.weight[3]
+                if s=='trigdn':  evWeight=puNormSF[0]*tree.weight[4]
+                if s=='eselup':  evWeight=puNormSF[0]*tree.weight[5]
+                if s=='eseldn':  evWeight=puNormSF[0]*tree.weight[6]
+                if s=='mselup':  evWeight=puNormSF[0]*tree.weight[7]
+                if s=='mseldn':  evWeight=puNormSF[0]*tree.weight[8]
+                if s=='semilepdn' : evWeight=puNormSF[0]*tree.weight[10]
+                if s=='semilepup' : evWeight=puNormSF[0]*tree.weight[11]
+                if s=='bfragup'   : evWeight=puNormSF[0]*tree.weight[12]
+                if s=='bfragdn'   : evWeight=puNormSF[0]*tree.weight[13]
+                if s=='petersfrag': evWeight=puNormSF[0]*tree.weight[14]
+                
+                #require two jets
+                njets=len(bjets[ijhyp])+len(otherjets[ijhyp])
+                if njets<2 : continue
 
                 #btag hypothesis
                 nbtags=len(bjets[ijhyp])
                 if nbtags<1 : continue
                 if nbtags>2 : nbtags=2
                 btagcat='%db'%nbtags
-                for ib in xrange(0,nbtags):
 
+                for ib in xrange(0,nbtags):
+                    
                     ij,jp4 = bjets[ijhyp][ib]
 
                     #RECO kinematics of the l,b system
                     mlb=(lp4+jp4).M()
                     ptlb=(lp4+jp4).Pt()
                     ptCat='lowpt' if ptlb<100 else 'highpt'
-                    dRlb=lp4.DeltaR(jp4)
+                    drlb=lp4.DeltaR(jp4)
                     dphilb=lp4.DeltaPhi(jp4)
-
+                    
                     #fill the nominal histos
                     if isyst==0:
                         var=evcat+btagcat
-                        observablesH[var+'_mlb'].Fill(mlb,evWeight)
                         observablesH[var+'_ptlb'].Fill(ptlb,evWeight)
                         observablesH[var+'_drlb'].Fill(drlb,evWeight)
                         observablesH[var+'_dphilb'].Fill(dphilb,evWeight)
 
-                    #exp systematics
+                    #observable and associated systematics
                     for w in widthList:
-                        var=s+i+j+b+'_incmlb_%3.1fw_exp'%w
-                        observablesH[var].Fill(isyst,mlb,evWeight*widthWeight[w])
 
+                        if isyst==0:
+                            var=evcat+btagcat+ptCat+'_incmlb_w%d'%int(100*w)
+                            observablesH[var].Fill(mlb,evWeight*widthWeight[w])
 
-                    #for the nominal variation do the theory systematics, if available
-                    if isyst!=0 or len(thsysts)>0: continue
+                        var=evcat+btagcat+ptCat+'_incmlb_w%d_exp'%int(100*w)
+                        observablesH[var].Fill(mlb,isyst,evWeight*widthWeight[w])
+                        
+                    #for the nominal variation do MC truth and the theory systematics, if available
+                    if isyst!=0: continue
 
                     pairFullyMatchedAtGen = (tree.gl_id[il]!=0 and abs(tree.gj_flav[ij])==5)
                     assignmentType,tmass,genmlb,genmlb_parton=1,0.0,0.0,-1.0
@@ -414,7 +439,7 @@ def runTopWidthAnalysis(fileName,
                     if pairFullyMatchedAtGen:
                         for w in widthList:
                             var='cor' if assignmentType==0 else 'wro'
-                            var+='genmlbvsmtop_%3.1fw'%w
+                            var+='genmlbvsmtop_w%d'%int(100*w)
                             observablesH[var].Fill(genmlb,tmass,evWeight*widthWeight[w])
 
                     #emulate reweighting to NLO prod+dec based on MCFM calculations
@@ -427,13 +452,13 @@ def runTopWidthAnalysis(fileName,
                     for ith in xrange(0,len(thsysts)):                            
                         s=thsysts[ith]
                         thEvWeight=evWeight
-                        if s=='topptup': thEvWeight=puNormSF*tree.weight[9]
-                        if s=='topptdn': thEvWeight=puNormSF*tree.weight[9]
-                        if 'gen' in s  : thEvWeight=puNormSF*tree.weight[10+int(s[3:])]
-                        if s=='ttbar'  : thEvWeight *= pairWeightAtNLO
+                        if s=='topptup': thEvWeight=puNormSF[0]*tree.weight[9]
+                        if s=='topptdn': thEvWeight=puNormSF[0]*tree.weight[9]
+                        if 'gen' in s  : thEvWeight=puNormSF[0]*tree.weight[10+int(s[3:])]
+                        if s=='nloproddec'  : thEvWeight = evWeight*pairWeightAtNLO
                         for w in widthList:
-                            var=s+i+j+b+'_incmlb_%3.1fw_gen'%w
-                            observablesH[var].Fill(ith,mlb,thEvWeight*widthWeight[w])
+                            var=evcat+btagcat+ptCat+'_incmlb_w%d_gen'%int(100*w)
+                            observablesH[var].Fill(mlb,ith,thEvWeight*widthWeight[w])
 
     #save results
     fOut=ROOT.TFile.Open(outFileName,'RECREATE')
@@ -459,7 +484,7 @@ Create analysis tasks
 """
 def createAnalysisTasks(opt):
 
-    onlyList=opt.only.split('v')
+    onlyList=opt.only.split(',')
 
     ## Local directory
     file_list=[]
@@ -497,11 +522,35 @@ def createAnalysisTasks(opt):
                 runTopWidthAnalysis(fileName,outFileName)
     else:
         cmsswBase=os.environ['CMSSW_BASE']
-        for fileName,_ in tasklist:
-            localRun='python %s/src/TopLJets2015/TopAnalysis/scripts/runTopWidthAnalysis.py -i %s -o %s -q local'%(cmsswBase,fileName,opt.output)
-            cmd='bsub -q %s %s/src/TopLJets2015/TopAnalysis/scripts/wrapLocalAnalysisRun.sh \"%s\"' % (opt.queue,cmsswBase,localRun)
-            print cmd
-            os.system(cmd)
+        FarmDirectory = '%s/%s'%(cmsswBase,opt.farm)
+        os.system('mkdir -p %s'%FarmDirectory)
+        
+        with open ('%s/condor.sub'%FarmDirectory,'w') as condor:
+            condor.write('executable = {0}/$(jobName).sh\n'.format(FarmDirectory))
+            condor.write('output     = {0}/output_$(jobName).out\n'.format(FarmDirectory))
+            condor.write('error      = {0}/output_$(jobName).err\n'.format(FarmDirectory))
+            condor.write('+JobFlavour = workday\n')
+            condor.write('RequestCpus = 4\n')
+
+            for fileName,_ in tasklist:
+                jobName='%s'%(os.path.splitext(os.path.basename(fileName))[0])
+                jobScript='%s/%s.sh'%(FarmDirectory,jobName)
+                with open(jobScript,'w') as job:
+                    job.write('#!/bin/bash\n')
+                    job.write('WORKDIR=`pwd`\n')
+                    job.write('echo "Working directory is ${WORKDIR}"\n')
+                    job.write('cd %s\n'%cmsswBase)
+                    job.write('eval `scram r -sh`\n')
+                    job.write('cd ${WORKDIR}\n')
+                    job.write('python {0}/src/TopLJets2015/TopAnalysis/scripts/runTopWidthAnalysis.py -o {1} -q local -i {2}\n'.format(cmsswBase,opt.output,fileName))
+                    job.write('echo "All done"\n')
+
+                os.system('chmod u+x %s'%jobScript)
+                condor.write('jobName=%s\n'%jobName)
+                condor.write('queue 1\n')
+
+            os.system('condor_submit %s/condor.sub'%FarmDirectory)
+
 
 """
 steer
@@ -527,6 +576,10 @@ def main():
                           dest='output',
                           default='analysis',
                           help='Output directory [default: %default]')
+	parser.add_option('--farm',
+                          dest='farm',
+                          default='TOP17010ANA',
+                          help='farm directory name [default: %default]')
 	parser.add_option('-q', '--queue',
                           dest='queue',
                           default='local',

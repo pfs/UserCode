@@ -76,7 +76,8 @@ def main():
         rateSysts,sampleSysts=xsecSystSpecs(opt.specs)
 
         #nomimal expectations
-        obs,exp=getDistsFrom(directory=fIn.Get('%s_%s'%(opt.dist,cat)))
+        dirName='%s_%s'%(opt.dist,cat) if len(cat)>0 else opt.dist
+        obs,exp=getDistsFrom(directory=fIn.Get(dirName))
         exp=filterShapeList(exp,signalList,rawSignalList,opt.signalSub)
 
         #prepare output ROOT file
@@ -177,7 +178,8 @@ def main():
 
         #experimental systematics
         try:
-            _,expVarShapes=getDistsFrom(directory=fIn.Get('%sshapes_%s_exp'%(opt.dist,cat)))
+            dirName='%sshapes_%s_exp'%(opt.dist,cat) if len(cat)>0 else '%sshapes_exp'%opt.dist
+            _,expVarShapes=getDistsFrom(directory=fIn.Get(dirName))
             expVarShapes=filterShapeList(expVarShapes,signalList,rawSignalList)
             nExpSysts=expVarShapes[signalList[0]].GetNbinsY()/2
 
@@ -304,9 +306,12 @@ def main():
         #generator level systematics 
         if systfIn is None: continue
 
-        _,genVarShapes = getDistsFrom(directory=fIn.Get('%sshapes_%s_gen'%(opt.dist,cat)))
+        dirName='%sshapes_%s_gen'%(opt.dist,cat) if len(cat)>0 else '%sshapes_gen'%opt.dist
+        _,genVarShapes = getDistsFrom(directory=fIn.Get(dirName))
         genVarShapes=filterShapeList(genVarShapes,signalList,rawSignalList)
-        _,altExp       = getDistsFrom(directory=systfIn.Get('%s_%s'%(opt.dist,cat)))        
+
+        dirName='%s_%s'%(opt.dist,cat) if len(cat)>0 else opt.dist
+        _,altExp       = getDistsFrom(directory=systfIn.Get(dirName))
         if signalList[0]!=rawSignalList[0]:
             altExp=filterShapeList(altExp,signalList,rawSignalList)
         for systVar, procsToApply, normalize, useAltShape, projectRelToNom in sampleSysts:
@@ -392,7 +397,11 @@ def main():
         # QCD shapes
         # 
         systName='MultiJetsShape%s%s'%(cat,anCat)
-        qcdExp=exp['Multijetsdata'].Integral()
+        qcdExp=0
+        try:
+            qcdExp=exp['Multijetsdata'].Integral()
+        except:
+            pass
         if qcdExp>0 :
             datacard.write('%32s shape'%systName)
             for sig in signalList: 

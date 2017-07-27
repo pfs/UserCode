@@ -16,15 +16,15 @@ def main():
     parser.add_option('-i', '--inDir',       dest='inDir',       help='input directory with files',   default='/store/cmst3/user/psilva/LJets2015/5736a2c',        type='string')
     parser.add_option(      '--HiForest',    dest='HiForest',    help='flag if these are HiForest',   default=False, action='store_true')
     parser.add_option(      '--update',      dest='update',      help='update current weight cache',   default=False, action='store_true')
-    parser.add_option(      '--mount',       dest='mount',       help='mount eos locally',   default=False, action='store_true')
+    #parser.add_option(      '--mount',       dest='mount',       help='mount eos locally',   default=False, action='store_true')
     parser.add_option('-o', '--output',      dest='cache',       help='output file',                  default='data/era2016/genweights.root',                      type='string')
     (opt, args) = parser.parse_args()
 
     baseEOS='/eos/cms/'
-    eos_cmd = '/afs/cern.ch/project/eos/installation/0.3.15/bin/eos.select'
-    if opt.mount:
-        baseEOS='eos/cms'
-        Popen([eos_cmd, ' -b fuse mount', 'eos'],stdout=PIPE).communicate()
+    #eos_cmd = '/afs/cern.ch/project/eos/installation/0.3.15/bin/eos.select'
+    #if opt.mount:
+    #    baseEOS='eos/cms'
+    #    Popen([eos_cmd, ' -b fuse mount', 'eos'],stdout=PIPE).communicate()
 
     #loop over samples available
     genweights={}
@@ -94,8 +94,8 @@ def main():
     cachefile.Close()
     print 'Produced normalization cache @ %s'%opt.cache
 
-    if opt.mount:
-        Popen([eos_cmd, ' -b fuse umount', 'eos'],stdout=PIPE).communicate()
+    #if opt.mount:
+    #    Popen([eos_cmd, ' -b fuse umount', 'eos'],stdout=PIPE).communicate()
 
     #all done here
     exit(0)

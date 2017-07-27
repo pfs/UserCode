@@ -11,6 +11,9 @@
 #include "CondFormats/BTauObjects/interface/BTagCalibration.h"
 #include "CondTools/BTau/interface/BTagCalibrationReader.h"
 
+#include "JetMETCorrections/Modules/interface/JetResolution.h"
+#include <CondFormats/JetMETObjects/interface/JetResolutionObject.h>
+
 #include "TGraphAsymmErrors.h"
 
 typedef std::pair<TString,float> RunPeriod_t;
@@ -25,18 +28,20 @@ std::vector<TGraph *> getPileupWeights(TString era, TH1 *genPU, TString period =
 std::map<TString, std::vector<TGraph *> > getPileupWeightsMap(TString era, TH1 *genPU);
 
 //apply jec uncertainty
-MiniEvent_t applyJetCorrectionUncertainty(MiniEvent_t &ev, JetCorrectionUncertainty *jecUnc, TString jecVar, TString direction);
+void applyJetCorrectionUncertainty(MiniEvent_t &ev, JetCorrectionUncertainty *jecUnc, TString jecVar, TString direction);
 void applyJetCorrectionUncertainty(TLorentzVector &jp4,JetCorrectionUncertainty *jecUnc,TString direction);
 
 //apply jet energy resolutions
-MiniEvent_t smearJetEnergies(MiniEvent_t &ev, std::string option = "central");
+void smearJetEnergies(MiniEvent_t &ev, std::string option = "central");
+void smearJetEnergies(MiniEvent_t &ev, JME::JetResolution* jer, std::string option = "central");
 void smearJetEnergy(TLorentzVector &jp4, float genJet_pt,std::string option = "central");
+void smearJetEnergyStochastic(TLorentzVector &jp4, TRandom* random, double resolution, std::string option = "central");
 
 //see working points in https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco
-MiniEvent_t addBTagDecisions(MiniEvent_t &ev,float wp=0.8484,float wpl=0.8484);
+void addBTagDecisions(MiniEvent_t &ev,float wp=0.8484,float wpl=0.8484);
 
 //details in https://twiki.cern.ch/twiki/bin/view/CMS/BTagCalibration
-MiniEvent_t updateBTagDecisions(MiniEvent_t &ev, 
+void updateBTagDecisions(MiniEvent_t &ev, 
 				std::map<BTagEntry::JetFlavor,BTagCalibrationReader *> &btvsfReaders,
 				std::map<BTagEntry::JetFlavor, TGraphAsymmErrors*> &expBtagEff, 
 				std::map<BTagEntry::JetFlavor, TGraphAsymmErrors*> &expBtagEffPy8, 
@@ -58,5 +63,8 @@ std::map<TString, TGraph*> getBFragmentationWeights(TString era);
 double computeBFragmentationWeight(MiniEvent_t &ev, TGraph* wgtGr);
 std::map<TString, std::map<int, double> > getSemilepBRWeights(TString era);
 double computeSemilepBRWeight(MiniEvent_t &ev, std::map<int, double> corr, int pid = 0, bool useabs = true);
+
+//apply tracking efficiency
+void applyTrackingEfficiencySF(MiniEvent_t &ev, double sf);
 
 #endif

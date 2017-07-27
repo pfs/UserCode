@@ -1,30 +1,31 @@
-#!/usr/bin/env python2.7
-
-from TopLJets2015.TopAnalysis.rounding import *
-
-import json
-
-from prepareWorkspace import EVENTCATEGORIES as SELEVENTCATEGORIES
-EVENTCATEGORIES=[x for x in SELEVENTCATEGORIES if not '1f' in x]
+#!/usr/bin/env python
 
 lumi=(174.5,8.725)
-acceptance={#'e':(0.0508,0.0014), #eta restricted
-            'e':(0.056,0.0014),
-            'mu':(0.060,0.0016)}
+
+from TopLJets2015.TopAnalysis.rounding import *
+import pickle
+import json
+import os
+import ROOT
+import optparse
+import os,sys
+from roofitTools import *
+from parameterizeMCShapes import ALLPDFS
+from prepareWorkspace import EVENTCATEGORIES as SELEVENTCATEGORIES
+
+EVENTCATEGORIES=[x for x in SELEVENTCATEGORIES if not '1f' in x]
+
+acceptance={#'e':(0.0508,ROOT.TMath.Sqrt(0.0014**2+(0.031*0.0508)**2)), #eta restricted
+            'e' :(0.056,ROOT.TMath.Sqrt(0.0014**2+(0.031*0.056)**2)),
+            'mu':(0.060,ROOT.TMath.Sqrt(0.0016**2+(0.031*0.060)**2))}
 efficiency={#'e':(0.767,0.0304), #LOOSE ISO
             'e':(0.623,0.0249), #MEDIUM ID+ISO
             #'e':(0.536,0.0206), #TIGHT ID+ISO)
             'mu':(0.915,0.0366)}
 ebExp=(0.595,0.0595)
 jsf=(1.0,0.034)
-
-
-import ROOT
-import optparse
-import os,sys
-from roofitTools import *
-from parameterizeMCShapes import ALLPDFS
-
+WMODEL=None
+QCDNORM=None
 observables=[('mjj','M(jj)'),('mthad','M(t_{had})'),('mtlep','M(t_{lep})')]
 
 """
@@ -69,7 +70,7 @@ def printFitResults(fitResults,impacts,opt):
             allVars.add(pname)
 
     #save a neat tex table
-    with open('%s/fitResults_%d.tex'%(opt.output,opt.fitType),'w') as fOut:
+    with open('%s/fitResults_wmodel%d_%d.tex'%(opt.output,opt.wModel,opt.fitType),'w') as fOut:
         fOut.write('\\hline\n')
         fOut.write('\multirow{3}{*}{Variable} & \\multicolumn{3}{c}{Fit type} \\\\\n')
         for key in fitResults:
@@ -89,7 +90,7 @@ def printFitResults(fitResults,impacts,opt):
         fOut.write('\\hline\n')
 
     #save impacts as a json file
-    with open('%s/impacts_%d.json'%(opt.output,opt.fitType),'w') as fOut:
+    with open('%s/impacts_wmodel%d_%d.json'%(opt.output,opt.wModel,opt.fitType),'w') as fOut:
         json.dump(impacts,fOut)
 
 
@@ -120,6 +121,7 @@ def defineCombinedPDFs(w):
 
             #sum up so that it can be extended
             w.factory('SUM::model_{1}_{0}(Nsig_{0}*S_{1}_{0},Nqcd_{0}*QCD_{1}_{2},Nw_{0}*W_{1}_{0})'.format(cat,t,ch))
+
             simPDF['combined'].addPdf(w.pdf('model_{1}_{0}'.format(cat,t)),cat)
             simPDF[ch].addPdf(w.pdf('model_{1}_{0}'.format(cat,t)),cat)
 
@@ -130,7 +132,7 @@ def defineCombinedPDFs(w):
 
 """
 """
-def definePDF(w,varName):
+def definePDF(w,varName,wModel=0):
 
     # PDF definition
     simPDF={'combined':ROOT.RooSimultaneous('model_combined_%s'%varName,'model_combined_%s'%varName,w.cat('sample'))}
@@ -149,12 +151,12 @@ def definePDF(w,varName):
     for cat in EVENTCATEGORIES:
 
         w.factory('Nbkg_{0}[1000,0,100000]'.format(cat))
-        if '2b'   in cat : w.factory('fqcd_{0}[0.0,0.3]'.format(cat))
-        elif '1b' in cat : w.factory('fqcd_{0}[0.0,0.8]'.format(cat))
+        if '2b'   in cat : w.factory('fqcd_{0}[0.0,1.0]'.format(cat))
+        elif '1b' in cat : w.factory('fqcd_{0}[0.0,1.0]'.format(cat))
         else             : w.factory('fqcd_{0}[0.0,1.0]'.format(cat))
-        #if '2b'   in cat : w.factory('fqcd_{0}[0.0]'.format(cat))
-        #elif '1b' in cat : w.factory('fqcd_{0}[0.0]'.format(cat))
-        #else             : w.factory('fqcd_{0}[0.0]'.format(cat))
+        #if '2b'   in cat : w.factory('fqcd_{0}[1.0]'.format(cat))
+        #elif '1b' in cat : w.factory('fqcd_{0}[1.0]'.format(cat))
+        #else             : w.factory('fqcd_{0}[1.0]'.format(cat))
 
         w.factory("RooFormulaVar::Nqcd_{0}('@0*@1',{{Nbkg_{0},fqcd_{0}}})".format(cat))
 
@@ -162,12 +164,44 @@ def definePDF(w,varName):
         w.factory("RooFormulaVar::Nw_{0}('@0*(1-@1)',{{Nbkg_{0},fqcd_{0}}})".format(cat))
         ch='e' if cat[0]=='e' else 'mu'
         baseCat=cat[1:] if cat[0]=='e' else cat[2:]
-        mpvName,widthName='mpv_w{1}_{0}'.format(baseCat,varName),'width_w{1}_{0}'.format(baseCat,varName)
-        #mpvName,widthName='mpv_w{1}_{0}'.format(cat,varName),'width_w{1}_{0}'.format(cat,varName)
-        minMPV=20  if varName=='mjj' else 150
-        maxMPV=120 if varName=='mjj' else 200
-        w.factory('{0}[{1},{2}]'.format(mpvName,minMPV,maxMPV))
-        w.factory('{0}[10,100]'.format(widthName))
+
+        #init QCD normalization constraints
+        if QCDNORM:
+            val,valUnc=QCDNORM[(ch,baseCat)]
+            if val==0 and valUnc==0:
+                w.var('fqcd_{0}'.format(cat)).setVal(0)
+                w.var('fqcd_{0}'.format(cat)).setConstant(True)
+            else:
+                w.factory("RooFormulaVar::qcdnorm_{0}_constraint('0.5*pow((@0-@1)/@2,2)',{{Nqcd_{0},NqcdCen_{0}[{1}],NqcdUnc_{0}[{2}]}})".format(cat,val,valUnc))
+                w.factory("RooGaussian::qcdnorm_{0}_gconstraint(NqcdCen_{0},Nqcd_{0},NqcdUnc_{0})".format(cat))
+
+        #
+        #W+jets component
+        #
+        mpvName   = 'mpv_w{1}_{0}'.format(baseCat if wModel==0 else cat,varName)
+        widthName = 'width_w{1}_{0}'.format(baseCat if wModel==0 else cat,varName)
+
+        #in-situ model
+        if wModel<2:            
+            minMPV=20  if varName=='mjj' else 150
+            maxMPV=120 if varName=='mjj' else 200
+            w.factory('{0}[{1},{2},{3}]'.format(mpvName,WMODEL[(varName,baseCat,'MPV')],minMPV,maxMPV))
+            w.factory('{0}[{1},5,100]'.format(widthName,WMODEL[(varName,baseCat,'Sigma')]))
+
+            for landauPar,wmodelName,relUnc in [(mpvName,'MPV',0.2), (widthName,'Sigma',0.05)]:
+                val=WMODEL[(varName,baseCat,wmodelName)]
+                valUnc=relUnc*val
+                w.factory("RooFormulaVar::{0}_constraint('0.5*pow((@0-@1)/@2,2)',{{{0},cen_{0}[{1}],unc_{0}[{2}]}})".format(landauPar,val,valUnc))
+                w.factory("RooGaussian::{0}_gconstraint({0},cen_{0},unc_{0})".format(landauPar))
+
+        #use pre-defined model
+        if wModel==2:
+            w.factory('{0}[{1}]'.format(mpvName,WMODEL[(varName,baseCat,'MPV')]))
+            w.factory('{0}[{1}]'.format(widthName,WMODEL[(varName,baseCat,'Sigma')]))
+            print 'Fixed W model for %s in %s'%(varName,baseCat)
+            print '\t mpv=',w.var(mpvName).getVal()
+            print '\t width=',w.var(widthName).getVal()
+
         w.factory('RooLandau::W_{1}_{0}({1},{2},{3})'.format(cat,varName,mpvName,widthName))
 
         #w.factory('SUM:model_{0}(Nqcd_{0}*QCD_{1},Nw_{0}*W_{0})'.format(cat,varName))
@@ -204,16 +238,6 @@ def addQCDModel(w,opt,varName):
                                 1.4)
         getattr(w,'import')(keyspdf,ROOT.RooFit.RecycleConflictNodes())
 
-        #save fit result plot
-        #showFitResult(fitVar=varName,
-        #            data=fullsideBand,
-        #            pdf=w.pdf('QCD_%s_%s'%(varName,ch)),
-        #            categs=[''],
-        #            w=w,
-        #            showComponents=[],
-        #            rangeX=(0,400),
-        #            tagTitle='QCD_%s'%ch,
-        #            outDir=opt.output)
 
 
 """
@@ -376,27 +400,32 @@ def performFits(opt):
     fitResults={}
     impacts={}
 
+    #parameter of interest
+    poi=ROOT.RooArgSet()    
+    poi.add(w.var('xsec'))
+    paramList=[] #,('eb','#varepsilon_{b}')]
+    paramList.append( ('xsec','#sigma(t#bar{t})') )
+
+    #constraints
+    constr   = ROOT.RooArgSet()
+    allFuncs = w.allFunctions()
+    funcIter = allFuncs.createIterator()
+    ifunc    = funcIter.Next()
+    while ifunc:
+        fname=ifunc.GetName()
+        if 'constraint' in fname:
+            skip=False
+            if not opt.fitType in [2,3] and 'mthad' in fname: skip=True
+            if not opt.fitType in [3]   and 'mtlep' in fname: skip=True
+            if not skip :
+                constr.add( w.function(fname) )
+                print fname
+        ifunc=funcIter.Next()
+
     #run the 2D/3D fits
     if opt.fitType in [1,2]:
 
         for ch in ['e','mu','combined']:
-
-            #parameter of interest
-            poi=ROOT.RooArgSet()
-            paramList=[] #,('eb','#varepsilon_{b}')]
-            poi.add(w.var('xsec'))
-            paramList.append( ('xsec','#sigma(t#bar{t})') )
-
-            #constraints
-            constr=ROOT.RooArgSet()
-            constr.add( w.function('ebconstraint') )
-            constr.add( w.function('jsfconstraint') )
-            constr.add( w.function('acc_e_constraint') )
-            constr.add( w.function('acc_mu_constraint') )
-            constr.add( w.function('eff_mu_constraint') )
-            constr.add( w.function('eff_e_constraint') )
-            constr.add( w.function('lumi_constraint') )
-            #constr.add( w.function('jerconstraint') )
 
             t='2D' if opt.fitType==1 else '3D'
             pdf=w.pdf('model_{0}_{1}'.format(ch,t))
@@ -428,24 +457,11 @@ def performFits(opt):
                             pfix='_%s_%sfit'%(ch,t))
 
     else:
+        w.saveSnapshot('default',w.pdf('model_combined_mjj').getParameters(data))
+
         for ch in ['combined','mu','e']:
-
-            #parameter of interest
-            poi=ROOT.RooArgSet()
-            paramList=[] #,('eb','#varepsilon_{b}')]
-            poi.add(w.var('xsec'))
-            paramList.append( ('xsec','#sigma(t#bar{t})') )
-
-            #constraints
-            constr=ROOT.RooArgSet()
-            constr.add( w.function('ebconstraint') )
-            constr.add( w.function('jsfconstraint') )
-            constr.add( w.function('acc_e_constraint') )
-            constr.add( w.function('acc_mu_constraint') )
-            constr.add( w.function('eff_mu_constraint') )
-            constr.add( w.function('eff_e_constraint') )
-            constr.add( w.function('lumi_constraint') )
-            #constr.add( w.function('jerconstraint') )
+            
+            w.loadSnapshot('default')
 
             #pdf
             pdf=w.pdf('model_%s_mjj'%ch)
@@ -467,12 +483,12 @@ def performFits(opt):
                 fitResults[key][formName]=(val,unc,unc)
 
             #do the following only for the main fit and if required
-            if opt.fitType!=0 or not opt.impacts: continue
+            if not opt.impacts: continue
 
             #fit stat unc. (fix all except xsec and repeat the fit)
             pToFix=[]
             for pname in fitResults[key]:
-                if pname!='xsec': pToFix.append(pname)
+                if pname!='xsec' and not 'Nsig' in pname: pToFix.append(pname)
             w.loadSnapshot(snapshotKey)
             result,_=runSimpleFit(pdf,data,poi,constr,pToFix)
             fitResults[key]['xsec_statonly']=(
@@ -487,29 +503,32 @@ def performFits(opt):
             
             #now do the impacts
             impacts[key]={}
-            for pname in ['lumi','eb','eff_e','eff_mu','jsf']:
+            for pname in ['lumi','eb','eff_e','eff_mu','jsf','acc']:
 
                 impacts[key][pname]=[]
 
                 #get postfit
                 val,unclo,unchi=fitResults[key][pname]
 
-                #set at +/-1 sigma postfit and repeat fit
                 for ivar in xrange(0,2):
 
+                    #set at +/-1 sigma postfit and repeat fit
                     w.loadSnapshot(snapshotKey)
                     w.var(pname).setVal(val+unclo if ivar==0 else val+unchi)
+                    w.var(pname).setConstant(True)
+
                     result,_=runSimpleFit(pdf,data,poi,constr,[pname])
 
                     #save difference in xsec
                     dR=result.floatParsFinal().find('xsec').getVal()-fitResults['%s_1D'%ch]['xsec'][0]
                     impacts[key][pname].append(dR)
 
-                #let it float again
-                w.var(pname).setConstant(False)                
+                    #let it float again
+                    w.var(pname).setConstant(False)                
 
     printFitResults(fitResults,impacts,opt)
-    w.writeToFile('finalfitworkspace_%d.root'%(opt.fitType))
+    origWorkspaceFile=os.path.splitext(os.path.basename(opt.finalWS))[0]
+    w.writeToFile('fit_%s_%d.root'%(origWorkspaceFile,opt.fitType))
 
 
     #show the likelihoods
@@ -543,18 +562,26 @@ def addPDFToWorkspace(opt):
 
     #common to all variables and/or channels
     w.factory('xsec[60,0,300]')    
-    w.factory("RooFormulaVar::lumi_constraint('0.5*pow((@0-%f)/%f,2)',{lumi[0,500]})"%lumi)
+
+    w.factory("RooFormulaVar::lumi_constraint('0.5*pow((@0-@1)/@2,2)',{lumiCen[%f],lumi[0,500],lumiUnc[%f]})"%lumi)
+    w.factory("RooGaussian::lumi_gconstraint(lumiCen,lumi,lumiUnc)")
+
+    w.factory("RooFormulaVar::accconstraint('0.5*pow((@0-@1)/@2,2)',{accCen[0.0],acc[-5,5],accUnc[1.0]})")
+    w.factory("RooGaussian::acc_gconstraint(accCen,acc,accUnc)")
+
     for ch in ['e','mu']:
-        w.factory("RooFormulaVar::acc_%s_constraint('0.5*pow((@0-%f)/%f,2)',{acc_%s[0.,1.0]})"%(ch,acceptance[ch][0],acceptance[ch][1],ch))
-        w.factory("RooFormulaVar::eff_%s_constraint('0.5*pow((@0-%f)/%f,2)',{eff_%s[0.,1.]})"%(ch,efficiency[ch][0],efficiency[ch][1],ch))
-    w.factory("RooFormulaVar::ebconstraint('0.5*pow((@0-%f)/%f,2)',{eb[0.60,0.0,1.0]})"%ebExp)
-    w.factory("RooFormulaVar::jsfconstraint('0.5*pow((@0-%f)/%f,2)',{jsf[0.5,1.5]})"%jsf)
-    #w.factory("RooFormulaVar::jerconstraint('0.5*pow(@0,2)',{jer[-5,5]})")
+        w.factory("RooFormulaVar::acc_%s('%f+%f*@0',{acc})"%(ch,acceptance[ch][0],acceptance[ch][1]))
+        w.factory("RooFormulaVar::eff_%s_constraint('0.5*pow((@0-@1)/@2,2)',{effCen_%s[%f],eff_%s[0.,1.0],effUnc_%s[%f]})"%(ch,ch,efficiency[ch][0],ch,ch,efficiency[ch][1]))
+        w.factory("RooGaussian::eff_{0}_gconstraint(effCen_{0},eff_{0},effUnc_{0})".format(ch))
+
+    w.factory("RooFormulaVar::ebconstraint('0.5*pow((@0-@1)/@2,2)',{ebCen[%f],eb[0.60,0.0,1.0],ebUnc[%f]})"%ebExp)
+    w.factory("RooGaussian::eb_gconstraint(ebCen,eb,ebUnc)")
+
+    w.factory("RooFormulaVar::jsfconstraint('0.5*pow((@0-@1)/@2,2)',{jsfCen[%f],jsf[0.5,1.5],jsfUnc[%f]})"%jsf)
+    w.factory("RooGaussian::jsf_gconstraint(jsfCen,jsf,jsfUnc)")
+
     w.factory("RooFormulaVar::scaledmjj('TMath::Max(0.,@0*@1)',{jsf,mjj})")
-    #w.var('jsf').setVal(jsf[0])
-    #w.var('jsf').setConstant(True)
-    #w.var('jer').setVal(0.0)
-    #w.var('jer').setConstant(True)
+
 
     #instantiate PDFs
     for vname,vtit in observables:
@@ -567,10 +594,24 @@ def addPDFToWorkspace(opt):
         addSignalModel(w,opt,vname)
 
         #define the PDFs
-        definePDF(w,vname)
+        definePDF(w,vname,opt.wModel)
+
+    #constraints
+    constr=ROOT.RooArgList()
+    constr.add( w.pdf('eb_gconstraint') )
+    constr.add( w.pdf('jsf_gconstraint') )
+    constr.add( w.pdf('acc_gconstraint') )
+    constr.add( w.pdf('eff_mu_gconstraint') )
+    constr.add( w.pdf('eff_e_gconstraint') )
+    constr.add( w.pdf('lumi_gconstraint') )
+    for cat in EVENTCATEGORIES:
+        constr.add( w.pdf('qcdnorm_{0}_gconstraint'.format(cat)) )
+    constrProd=ROOT.RooProdPdf('constrProd','constrProd',constr)
+    getattr(w,'import')(constrProd,ROOT.RooFit.RecycleConflictNodes())
 
     defineCombinedPDFs(w)
-    w.writeToFile('finalworkspace.root',True)
+
+    w.writeToFile('finalworkspace_wmodel%d.root'%opt.wModel,True)
 
 """
 """
@@ -586,15 +627,26 @@ def main():
     parser.add_option('-o', '--output',    dest='output',    default='plots/Data8TeV_pp',          type='string',   help='output directory [%default]')
     parser.add_option('-i', '--input',     dest='input',     default='workspace_Data8TeV_pp.root', type='string',   help='workspace [%default]')
     parser.add_option('-s', '--signal',    dest='signal',    default='pdf_workspace_MC8.16TeV_TTbar_pPb.root', type='string',   help='signal workspace [%default]')
+    parser.add_option(      '--wModel',    dest='wModel',    default=0, type=int,   help='W model (0-in-situ; 1-decorrelated in-situ; 2-extrapol. MC) [%default]')
     parser.add_option(      '--fitType',   dest='fitType',   default=0,                  type=int,
         help='0-full signal; 1-full signal 2D; 2-full signal 3D; 3-res from MC; 4-res from CB [%default]')
     parser.add_option(      '--impacts',   dest='impacts',   default=False,                        action='store_true',        help='Run impacts [%default]')
     parser.add_option('-v', '--verbose',   dest='verbose',   default=0,                            type=int,        help='Verbose mode [%default]')
     parser.add_option(      '--finalWorkspace',      dest='finalWS',      default=None,            type='string',   help='final workspace to be used for the fit [%default]')
-
     (opt, args) = parser.parse_args()
 
+    #keep roofit quite
     if opt.verbose<9 : shushRooFit()
+
+    #load a W model
+    global WMODEL
+    with open('wmodel.pck','r') as fIn:
+        WMODEL=pickle.load(fIn)
+
+    #load the QCD normalization estimation
+    global QCDNORM
+    with open('qcdnorm.pck','r') as fIn:
+        QCDNORM=pickle.load(fIn)
 
     #create final workspace if not given
     if opt.finalWS is None: addPDFToWorkspace(opt)

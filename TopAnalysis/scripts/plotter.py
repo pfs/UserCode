@@ -31,6 +31,7 @@ def main():
     parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out',              default=12900,              type=float)
     parser.add_option(      '--lumiSpecs',   dest='lumiSpecs',   help='lumi specifications for some channels [tag:lumi,tag2:lumi2,...]', default=None,       type=str)
     parser.add_option(      '--only',        dest='only',        help='plot only these (csv)',          default='',                type='string')
+    parser.add_option(      '--skip',        dest='skip',        help='skip these samples (csv)',          default='MC13TeV_TTJets_cflip',                type='string')
     parser.add_option(      '--puNormSF',    dest='puNormSF',    help='Use this histogram to correct pu weight normalization', default=None, type='string')
     parser.add_option(      '--procSF',      dest='procSF',      help='Use this to scale a given process component e.g. "W":.wjetscalefactors.pck,"DY":dyscalefactors.pck', default=None, type='string')
     (opt, args) = parser.parse_args()
@@ -44,11 +45,13 @@ def main():
         jsonFile.close()
     
     #read lists of syst samples
-    systSamplesList=None
+    systSamplesList=[]
     if opt.systJson:
-        jsonFile = open(opt.systJson,'r')
-        systSamplesList=json.load(jsonFile,encoding='utf-8').items()
-        jsonFile.close()
+        systJsonList = opt.systJson.split(',')
+        for jsonPath in systJsonList:
+            jsonFile = open(jsonPath,'r')
+            systSamplesList += json.load(jsonFile,encoding='utf-8').items()
+            jsonFile.close()
 
     #read list of signal samples
     signalSamplesList=None
@@ -58,6 +61,8 @@ def main():
         jsonFile.close()
     except:
         pass
+    
+    skipList=opt.skip.split(',')
 
     #lumi specifications per tag
     lumiSpecs={}
@@ -88,6 +93,9 @@ def main():
         if slist is None: continue
         for tag,sample in slist: 
             if isSyst and not 't#bar{t}' in sample[3] : continue
+            if tag in skipList:
+              print("SKIPPED "+tag)
+              continue
             xsec=sample[0]
             isData=sample[1]
             doFlavourSplitting=sample[6]
@@ -131,15 +139,20 @@ def main():
 
                         histos = []
                         obj=fIn.Get(key)
-                        if obj.InheritsFrom('TH2') :
-                            if key[-5:]=='_syst' :
+                        if obj.InheritsFrom('TH2'):
+                            if key[-5:]=='_syst':
                                 if sample[3]=='t#bar{t}':
                                     keyIsSyst=True
                                     key = key[:-5]
-                                    for ybin in xrange(1,obj.GetNbinsY()):
+                                    for ybin in xrange(1,obj.GetNbinsY()+1):
+                                        for xbin in xrange(0,obj.GetNbinsX()+2):
+                                            if math.isnan(obj.GetBinContent(xbin, ybin)):
+                                                obj.SetBinContent(xbin, ybin, 0)
+                                                obj.SetBinError(xbin, ybin, 0)
                                         weighthist = obj.ProjectionX('_px'+str(ybin), ybin, ybin)
                                         weighthist.SetTitle(sp[1]+' weight '+str(ybin))
                                         fixExtremities(weighthist, False, False)
+                                        weighthist.Draw()
                                         if (weighthist.Integral() > 0): histos.append(weighthist)
                                 else:
                                     continue

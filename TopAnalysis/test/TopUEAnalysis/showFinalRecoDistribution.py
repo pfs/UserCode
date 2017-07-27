@@ -3,93 +3,125 @@ import os
 import sys
 import optparse
 import pickle
-from collections import OrderedDict
+from collections import OrderedDict,defaultdict
+import pprint
 
+from UEPlot import *
+from UEPlottingUtils import *
 from UESummaryPlotCommon import *
 
 """
 """
-def buildUEPlot(obsAxis,sliceAxis,regions,fIn,fSyst):
+def buildUEPlot(obsAxis,sliceAxis,regions,fIn,fSyst,outDir):
 
-    nSliceBins=1
-    if sliceAxis: nSliceBins += sliceAxis.GetNbins()
+    obs        = obsAxis.GetName().split('_')[0]
+    sliceVar   = sliceAxis.GetName().split('_')[0] if sliceAxis else None
+    nSliceBins = 1+sliceAxis.GetNbins()            if sliceAxis else 1
 
-    ueplot = UESummaryPlotInfo(obsAxis,sliceAxis)
+    for r in regions:
 
-    for i in xrange(0,nSliceBins):
-      
-        for r in regions:
-    
-            reg=str(r)
+        plotsPerSlice=[]
+        for i in xrange(0,nSliceBins):
 
-            #read the nominal expectations
-            nomKey='%s_%s_%d_%s_None_True'%(ueplot.obs,ueplot.sliceVar,i,reg)
+            nomKey='%s_%s_%d_%s_None_True'%(obs,sliceVar,i,r)
+
+            uePlots={}
+
+            #collect different comparison sets
+            for icomp in xrange(0,len(COMPARISONSETS)):
+                compSet, compVarList = COMPARISONSETS[icomp]
+                uePlots[compSet]     = UEPlot(nomKey+'_mc%d'%icomp,compSet,obsAxis)
+                
+                for compVarName,varList in compVarList:
+
+                    #get the different MCs variations
+                    for varName in varList:
+                        hvar=fIn.Get('%s/%s_%s'%(nomKey,nomKey,varName))
+                        try :
+                            hvar.GetNbinsX()
+                        except:
+                            hvar=fSyst.Get('%s/%s_%s'%(nomKey,nomKey,varName))
+                        uePlots[compSet].addVariation(compVarName,                                                       
+                                                      None if compVarName=='nominal' else 'th',
+                                                      hvar)
+                    
+                    #for the nominal MC get the associated exp uncertainties
+                    if compVarName!='nominal' : continue
+                    mcDataSetName=varList[0]
+                    expSystsKey=nomKey.replace('None_True','syst_True')
+                    expSystsH=fIn.Get('%s/%s_%s'%(expSystsKey,expSystsKey,mcDataSetName))
+                    try:
+                        expSystsH.GetNbinsX()
+                    except:
+                        expSystsH=fSyst.Get('%s/%s_%s'%(expSystsKey,expSystsKey,mcDataSetName))
+
+                    #project new histograms for each variation
+                    for ybin in xrange(2,expSystsH.GetNbinsY()):
+                        h=expSystsH.ProjectionX('px',ybin,ybin)
+
+                        varName=expSystsH.GetYaxis().GetBinLabel(ybin)
+                        if varName[-2:] in ['up','dn']  : varName=varName[:-2]
+                        if 'tkeff' in varName : varName='tkeff'
+                        varType='exp'
+                        if varName in ['mur','muf','q'] :                    
+                            varName='ME scale'
+                            varType='th'
+                        elif varName in ['toppt']:
+                            varName='toppt'
+                            varType='th'
+
+                        #skip special theory unc. based on re-weighting if not the first sample
+                        if icomp!=0 and varType=='th': continue
+                        uePlots[compSet].addVariation(varName,varType,h)
+
+                        h.Delete()
+
+            #add the data
             t=fIn.Get(nomKey)
-            print t,nomKey
-            bkg=None
+            data,bkg=None,None
             for pkey in t.GetListOfKeys():
                 h=t.Get(pkey.GetName())
                 if not h.InheritsFrom('TH1') : continue
-                if 'Data' in h.GetTitle(): 
-                    ueplot.addData(h,i,r)
-                elif h.GetTitle() in 't#bar{t}':
-                    ueplot.addSignal(h,i,r)
-                else:
-                    if bkg is None: bkg=h.Clone('bkg')
-                    else : bkg.Add(h)
-                
-            #subtract the background
-            ueplot.subtractBackground(bkg,i,r)
+                if 'Data' in h.GetTitle()     : data=pkey.ReadObj()
+                elif not h.GetTitle()==COMPARISONSETS[0][1][0][1][0]:
+                    if bkg is None : bkg=h.Clone('bkg')
+                    else           : bkg.Add(h)
 
-#
-#            #project experimental systematics and signal variations
-#            signalVars.append( {} )
-#            expSysts.append( {} )
-#            expSystsKey='%s_%s_inc_syst_True'%(obs,s)
-#            expSystsH=fIn.Get('%s/%s_%s'%(expSystsKey,expSystsKey,'t#bar{t}'))
-#            for ybin in xrange(2,expSystsH.GetNbinsY()):
-#                varName=expSystsH.GetYaxis().GetBinLabel(ybin)
-#                systKey=varName
-#                if systKey[-2:] in ['up','dn']  : systKey=systKey[:-2]
-#                h=expSystsH.ProjectionX('px',ybin,ybin)
-#                normalizePerSlice(h,obsAxis,sliceAxis)
-#                if systKey in ['mur','muf','q'] :                    
-#                    h.Divide(data)
-#                    systKey='ME scale'
-#                    if not systKey in signalVars[-1]: signalVars[-1][systKey]=[]
-#                    signalVars[-1][systKey].append( h.Clone(varName) )
-#                elif systKey in ['p_{T}(t)']:
-#                    h.Divide(data)
-#                    systKey='toppt'
-#                    if not systKey in signalVars[-1]: signalVars[-1][systKey]=[]
-#                    signalVars[-1][systKey].append( h.Clone(varName) )                    
-#                elif systKey in ['tkeff','tkeffbcdef','tkeffgh','tkeffeta']:
-#                    if systKey in ['tkeffbcdef','tkeffgh'] : continue
-#                    h.Add(signal,-1)
-#                    systKey='Trk. eff.'
-#                    if not systKey in expSysts[-1]: expSysts[-1][systKey]=[]
-#                    expSysts[-1][systKey].append( h.Clone(varName) )
-#                else:
-#                    h.Add(signal,-1)
-#                    if not systKey in expSysts[-1]: expSysts[-1][systKey]=[]
-#                    expSysts[-1][systKey].append(  h.Clone(varName) )
-#
-#            #variations to compare to
-#            for varTitle in varTypes:
-#                signalVars[-1][varTitle]=[]
-#                for varName in varTypes[varTitle]:
-#                    hvar=fSyst.Get(nomKey).Get(signal.GetName().replace('_nominal',' '+varName))
-#                    normalizePerSlice(hvar,obsAxis,sliceAxis)
-#                    hvar.Divide(data)
-#                    signalVars[-1][varTitle].append(hvar)
-#
-    return ueplot
+            #subtract the background from the data
+            try:
+                data.Add(bkg,-1)
+                bkg.Delete()
+            except:
+                pass
+
+            uePlots['Data']=UEPlot(nomKey+'_data', obs, obsAxis) 
+            uePlots['Data'].addVariation('Data',None,data)
+            
+            #finalize plots and save them
+            for key in uePlots: uePlots[key].finalize()
+            #raise Exception('on purpose')
+            plotsPerSlice.append( uePlots )
+
+        #
+        if nSliceBins>1:
+            showProfile(plotColl=plotsPerSlice,
+                        sliceAxis=sliceAxis,
+                        xtitle=VARS[sliceVar][0],
+                        ytitle='<%s>'%VARS[obs][0],
+                        outName='%s/profile_%s_%s_%s'%(outDir,obs,sliceVar,r))
+        showDifferential(plotColl=plotsPerSlice,
+                         obsAxis=obsAxis,
+                         sliceAxis=sliceAxis,
+                         sliceTitle=VARS[sliceVar][0] if sliceAxis else None,
+                         xtitle=VARS[obs][0],
+                         ytitle='1/N dN/d%s'%VARS[obs][0],
+                         outName='%s/diff_%s_%s_%s'%(outDir,obs,sliceVar,r))
+        return
+    return
 
 """
 """
 def readPlotsFrom(args,opt):
-
-    outdir=args[0].replace('.root','')
 
     #analysis axes
     analysisaxis=None
@@ -100,7 +132,6 @@ def readPlotsFrom(args,opt):
     fIn=ROOT.TFile.Open(args[0])
     fSyst=ROOT.TFile.Open(args[1]) if len(args)>1 else None
 
-
     #build and show the different plot combinations (observables vs slices)
     for obs in OBSERVABLES:
 
@@ -108,12 +139,16 @@ def readPlotsFrom(args,opt):
         
         for s in SLICES:
 
-            sliceAxis=None if s is None else analysisaxis[(s,False)]
+            sliceAxis=None 
             regions=['inc']
-            if s in EVAXES: regions += [0,1,2]
+            if not s is None:
+                sliceAxis = analysisaxis[(s,False)]
+                if s in EVAXES:
+                    if obs in ['chmult','chavgpt','chflux']: regions += [0,1,2]
+                    else : continue
+                if s =='chmult' and not obs in ['chavgpt','chflux'] : continue
+            buildUEPlot(obsAxis,sliceAxis,regions,fIn,fSyst,opt.outDir)
 
-            uePlot=buildUEPlot(obsAxis,sliceAxis,regions,fIn,fSyst)
-            uePlot.show(outdir)
 
 """
 """
@@ -121,7 +156,7 @@ def main():
 
     ROOT.gStyle.SetOptStat(0)
     ROOT.gStyle.SetOptTitle(0)
-    #ROOT.gROOT.SetBatch(True)
+    ROOT.gROOT.SetBatch(True)
 
     #configuration
     usage = 'usage: %prog [options]'
@@ -131,7 +166,14 @@ def main():
                       help='cfg with axis definitions [%default]',
                       type='string',
                       default='%s/src/TopLJets2015/TopAnalysis/UEanalysis/analysisaxiscfg.pck'%os.environ['CMSSW_BASE'])
+    parser.add_option('--out',
+                      dest='outDir',
+                      help='output directory [%default]',
+                      type='string',
+                      default='UEanalysis/analysis/plots/reco')
     (opt, args) = parser.parse_args()
+
+    os.system('mkdir -p %s'%opt.outDir)
 
     readPlotsFrom(args,opt)
 

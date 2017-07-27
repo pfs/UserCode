@@ -40,6 +40,7 @@ class Plot(object):
         self.doPoissonErrorBars=True
         self.mc = OrderedDict()
         self.mcsyst = {}
+        self.totalMCUnc = None
         self.spimpose={}
         self.dataH = None
         self.data = None
@@ -130,6 +131,8 @@ class Plot(object):
             outDir.cd()
         for m in self.mc :
             self.mc[m].Write(self.mc[m].GetName(), ROOT.TObject.kOverwrite)
+        if self.totalMCUnc:
+            self.totalMCUnc.Write(self.totalMCUnc.GetName(), ROOT.TObject.kOverwrite)
         for m in self.spimpose:
             self.spimpose[m].Write(self.spimpose[m].GetName(), ROOT.TObject.kOverwrite)
         if self.dataH :
@@ -305,6 +308,7 @@ class Plot(object):
             for xbin in xrange(1,nominalTTbar.GetNbinsX()+1):
                 totalMCUncShape.SetBinContent(xbin, totalMCUncShape.GetBinContent(xbin) + (systUpShape[xbin]-systDownShape[xbin])/2.)
                 totalMCUncShape.SetBinError(xbin, math.sqrt(totalMCUncShape.GetBinError(xbin)**2 + ((systUpShape[xbin]+systDownShape[xbin])/2.)**2))
+            self.totalMCUnc = totalMCUnc
 
         #test for null plots
         if totalMC :
@@ -466,10 +470,11 @@ class Plot(object):
                     if val==0 : continue
                     if (len(self.mcsyst)>0):
                         totalUnc=ROOT.TMath.Sqrt((totalMCUnc.GetBinError(xbin)/val)**2+self.mcUnc**2)
-                        ratioframeshape.SetBinContent(xbin,1)
                         totalUncShape=ROOT.TMath.Sqrt((totalMCUncShape.GetBinError(xbin)/val)**2+self.mcUnc**2)
+                        ratioframeshape.SetBinContent(xbin,totalMCUncShape.GetBinContent(xbin)/val)
                         ratioframeshape.SetBinError(xbin,totalUncShape)
                     else: totalUnc=ROOT.TMath.Sqrt((totalMC.GetBinError(xbin)/val)**2+self.mcUnc**2)
+                    ratioframe.SetBinContent(xbin,totalMCnoUnc.GetBinContent(xbin)/val)
                     ratioframe.SetBinError(xbin,totalUnc)
                 ratioframe.Draw('e2')
                 if (len(self.mcsyst)>0): ratioframeshape.Draw('e2 same')

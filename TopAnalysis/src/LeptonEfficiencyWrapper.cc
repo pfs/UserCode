@@ -90,6 +90,12 @@ void LeptonEfficiencyWrapper::init(TString era)
     {
       era_=2016;
       std::vector<TString> periods = { "BCDEF", "GH" };
+      bool onlyGH = false;
+      if(era.Contains("era2016GH")) {
+        periods = { "GH" };
+        onlyGH = true;
+        era.Remove(era.Length()-2, 2);
+      }
       for (auto period : periods) {
         //MUONS
         TString lepEffUrl(era+"/SingleMuonTriggerEfficienciesAndSF_"+period+".root");
@@ -99,12 +105,17 @@ void LeptonEfficiencyWrapper::init(TString era)
         lepEffH_["m_singleleptrig"+period]->SetDirectory(0);
         fIn->Close();
 
-        lepEffUrl=era+"/MuonTracking_EfficienciesAndSF_BCDEFGH.root";
+        lepEffUrl=era+"/MuonTracking_EfficienciesAndSF_"+period+".root";
         gSystem->ExpandPathName(lepEffUrl);
         fIn=TFile::Open(lepEffUrl);
+        //global muon
         lepEffGr_["m_tk"+period]=(TGraphAsymmErrors *)fIn->Get("ratio_eff_eta3_dr030e030_corr");
         lepEffGr_["m_tk_aeta"+period]=(TGraphAsymmErrors *)fIn->Get("ratio_eff_aeta_dr030e030_corr");
         lepEffGr_["m_tk_nvtx"+period]=(TGraphAsymmErrors *)fIn->Get("ratio_eff_vtx_dr030e030_corr");
+        //tracker-only (used for charged tracks correction and ucnertainty)
+        lepEffGr_["m_tk0"+period]=(TGraphAsymmErrors *)fIn->Get("ratio_eff_eta3_tk0_dr030e030_corr");
+        lepEffGr_["m_tk0_aeta"+period]=(TGraphAsymmErrors *)fIn->Get("ratio_eff_aeta_tk0_dr030e030_corr");
+        lepEffGr_["m_tk0_nvtx"+period]=(TGraphAsymmErrors *)fIn->Get("ratio_eff_vtx_tk0_dr030e030_corr");
         fIn->Close();
 
         lepEffUrl=era+"/MuonIdEfficienciesAndSF_"+period+".root";
@@ -130,14 +141,16 @@ void LeptonEfficiencyWrapper::init(TString era)
         fIn->Close();
         
         //ELECTRONS
-        lepEffUrl=era+"/SingleElectron_TriggerSF_Run2016"+period+"_v2.root";
+        lepEffUrl=era+"/SingleElectron_TriggerSF_Run2016"+period+"_v3_prel.root";
         gSystem->ExpandPathName(lepEffUrl);
         fIn=TFile::Open(lepEffUrl);
-        lepEffH_["e_singleleptrig"+period]=(TH2 *)fIn->Get("Ele32_eta2p1_WPTight_Gsf")->Clone(); //TODO: keep in mind that input axes are different wrt muons
+        lepEffH_["e_singleleptrig"+period]=(TH2 *)fIn->Get("SF")->Clone();
         lepEffH_["e_singleleptrig"+period]->SetDirectory(0);
         fIn->Close();
         
         lepEffUrl=era+"/ElectronReco_egammaEffi.txt_EGM2D.root";
+        if(onlyGH)
+          lepEffUrl=era+"/ElectronReco_egammaEffi.txt_EGM2D_GH.root";
         gSystem->ExpandPathName(lepEffUrl);
         fIn=TFile::Open(lepEffUrl);
         lepEffH_["e_rec"+period]=(TH2 *)fIn->Get("EGamma_SF2D")->Clone();
@@ -145,6 +158,9 @@ void LeptonEfficiencyWrapper::init(TString era)
         fIn->Close();
         
         lepEffUrl=era+"/ElectronIdTight_egammaEffi.txt_EGM2D.root";
+        //TODO
+        //if(onlyGH)
+        //  lepEffUrl=era+"/ElectronIdTight_egammaEffi.txt_EGM2D_GH.root";
         gSystem->ExpandPathName(lepEffUrl);
         fIn=TFile::Open(lepEffUrl);      
 	lepEffH_["e_sel"+period]=(TH2 *)fIn->Get("EGamma_SF2D")->Clone();
@@ -275,20 +291,20 @@ EffCorrection_t LeptonEfficiencyWrapper::getTriggerCorrection(std::vector<Partic
               corr.first=h->GetBinContent(etaBinForEff,ptBinForEff);
               corr.second=h->GetBinError(etaBinForEff,ptBinForEff);
             }
-          //electron histogram has inverted axes and uses eta, not abs(eta)
+          //electron histogram uses eta, not abs(eta)
           else if( abs(leptons[0].id())==11 and lepEffH_.find(hname)!=lepEffH_.end() )
             {
               TH1 *h=lepEffH_[hname];
-              float minEtaForEff( h->GetYaxis()->GetXmin() ), maxEtaForEff( h->GetYaxis()->GetXmax()-0.01 );
+              float minEtaForEff( h->GetXaxis()->GetXmin() ), maxEtaForEff( h->GetXaxis()->GetXmax()-0.01 );
               float etaForEff=TMath::Max(TMath::Min(float(leptons[0].eta()),maxEtaForEff),minEtaForEff);
-              Int_t etaBinForEff=h->GetYaxis()->FindBin(etaForEff);
+              Int_t etaBinForEff=h->GetXaxis()->FindBin(etaForEff);
 
-              float minPtForEff( 30. ), maxPtForEff( h->GetXaxis()->GetXmax()-0.01 );
+              float minPtForEff( h->GetYaxis()->GetXmin() ), maxPtForEff( h->GetYaxis()->GetXmax()-0.01 );
               float ptForEff=TMath::Max(TMath::Min(float(leptons[0].pt()),maxPtForEff),minPtForEff);
-              Int_t ptBinForEff=h->GetXaxis()->FindBin(ptForEff);
+              Int_t ptBinForEff=h->GetYaxis()->FindBin(ptForEff);
 
-              corr.first=h->GetBinContent(ptBinForEff,etaBinForEff);
-              corr.second=h->GetBinError(ptBinForEff,etaBinForEff);
+              corr.first=h->GetBinContent(etaBinForEff,ptBinForEff);
+              corr.second=h->GetBinError(etaBinForEff,ptBinForEff);
             }
         }
     }
@@ -416,6 +432,21 @@ EffCorrection_t LeptonEfficiencyWrapper::getOfflineIsoHFCorrection(int pdgId,flo
     }
 
     
+  return corr;
+}
+
+//
+EffCorrection_t LeptonEfficiencyWrapper::getTrackingCorrection(int nvtx, TString period)
+{
+  EffCorrection_t corr(1.0,0.0);
+  
+  //nvtx-dependent tracking efficiency correction
+  TString hname = "m_tk0_nvtx"+period;
+  if(lepEffGr_.find(hname)!=lepEffGr_.end()) {
+    corr.first  = lepEffGr_[hname]->Eval(TMath::Min(nvtx,40));
+    corr.second = 1.-corr.first;
+  }
+  
   return corr;
 }
 

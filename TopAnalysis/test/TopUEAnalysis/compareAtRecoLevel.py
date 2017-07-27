@@ -350,7 +350,7 @@ def readPlotsFrom(args,opt):
                     plot.addVariation(hvar,varName,varTitle)
                 except:
                     pass
-        plot.show(outdir)
+        plot.showMain(outdir)
 
 
 

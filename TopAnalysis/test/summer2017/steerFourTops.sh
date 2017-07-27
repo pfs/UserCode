@@ -65,12 +65,6 @@ case $WHAT in
     ;;
 
     WWW )
-<<<<<<< HEAD
-    mkdir -p ${wwwdir}/sel
-    cp ${outdir}/plots/*.{png,pdf} ${wwwdir}/sel
-    cp test/index.php ${wwwdir}/sel
-    ;;
-=======
 	mkdir -p ${wwwdir}/sel
 	cp ${outdir}/plots/*.{png,pdf} ${wwwdir}/sel
 	cp test/index.php ${wwwdir}/sel
@@ -94,5 +88,4 @@ case $WHAT in
             --rebin 10 \
             --addBinByBin 0.3            
          ;;
->>>>>>> 7b8cf48a9cddd3b68876a8fcac5a6bff6fe15542
 esac

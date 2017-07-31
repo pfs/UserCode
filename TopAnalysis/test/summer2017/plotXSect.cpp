@@ -21,9 +21,9 @@ void plotXSect()
     double *limitAddr[] = {&limit2sigdown, &limit1sigdown, &limit0, &limit1sigup, &limit2sigup, &limitobs};
 
     tree->SetBranchAddress("limit",&limitVal);
-    for (int i=0;i<tree->GetEvents();i++)
+    for (int i=0;i<tree->GetEntries();i++)
     {
-        tree->GetEvent(i);
+        tree->GetEntry(i);
         *limitAddr[0] = limitVal;
     }
 
@@ -35,10 +35,10 @@ void plotXSect()
     box1sig->Draw();
 
     lineexp = new TLine(limit0,0,limit0,1);
-    lineexp.Draw();
+    lineexp->Draw();
     lineobs = new TLine(limitobs,0,limitobs,1);
-    lineobs.SetLineStyle(7);
-    lineobs.Draw();
+    lineobs->SetLineStyle(7);
+    lineobs->Draw();
 
     TLine lineSM(1,0,1,4);
     lineSM.SetLineColor(kRed);

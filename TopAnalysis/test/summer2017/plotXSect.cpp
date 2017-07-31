@@ -40,17 +40,20 @@ void plotXSect()
     box2sig = new TBox(limit2sigdown, 0, limit2sigup, 1);
     box2sig->SetFillColor(17);
     box2sig->Draw();
-    getchar();
     box1sig = new TBox(limit1sigdown, 0, limit1sigup, 1);
     box1sig->SetFillColor(15);
     box1sig->Draw();
-    getchar();
 
     lineexp = new TLine(limit0,0,limit0,1);
     lineexp->Draw();
+    lineexp->SetLineWidth((Width_t)2);
     lineobs = new TLine(limitobs,0,limitobs,1);
     lineobs->SetLineStyle(7);
+    lineobs->SetLineWidth((Width_t)2);
     lineobs->Draw();
+
+    TMarker marker(limit0,0.5,31);
+    marker.Draw();
 
     TLine lineSM(1,0,1,4);
     lineSM.SetLineColor(kRed);

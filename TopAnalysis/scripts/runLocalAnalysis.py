@@ -62,11 +62,8 @@ def main():
     parser.add_option(      '--skipexisting',dest='skipexisting',help='skip jobs with existing output files  [%default]',       default=False,      action='store_true')
     parser.add_option(      '--exactonly',   dest='exactonly',   help='match only exact sample tags to process  [%default]',    default=False,      action='store_true')
     parser.add_option(      '--outputonly',        dest='outputonly',        help='filter job submission for a csv list of output files  [%default]',             default=None,       type='string')
-<<<<<<< HEAD
     parser.add_option(      '--jobflavour',  dest='jobflavour',  help='job flavour to be submitted in condor [%default]', default='longlunch', type='string')
-=======
     parser.add_option(      '--farmappendix',        dest='farmappendix',        help='Appendix to condor FARM directory [%default]',             default=None,       type='string')
->>>>>>> 7b8cf48a9cddd3b68876a8fcac5a6bff6fe15542
     (opt, args) = parser.parse_args()
 
     #parse selection lists

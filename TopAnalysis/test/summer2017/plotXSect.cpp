@@ -52,11 +52,11 @@ void plotXSect()
     lineobs->SetLineWidth((Width_t)2);
     lineobs->Draw();
 
-    TMarker marker(limit0,0.5,31);
-    marker.Draw();
+    TMarker *marker = new TMarker(limit0,0.5,31);
+    marker->Draw();
 
-    TLine lineSM(1,0,1,4);
-    lineSM.SetLineColor(kRed);
-    lineSM.SetLineWidth((Width_t)5);
-    lineSM.Draw();
+    TLine *lineSM = new TLine(1,0,1,4);
+    lineSM->SetLineColor(kRed);
+    lineSM->SetLineWidth((Width_t)5);
+    lineSM->Draw();
 }

@@ -54,6 +54,6 @@ void plotXSect()
 
     TLine lineSM(1,0,1,4);
     lineSM.SetLineColor(kRed);
-    lineSM.SetLineWidth(5);
+    lineSM.SetLineWidth((Width_t)5);
     lineSM.Draw();
 }

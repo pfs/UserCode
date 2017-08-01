@@ -85,13 +85,12 @@ void plotXSect()
     lineSM->Draw();
 
     TGraphErrors *obsPoints = new TGraphErrors(numberOfDatasets, limitObs, limitYPointCoord, limitObsError, limitYPointCoordErr);
-    gr->SetName("gr");
-    gr->SetLineColor(0);
-    gr->SetLineWidth(2);
-    gr->SetMarkerStyle(21);
-    gr->SetMarkerSize(1.3);
-    gr->SetMarkerColor(7);
-    gr->Draw("SAME");
+    obsPoints->SetLineColor(0);
+    obsPoints->SetLineWidth(2);
+    obsPoints->SetMarkerStyle(21);
+    obsPoints->SetMarkerSize(1.3);
+    obsPoints->SetMarkerColor(7);
+    obsPoints->Draw("SAME");
 
     tex->DrawLatex(0,4.1,"#bf{CMS} #it{Preliminary}");
     tex->DrawLatex(64,4.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");

@@ -3,7 +3,8 @@
 
 void plotXSect()
 {
-    TFile *fileIndex[2];
+    const int numberOfDatasets = 2;
+    TFile *fileIndex[numberOfDatasets];
     fileIndex[0] = new TFile("datacard_4tops/fourtops_nn_Asymptotic.root");
     fileIndex[1] = new TFile("datacard_4tops/fourtops_bdt_Asymptotic.root");
     //TFile *file = new TFile("datacard_4tops/fourtops_nn_Asymptotic.root");
@@ -25,15 +26,18 @@ void plotXSect()
 
     TBox *box1sig, *box2sig;
     TLine *lineexp, *lineobs;
-    double limitVal;
+    double limitVal, limitErrVal;
     double limit2sigdown, limit1sigdown, limit0, limit1sigup, limit2sigup;
-    double limitobs;
-    double *limitAddr[] = {&limit2sigdown, &limit1sigdown, &limit0, &limit1sigup, &limit2sigup, &limitobs};
+    double limitObs[numberOfDatasets], limitObsError[numberOfDatasets], limitObsCache;
+    double *limitAddr[] = {&limit2sigdown, &limit1sigdown, &limit0, &limit1sigup, &limit2sigup, &limitObsCache};
+
+    double limitYPointCoord[numberOfDatasets], limitYPointCoordErr[numberOfDatasets];
 
     for (int s = 0; s < 2; s++)
     {
         tree = (TTree*) fileIndex[s]->Get("limit");
-        tree->SetBranchAddress("limit",&limitVal);
+        tree->SetBranchAddress("limit", &limitVal);
+        tree->SetBranchAddress("limitErr", &limitErrVal);
         for (int i=0;i<tree->GetEntries();i++)
         {
             tree->GetEntry(i);
@@ -41,12 +45,18 @@ void plotXSect()
             //printf("limitVal = %lf\n",limitVal);
         }
 
+        limitObs[s] = limitObsCache;
+        tree->GetEntry(5);
+        limitObsError[s] = limitErrVal;
+        limitYPointCoord[s] = s + 0.5;
+        limitYPointCoordErr[s] = 0.5;
+
         printf("limit2sigdown = %lf\n",limit2sigdown);
         printf("limit2sigup   = %lf\n",limit2sigup);
         printf("limit1sigdown = %lf\n",limit1sigdown);
         printf("limit1sigup   = %lf\n",limit1sigup);
         printf("limit0        = %lf\n",limit0);
-        printf("limitobs      = %lf\n",limitobs);
+        printf("limitObs      = %lf\n",limitObs);
 
         canvas->cd();
         box2sig = new TBox(limit2sigdown, s, limit2sigup, s+1);
@@ -59,21 +69,29 @@ void plotXSect()
         //lineexp = new TLine(limit0, s, limit0, s+1);
         //lineexp->Draw();
         //lineexp->SetLineWidth((Width_t)2);
-        lineobs = new TLine(limitobs, s, limitobs, s+1);
-        //lineobs->SetLineStyle(7);
-        lineobs->SetLineWidth((Width_t)2);
-        lineobs->Draw();
+        //lineobs = new TLine(limitObs, s, limitObs, s+1);
+        //lineobs->SetLineWidth((Width_t)2);
+        //lineobs->Draw();
 
-        TMarker *marker = new TMarker(limitobs, s + 0.5, 21);
+        TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
         marker->Draw();
 
-        tex->DrawLatex(50,s+0.5,fileName[s].c_str());
+        tex->DrawLatex(50, s + 0.5, fileName[s].c_str());
     }
 
     TLine *lineSM = new TLine(1, -0.15, 1, 4);
     lineSM->SetLineColor(kRed);
     lineSM->SetLineWidth((Width_t)5);
     lineSM->Draw();
+
+    TGraphErrors *obsPoints = new TGraphErrors(numberOfDatasets, limitObs, limitYPointCoord, limitObsError, limitYPointCoordErr);
+    gr->SetName("gr");
+    gr->SetLineColor(0);
+    gr->SetLineWidth(2);
+    gr->SetMarkerStyle(21);
+    gr->SetMarkerSize(1.3);
+    gr->SetMarkerColor(7);
+    gr->Draw("SAME");
 
     tex->DrawLatex(0,4.1,"#bf{CMS} #it{Preliminary}");
     tex->DrawLatex(64,4.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");

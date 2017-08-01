@@ -24,9 +24,9 @@ void plotXSect()
     double limitobs;
     double *limitAddr[] = {&limit2sigdown, &limit1sigdown, &limit0, &limit1sigup, &limit2sigup, &limitobs};
 
-    for (int set = 0; set < 2; set++)
+    for (int s = 0; s < 2; s++)
     {
-        tree = file[set]->Get("limit");
+        tree = (TTree*) fileIndex[s]->Get("limit");
         tree->SetBranchAddress("limit",&limitVal);
         for (int i=0;i<tree->GetEntries();i++)
         {
@@ -43,22 +43,22 @@ void plotXSect()
         printf("limitobs      = %lf\n",limitobs);
 
         canvas->cd();
-        box2sig = new TBox(limit2sigdown, set, limit2sigup, set+1);
+        box2sig = new TBox(limit2sigdown, s, limit2sigup, s+1);
         box2sig->SetFillColor(17);
         box2sig->Draw();
-        box1sig = new TBox(limit1sigdown, set, limit1sigup, set+1);
+        box1sig = new TBox(limit1sigdown, s, limit1sigup, s+1);
         box1sig->SetFillColor(15);
         box1sig->Draw();
 
-        lineexp = new TLine(limit0, set, limit0, set+1);
+        lineexp = new TLine(limit0, s, limit0, s+1);
         lineexp->Draw();
         lineexp->SetLineWidth((Width_t)2);
-        lineobs = new TLine(limitobs, set, limitobs, set+1);
+        lineobs = new TLine(limitobs, s, limitobs, s+1);
         lineobs->SetLineStyle(7);
         lineobs->SetLineWidth((Width_t)2);
         lineobs->Draw();
 
-        TMarker *marker = new TMarker(limit0, 0.5, 31);
+        TMarker *marker = new TMarker(limit0, s + 0.5, 31);
         marker->Draw();
     }
 

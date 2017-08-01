@@ -54,11 +54,11 @@ void plotXSect()
         //lineexp->Draw();
         //lineexp->SetLineWidth((Width_t)2);
         lineobs = new TLine(limitobs, s, limitobs, s+1);
-        lineobs->SetLineStyle(7);
+        //lineobs->SetLineStyle(7);
         lineobs->SetLineWidth((Width_t)2);
         lineobs->Draw();
 
-        TMarker *marker = new TMarker(limit0, s + 0.5, 21);
+        TMarker *marker = new TMarker(limitobs, s + 0.5, 21);
         marker->Draw();
     }
 
@@ -71,6 +71,7 @@ void plotXSect()
     tex->SetTextFont(42);
     tex->SetTextSize(0.04);
     tex->SetNDC();
-    tex->DrawLatex(0.15,0.9,"#bf{CMS} #it{Preliminary}");
-    tex->DrawLatex(0.75,0.97,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
+    tex->DrawLatex(0.15,0.92,"#bf{CMS} #it{Preliminary}");
+    tex->DrawLatex(0.7,0.92,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
+    tex->DrawLatex(0.12,0.8,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
 }

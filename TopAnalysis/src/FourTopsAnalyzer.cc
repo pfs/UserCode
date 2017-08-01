@@ -304,8 +304,8 @@ void RunFourTopsAnalyzer(TString filename,
 
           lepton_3_chIso = ev.l_chargedHadronIso[leptons_chIsoSorted[2].originalReference()];
           lepton_4_chIso = ev.l_chargedHadronIso[leptons_chIsoSorted[3].originalReference()];
-          lepton_3_minIso = ev.l_chargedHadronIso[leptons_minIsoSorted[2].originalReference()];
-          lepton_4_minIso = ev.l_chargedHadronIso[leptons_minIsoSorted[3].originalReference()];
+          lepton_3_minIso = ev.l_miniIso[leptons_minIsoSorted[2].originalReference()];
+          lepton_4_minIso = ev.l_miniIso[leptons_minIsoSorted[3].originalReference()];
         }
       }
 

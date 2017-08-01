@@ -73,8 +73,8 @@ void plotXSect()
         //lineobs->SetLineWidth((Width_t)2);
         //lineobs->Draw();
 
-        TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
-        marker->Draw();
+        //TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
+        //marker->Draw();
 
         tex->DrawLatex(50, s + 0.5, fileName[s].c_str());
     }

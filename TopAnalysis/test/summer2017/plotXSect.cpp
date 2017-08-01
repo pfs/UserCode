@@ -66,4 +66,11 @@ void plotXSect()
     lineSM->SetLineColor(kRed);
     lineSM->SetLineWidth((Width_t)5);
     lineSM->Draw();
+
+    TLatex *tex = new TLatex();
+    tex->SetTextFont(42);
+    tex->SetTextSize(0.04);
+    tex->SetNDC();
+    tex->DrawLatex(0.15,0.9,"#bf{CMS} #it{Preliminary}");
+    tex->DrawLatex(0.75,0.97,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
 }

@@ -13,7 +13,7 @@ void plotXSect()
     TCanvas *canvas = new TCanvas("canvas","Upper limits for four tops",800,600);
     canvas->Draw();
     canvas->cd();
-    TH1F *histFrame = gPad->DrawFrame(0,0,80,4);
+    TH1F *histFrame = gPad->DrawFrame(0,-0.15,80,4);
     histFrame->SetXTitle("95% CL Limit on #mu = #sigma_{obs} / #sigma_{SM}");
     histFrame->GetYaxis()->SetTickSize(0);
     histFrame->GetYaxis()->SetLabelSize(0);
@@ -21,7 +21,7 @@ void plotXSect()
     TLatex *tex = new TLatex();
     tex->SetTextFont(42);
     tex->SetTextSize(0.04);
-    tex->SetNDC();
+    //tex->SetNDC();
 
     TBox *box1sig, *box2sig;
     TLine *lineexp, *lineobs;
@@ -67,15 +67,15 @@ void plotXSect()
         TMarker *marker = new TMarker(limitobs, s + 0.5, 21);
         marker->Draw();
 
-        tex->DrawLatexNDC(50,s+0.5,fileName[s].c_str());
+        tex->DrawLatex(50,s+0.5,fileName[s].c_str());
     }
 
-    TLine *lineSM = new TLine(1, 0, 1, 4);
+    TLine *lineSM = new TLine(1, -0.15, 1, 4);
     lineSM->SetLineColor(kRed);
     lineSM->SetLineWidth((Width_t)5);
     lineSM->Draw();
 
-    tex->DrawLatex(0.15,0.92,"#bf{CMS} #it{Preliminary}");
-    tex->DrawLatex(0.7,0.92,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
-    tex->DrawLatex(0.12,0.8,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
+    tex->DrawLatex(0,4.1,"#bf{CMS} #it{Preliminary}");
+    tex->DrawLatex(64,4.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
+    tex->DrawLatex(1.5,3.8,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
 }

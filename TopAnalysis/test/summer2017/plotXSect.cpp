@@ -8,6 +8,7 @@ void plotXSect()
     fileIndex[1] = new TFile("datacard_4tops/fourtops_bdt_Asymptotic.root");
     //TFile *file = new TFile("datacard_4tops/fourtops_nn_Asymptotic.root");
     TTree *tree;
+    string fileName[] = {"#bf{Neural Network}", "#bf{BDT}"};
 
     TCanvas *canvas = new TCanvas("canvas","Upper limits for four tops",800,600);
     canvas->Draw();
@@ -16,6 +17,11 @@ void plotXSect()
     histFrame->SetXTitle("95% CL Limit on #mu = #sigma_{obs} / #sigma_{SM}");
     histFrame->GetYaxis()->SetTickSize(0);
     histFrame->GetYaxis()->SetLabelSize(0);
+    
+    TLatex *tex = new TLatex();
+    tex->SetTextFont(42);
+    tex->SetTextSize(0.04);
+    tex->SetNDC();
 
     TBox *box1sig, *box2sig;
     TLine *lineexp, *lineobs;
@@ -60,6 +66,8 @@ void plotXSect()
 
         TMarker *marker = new TMarker(limitobs, s + 0.5, 21);
         marker->Draw();
+
+        tex->DrawLatexNDC(50,s+0.5,fileName[s].c_str());
     }
 
     TLine *lineSM = new TLine(1, 0, 1, 4);
@@ -67,10 +75,6 @@ void plotXSect()
     lineSM->SetLineWidth((Width_t)5);
     lineSM->Draw();
 
-    TLatex *tex = new TLatex();
-    tex->SetTextFont(42);
-    tex->SetTextSize(0.04);
-    tex->SetNDC();
     tex->DrawLatex(0.15,0.92,"#bf{CMS} #it{Preliminary}");
     tex->DrawLatex(0.7,0.92,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
     tex->DrawLatex(0.12,0.8,"#scale[0.75]{#color[2]{#bf{SM Here}}}");

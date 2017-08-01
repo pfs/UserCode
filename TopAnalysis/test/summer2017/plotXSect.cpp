@@ -50,15 +50,15 @@ void plotXSect()
         box1sig->SetFillColor(15);
         box1sig->Draw();
 
-        lineexp = new TLine(limit0, s, limit0, s+1);
-        lineexp->Draw();
-        lineexp->SetLineWidth((Width_t)2);
+        //lineexp = new TLine(limit0, s, limit0, s+1);
+        //lineexp->Draw();
+        //lineexp->SetLineWidth((Width_t)2);
         lineobs = new TLine(limitobs, s, limitobs, s+1);
         lineobs->SetLineStyle(7);
         lineobs->SetLineWidth((Width_t)2);
         lineobs->Draw();
 
-        TMarker *marker = new TMarker(limit0, s + 0.5, 31);
+        TMarker *marker = new TMarker(limit0, s + 0.5, 21);
         marker->Draw();
     }
 

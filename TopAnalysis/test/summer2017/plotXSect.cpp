@@ -56,7 +56,7 @@ void plotXSect()
         printf("limit1sigdown = %lf\n",limit1sigdown);
         printf("limit1sigup   = %lf\n",limit1sigup);
         printf("limit0        = %lf\n",limit0);
-        printf("limitObs      = %lf\n",limitObs);
+        printf("limitObs      = %lf\n",limitObs[s]);
 
         canvas->cd();
         box2sig = new TBox(limit2sigdown, s, limit2sigup, s+1);
@@ -85,12 +85,13 @@ void plotXSect()
     lineSM->Draw();
 
     TGraphErrors *obsPoints = new TGraphErrors(numberOfDatasets, limitObs, limitYPointCoord, limitObsError, limitYPointCoordErr);
-    obsPoints->SetLineColor(0);
+    obsPoints->SetLineColor(1);
     obsPoints->SetLineWidth(2);
+    obsPoints->SetMarkerColor(1);
     obsPoints->SetMarkerStyle(21);
-    obsPoints->SetMarkerSize(1.3);
-    obsPoints->SetMarkerColor(7);
-    obsPoints->Draw("SAME");
+    obsPoints->SetMarkerSize(1.6);
+    obsPoints->SetMarkerColor(1);
+    obsPoints->Draw("SAME P");
 
     tex->DrawLatex(0,4.1,"#bf{CMS} #it{Preliminary}");
     tex->DrawLatex(64,4.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");

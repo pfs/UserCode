@@ -9,12 +9,12 @@ void plotXSect()
     fileIndex[1] = new TFile("datacard_4tops/fourtops_bdt_Asymptotic.root");
     //TFile *file = new TFile("datacard_4tops/fourtops_nn_Asymptotic.root");
     TTree *tree;
-    string fileName[] = {"#bf{Neural Network}", "#bf{BDT}", "#bf{Dilepton}\\TOP-16-016",  "#bf{Single lepton}\\TOP-16-016", "#bf{Combined}\\TOP-16-016"};
+    string fileName[] = {"#splitline{#bf{Four lepton NN}}{#scale[0.7]{This analysis}}", "#splitline{#bf{Four lepton BDT}}{#scale[0.7]{This analysis}}", "#splitline{#bf{Dilepton}}{#scale[0.7]{TOP-16-016}}",  "#splitline{#bf{Single lepton}}{#scale[0.7]{TOP-16-016}}", "#splitline{#bf{Combined}}{#scale[0.7]{TOP-16-016}}"};
 
     TCanvas *canvas = new TCanvas("canvas","Upper limits for four tops",800,600);
     canvas->Draw();
     canvas->cd();
-    TH1F *histFrame = gPad->DrawFrame(0,-0.15,80,7);
+    TH1F *histFrame = gPad->DrawFrame(0,-0.15,100,7);
     histFrame->SetXTitle("95% CL Limit on #mu = #sigma_{obs} / #sigma_{SM}");
     histFrame->GetYaxis()->SetTickSize(0);
     histFrame->GetYaxis()->SetLabelSize(0);
@@ -89,7 +89,7 @@ void plotXSect()
         //TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
         //marker->Draw();
 
-        tex->DrawLatex(50, s + 0.5, fileName[s].c_str());
+        tex->DrawLatex(70, s + 0.5, fileName[s].c_str());
     }
 
     for (int s = 2; s < 5; s++)
@@ -134,10 +134,10 @@ void plotXSect()
         //TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
         //marker->Draw();
 
-        tex->DrawLatex(50, s + 0.5, fileName[s].c_str());
+        tex->DrawLatex(70, s + 0.5, fileName[s].c_str());
     }
 
-    TLine *lineSM = new TLine(1, -0.15, 1, 4);
+    TLine *lineSM = new TLine(1, -0.15, 1, 7);
     lineSM->SetLineColor(kRed);
     lineSM->SetLineWidth((Width_t)5);
     lineSM->Draw();
@@ -152,8 +152,8 @@ void plotXSect()
     obsPoints->Draw("SAME P");
 
     tex->DrawLatex(0,7.1,"#bf{CMS} #it{Work in progress}");
-    tex->DrawLatex(64,7.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
-    tex->DrawLatex(1.5,6.8,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
+    tex->DrawLatex(80,7.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
+    tex->DrawLatex(2,6.6,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
 
     auto hist1sigDummy = new TH1F("hist1sigDummy","expected #pm 1 #sigma",1,0,1);
     auto hist2sigDummy = new TH1F("hist2sigDummy","expected #pm 2 #sigma",1,0,1);
@@ -162,7 +162,7 @@ void plotXSect()
     hist2sigDummy->SetFillColor(17);
     hist2sigDummy->SetLineColor(0);
 
-    TLegend *legend = new TLegend(0.6,0.6,0.85,0.85);
+    TLegend *legend = new TLegend(0.65,0.7,0.85,0.85);
     legend->SetLineColor(0);
     legend->SetHeader("limits on #sigma_{tttt}");
     legend->AddEntry(obsPoints,"observed","lep");

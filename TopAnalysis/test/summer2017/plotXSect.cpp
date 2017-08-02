@@ -3,18 +3,18 @@
 
 void plotXSect()
 {
-    const int numberOfDatasets = 2;
+    const int numberOfDatasets = 5;
     TFile *fileIndex[numberOfDatasets];
     fileIndex[0] = new TFile("datacard_4tops/fourtops_nn_Asymptotic.root");
     fileIndex[1] = new TFile("datacard_4tops/fourtops_bdt_Asymptotic.root");
     //TFile *file = new TFile("datacard_4tops/fourtops_nn_Asymptotic.root");
     TTree *tree;
-    string fileName[] = {"#bf{Neural Network}", "#bf{BDT}"};
+    string fileName[] = {"#bf{Neural Network}", "#bf{BDT}", "#bf{Dilepton}\\TOP-16-016",  "#bf{Single lepton}\\TOP-16-016", "#bf{Combined}\\TOP-16-016"};
 
     TCanvas *canvas = new TCanvas("canvas","Upper limits for four tops",800,600);
     canvas->Draw();
     canvas->cd();
-    TH1F *histFrame = gPad->DrawFrame(0,-0.15,80,4);
+    TH1F *histFrame = gPad->DrawFrame(0,-0.15,80,7);
     histFrame->SetXTitle("95% CL Limit on #mu = #sigma_{obs} / #sigma_{SM}");
     histFrame->GetYaxis()->SetTickSize(0);
     histFrame->GetYaxis()->SetLabelSize(0);
@@ -32,6 +32,19 @@ void plotXSect()
     double *limitAddr[] = {&limit2sigdown, &limit1sigdown, &limit0, &limit1sigup, &limit2sigup, &limitObsCache};
 
     double limitYPointCoord[numberOfDatasets], limitYPointCoordErr[numberOfDatasets];
+
+    limitObs[2] = 16.1;
+    limitObs[3] = 14.9;
+    limitObs[4] = 10.2;
+    limitObsError[2] = 0.;
+    limitObsError[3] = 0.;
+    limitObsError[4] = 0.;
+
+    for (int y = 2; y < 5; y++)
+    {
+        limitYPointCoord[y] = y + 0.5;
+        limitYPointCoordErr[y] = 0.5;
+    }
 
     for (int s = 0; s < 2; s++)
     {
@@ -79,6 +92,51 @@ void plotXSect()
         tex->DrawLatex(50, s + 0.5, fileName[s].c_str());
     }
 
+    for (int s = 2; s < 5; s++)
+    {
+        switch (s)
+        {
+            case 2: // Dilepton
+                limit2sigdown = 9.4;
+                limit1sigdown = 13.9;
+                limit1sigup = 38.5;
+                limit2sigup = 64.0;
+                break;
+            case 3: // Single lepton
+                limit2sigdown = 5.9;
+                limit1sigdown = 8.3;
+                limit1sigup = 20.5;
+                limit2sigup = 32.8;
+                break;
+            case 4: // Combined
+                limit2sigdown = 5.0;
+                limit1sigdown = 7.0;
+                limit1sigup = 17.5;
+                limit2sigup = 28.3;
+                break;
+        }
+
+        canvas->cd();
+        box2sig = new TBox(limit2sigdown, s, limit2sigup, s+1);
+        box2sig->SetFillColor(17);
+        box2sig->Draw();
+        box1sig = new TBox(limit1sigdown, s, limit1sigup, s+1);
+        box1sig->SetFillColor(15);
+        box1sig->Draw();
+
+        //lineexp = new TLine(limit0, s, limit0, s+1);
+        //lineexp->Draw();
+        //lineexp->SetLineWidth((Width_t)2);
+        //lineobs = new TLine(limitObs, s, limitObs, s+1);
+        //lineobs->SetLineWidth((Width_t)2);
+        //lineobs->Draw();
+
+        //TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
+        //marker->Draw();
+
+        tex->DrawLatex(50, s + 0.5, fileName[s].c_str());
+    }
+
     TLine *lineSM = new TLine(1, -0.15, 1, 4);
     lineSM->SetLineColor(kRed);
     lineSM->SetLineWidth((Width_t)5);
@@ -93,9 +151,9 @@ void plotXSect()
     obsPoints->SetMarkerColor(1);
     obsPoints->Draw("SAME P");
 
-    tex->DrawLatex(0,4.1,"#bf{CMS} #it{Preliminary}");
-    tex->DrawLatex(64,4.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
-    tex->DrawLatex(1.5,3.8,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
+    tex->DrawLatex(0,7.1,"#bf{CMS} #it{Work in progress}");
+    tex->DrawLatex(64,7.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
+    tex->DrawLatex(1.5,6.8,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
 
     auto hist1sigDummy = new TH1F("hist1sigDummy","expected #pm 1 #sigma",1,0,1);
     auto hist2sigDummy = new TH1F("hist2sigDummy","expected #pm 2 #sigma",1,0,1);

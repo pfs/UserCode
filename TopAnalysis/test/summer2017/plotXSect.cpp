@@ -42,7 +42,7 @@ void plotXSect()
 
     for (int y = 2; y < 5; y++)
     {
-        limitYPointCoord[y] = y + 0.5;
+        limitYPointCoord[y] = 4 - y + 0.5;
         limitYPointCoordErr[y] = 0.5;
     }
 
@@ -72,10 +72,10 @@ void plotXSect()
         printf("limitObs      = %lf\n",limitObs[s]);
 
         canvas->cd();
-        box2sig = new TBox(limit2sigdown, (5-s), limit2sigup, (5-s)+1);
+        box2sig = new TBox(limit2sigdown, (4-s), limit2sigup, (4-s)+1);
         box2sig->SetFillColor(17);
         box2sig->Draw();
-        box1sig = new TBox(limit1sigdown, (5-s), limit1sigup, (5-s)+1);
+        box1sig = new TBox(limit1sigdown, (4-s), limit1sigup, (4-s)+1);
         box1sig->SetFillColor(15);
         box1sig->Draw();
 
@@ -89,7 +89,7 @@ void plotXSect()
         //TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
         //marker->Draw();
 
-        tex->DrawLatex(70, (5-s) + 0.5, fileName[s].c_str());
+        tex->DrawLatex(70, (4-s) + 0.5, fileName[s].c_str());
     }
 
     for (int s = 2; s < 5; s++)
@@ -117,10 +117,10 @@ void plotXSect()
         }
 
         canvas->cd();
-        box2sig = new TBox(limit2sigdown, 5-s, limit2sigup, (5-s)+1);
+        box2sig = new TBox(limit2sigdown, 4-s, limit2sigup, (4-s)+1);
         box2sig->SetFillColor(17);
         box2sig->Draw();
-        box1sig = new TBox(limit1sigdown, 5-s, limit1sigup, (5-s)+1);
+        box1sig = new TBox(limit1sigdown, 4-s, limit1sigup, (4-s)+1);
         box1sig->SetFillColor(15);
         box1sig->Draw();
 
@@ -134,7 +134,7 @@ void plotXSect()
         //TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
         //marker->Draw();
 
-        tex->DrawLatex(70, (5-s) + 0.5, fileName[s].c_str());
+        tex->DrawLatex(70, (4-s) + 0.5, fileName[s].c_str());
     }
 
     TLine *lineSM = new TLine(1, -0.15, 1, 7);

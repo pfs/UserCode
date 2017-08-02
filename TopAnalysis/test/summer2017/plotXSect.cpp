@@ -97,14 +97,15 @@ void plotXSect()
     tex->DrawLatex(64,4.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
     tex->DrawLatex(1.5,3.8,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
 
-    auto hist1sigDummy = TH1F("hist1sigDummy","expected #pm 1 #sigma",1,0,1);
-    auto hist2sigDummy = TH1F("hist2sigDummy","expected #pm 2 #sigma",1,0,1);
+    auto hist1sigDummy = new TH1F("hist1sigDummy","expected #pm 1 #sigma",1,0,1);
+    auto hist2sigDummy = new TH1F("hist2sigDummy","expected #pm 2 #sigma",1,0,1);
     hist1sigDummy->SetFillColor(15);
-    hist1sigDummy->SetLineWidth(0);
+    hist1sigDummy->SetLineColor(0);
     hist2sigDummy->SetFillColor(17);
-    hist2sigDummy->SetLineWidth(0);
+    hist2sigDummy->SetLineColor(0);
 
-    TLegend *legend = new TLegend(0.7,0.7,0.9,0.9);
+    TLegend *legend = new TLegend(0.6,0.6,0.85,0.85);
+    legend->SetLineColor(0);
     legend->SetHeader("limits on #sigma_{tttt}");
     legend->AddEntry(obsPoints,"observed","lep");
     legend->AddEntry(hist1sigDummy,"expected #pm 1 #sigma","f");

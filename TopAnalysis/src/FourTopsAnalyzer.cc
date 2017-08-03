@@ -67,6 +67,8 @@ void RunFourTopsAnalyzer(TString filename,
   Float_t n_ele_m;
 
   Float_t event_weight;
+  Float_t bdt_discrim, nn_discrim;
+  UInt_t run, event, lumi;
 
   tmvaReader->AddVariable("jet_1_highest_csv",     &jet_1_highest_csv);
   tmvaReader->AddVariable("jet_2_highest_csv",     &jet_2_highest_csv);
@@ -119,6 +121,13 @@ void RunFourTopsAnalyzer(TString filename,
   outTree.Branch("n_mu_m",&n_mu_m,"n_mu_m/F");
   outTree.Branch("n_ele_p",&n_ele_p,"n_ele_p/F");
   outTree.Branch("n_ele_m",&n_ele_m,"n_ele_m/F");
+
+  outTree.Branch("bdt_discrim",&bdt_discrim,"bdt_discrim/F");
+  outTree.Branch("nn_discrim",&nn_discrim,"nn_discrim/F");
+
+  outTree.Branch("run",&run,"run/i");
+  outTree.Branch("event",&event,"event/i");
+  outTree.Branch("lumi",&lumi,"lumi/i");
 
   //PREPARE OUTPUT
   TString baseName=gSystem->BaseName(outname); 

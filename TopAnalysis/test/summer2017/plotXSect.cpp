@@ -155,8 +155,8 @@ void plotXSect()
     obsPoints->Draw("SAME P");
 
     tex->DrawLatex(0,7.1,"#bf{CMS} #it{Work in progress}");
-    tex->DrawLatex(70,7.1,"#scale[0.8]{35.9 fb^{-1} /; (13 TeV)}");
-    tex->DrawLatex(70,3.15,"#scale[0.8]{2.6 fb^{-1} /; (13 TeV)}");
+    tex->DrawLatex(70,7.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
+    tex->DrawLatex(70,3.15,"#scale[0.8]{2.6 fb^{-1} (13 TeV)}");
     tex->DrawLatex(2,6.6,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
 
     auto hist1sigDummy = new TH1F("hist1sigDummy","expected #pm 1 #sigma",1,0,1);

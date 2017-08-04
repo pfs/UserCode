@@ -9,6 +9,8 @@ void plotXSect()
     fileIndex[1] = new TFile("datacard_4tops/fourtops_bdt_Asymptotic.root");
     //TFile *file = new TFile("datacard_4tops/fourtops_nn_Asymptotic.root");
     TTree *tree;
+    
+    // Dataset name here
     string fileName[] = {"#splitline{#bf{Four lepton NN}}{#scale[0.7]{This analysis}}", "#splitline{#bf{Four lepton BDT}}{#scale[0.7]{This analysis}}", "#splitline{#bf{Dilepton}}{#scale[0.7]{TOP-16-016}}",  "#splitline{#bf{Single lepton}}{#scale[0.7]{TOP-16-016}}", "#splitline{#bf{Combined}}{#scale[0.7]{TOP-16-016}}"};
 
     TCanvas *canvas = new TCanvas("canvas","Upper limits for four tops",800,600);
@@ -33,6 +35,7 @@ void plotXSect()
 
     double limitYPointCoord[numberOfDatasets], limitYPointCoordErr[numberOfDatasets];
 
+    // Hardcoding values for plots
     limitObs[2] = 16.1;
     limitObs[3] = 14.9;
     limitObs[4] = 10.2;
@@ -46,6 +49,7 @@ void plotXSect()
         limitYPointCoordErr[y] = 0.5;
     }
 
+    // Read data from file to plot
     for (int s = 0; s < 2; s++)
     {
         tree = (TTree*) fileIndex[s]->Get("limit");
@@ -64,34 +68,30 @@ void plotXSect()
         limitYPointCoord[s] = (4.5-s) + 0.5;
         limitYPointCoordErr[s] = 0.5;
 
+        /*
         printf("limit2sigdown = %lf\n",limit2sigdown);
         printf("limit2sigup   = %lf\n",limit2sigup);
         printf("limit1sigdown = %lf\n",limit1sigdown);
         printf("limit1sigup   = %lf\n",limit1sigup);
         printf("limit0        = %lf\n",limit0);
         printf("limitObs      = %lf\n",limitObs[s]);
+        */
 
+        // Draw 2-sig box first ...
         canvas->cd();
         box2sig = new TBox(limit2sigdown, (4.5-s), limit2sigup, (4.5-s)+1);
         box2sig->SetFillColor(17);
         box2sig->Draw();
+        // ... and 1-sig box on top of it.
         box1sig = new TBox(limit1sigdown, (4.5-s), limit1sigup, (4.5-s)+1);
         box1sig->SetFillColor(15);
         box1sig->Draw();
 
-        //lineexp = new TLine(limit0, s, limit0, s+1);
-        //lineexp->Draw();
-        //lineexp->SetLineWidth((Width_t)2);
-        //lineobs = new TLine(limitObs, s, limitObs, s+1);
-        //lineobs->SetLineWidth((Width_t)2);
-        //lineobs->Draw();
-
-        //TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
-        //marker->Draw();
-
+        // Dataset name
         tex->DrawLatex(70, (4.5-s) + 0.35, fileName[s].c_str());
     }
 
+    // Hardcode the values for plotting. You can also use arrays to do the job, but I'm too lazy here.
     for (int s = 2; s < 5; s++)
     {
         switch (s)
@@ -116,35 +116,31 @@ void plotXSect()
                 break;
         }
 
+        // Again, 2-sig box
         canvas->cd();
         box2sig = new TBox(limit2sigdown, 4-s, limit2sigup, (4-s)+1);
         box2sig->SetFillColor(17);
         box2sig->Draw();
+        // 1-sig box
         box1sig = new TBox(limit1sigdown, 4-s, limit1sigup, (4-s)+1);
         box1sig->SetFillColor(15);
         box1sig->Draw();
 
-        //lineexp = new TLine(limit0, s, limit0, s+1);
-        //lineexp->Draw();
-        //lineexp->SetLineWidth((Width_t)2);
-        //lineobs = new TLine(limitObs, s, limitObs, s+1);
-        //lineobs->SetLineWidth((Width_t)2);
-        //lineobs->Draw();
-
-        //TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
-        //marker->Draw();
-
+        // Dataset name
         tex->DrawLatex(70, (4-s) + 0.35, fileName[s].c_str());
     }
 
+    // Separate between our analysis and TOP-16-016
     TLine *lineSep = new TLine(0, 3.5, 100, 3.5);
     lineSep->Draw();
 
+    // Line indicating where SM is
     TLine *lineSM = new TLine(1, -0.15, 1, 7);
     lineSM->SetLineColor(kRed);
     lineSM->SetLineWidth((Width_t)5);
     lineSM->Draw();
 
+    // Put in graphs
     TGraphErrors *obsPoints = new TGraphErrors(numberOfDatasets, limitObs, limitYPointCoord, limitObsError, limitYPointCoordErr);
     obsPoints->SetLineColor(1);
     obsPoints->SetLineWidth(2);
@@ -154,11 +150,13 @@ void plotXSect()
     obsPoints->SetMarkerColor(1);
     obsPoints->Draw("SAME P");
 
+    // A couple of texts
     tex->DrawLatex(0,7.1,"#bf{CMS} #it{Work in progress}");
     tex->DrawLatex(70,7.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
     tex->DrawLatex(70,3.15,"#scale[0.8]{2.6 fb^{-1} (13 TeV)}");
     tex->DrawLatex(2,6.6,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
 
+    // Dummy TH1F objects for TLegend
     auto hist1sigDummy = new TH1F("hist1sigDummy","expected #pm 1 #sigma",1,0,1);
     auto hist2sigDummy = new TH1F("hist2sigDummy","expected #pm 2 #sigma",1,0,1);
     hist1sigDummy->SetFillColor(15);
@@ -166,6 +164,7 @@ void plotXSect()
     hist2sigDummy->SetFillColor(17);
     hist2sigDummy->SetLineColor(0);
 
+    // Legend
     TLegend *legend = new TLegend(0.65,0.75,0.85,0.88);
     legend->SetLineColor(0);
     legend->SetHeader("limits on #sigma_{tttt}");

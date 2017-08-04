@@ -61,7 +61,7 @@ void plotXSect()
         limitObs[s] = limitObsCache;
         tree->GetEntry(5);
         limitObsError[s] = limitErrVal;
-        limitYPointCoord[s] = (5-s) + 0.5;
+        limitYPointCoord[s] = (4.5-s) + 0.5;
         limitYPointCoordErr[s] = 0.5;
 
         printf("limit2sigdown = %lf\n",limit2sigdown);
@@ -72,10 +72,10 @@ void plotXSect()
         printf("limitObs      = %lf\n",limitObs[s]);
 
         canvas->cd();
-        box2sig = new TBox(limit2sigdown, (4-s), limit2sigup, (4-s)+1);
+        box2sig = new TBox(limit2sigdown, (4.5-s), limit2sigup, (4.5-s)+1);
         box2sig->SetFillColor(17);
         box2sig->Draw();
-        box1sig = new TBox(limit1sigdown, (4-s), limit1sigup, (4-s)+1);
+        box1sig = new TBox(limit1sigdown, (4.5-s), limit1sigup, (4.5-s)+1);
         box1sig->SetFillColor(15);
         box1sig->Draw();
 
@@ -89,7 +89,7 @@ void plotXSect()
         //TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
         //marker->Draw();
 
-        tex->DrawLatex(70, (4-s) + 0.5, fileName[s].c_str());
+        tex->DrawLatex(70, (4.5-s) + 0.35, fileName[s].c_str());
     }
 
     for (int s = 2; s < 5; s++)
@@ -134,8 +134,11 @@ void plotXSect()
         //TMarker *marker = new TMarker(limitObs, s + 0.5, 21);
         //marker->Draw();
 
-        tex->DrawLatex(70, (4-s) + 0.5, fileName[s].c_str());
+        tex->DrawLatex(70, (4-s) + 0.35, fileName[s].c_str());
     }
+
+    TLine *lineSep = new TLine(0, 3.5, 100, 3.5);
+    lineSep->Draw();
 
     TLine *lineSM = new TLine(1, -0.15, 1, 7);
     lineSM->SetLineColor(kRed);
@@ -152,7 +155,8 @@ void plotXSect()
     obsPoints->Draw("SAME P");
 
     tex->DrawLatex(0,7.1,"#bf{CMS} #it{Work in progress}");
-    tex->DrawLatex(80,7.1,"#scale[0.8]{35.9 fb^{-1} (13 TeV)}");
+    tex->DrawLatex(70,7.1,"#scale[0.8]{35.9 fb^{-1} /; (13 TeV)}");
+    tex->DrawLatex(70,3.15,"#scale[0.8]{2.6 fb^{-1} /; (13 TeV)}");
     tex->DrawLatex(2,6.6,"#scale[0.75]{#color[2]{#bf{SM Here}}}");
 
     auto hist1sigDummy = new TH1F("hist1sigDummy","expected #pm 1 #sigma",1,0,1);
@@ -162,7 +166,7 @@ void plotXSect()
     hist2sigDummy->SetFillColor(17);
     hist2sigDummy->SetLineColor(0);
 
-    TLegend *legend = new TLegend(0.65,0.7,0.85,0.85);
+    TLegend *legend = new TLegend(0.65,0.75,0.85,0.88);
     legend->SetLineColor(0);
     legend->SetHeader("limits on #sigma_{tttt}");
     legend->AddEntry(obsPoints,"observed","lep");

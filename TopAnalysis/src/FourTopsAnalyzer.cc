@@ -385,10 +385,10 @@ void RunFourTopsAnalyzer(TString filename,
 
       event_weight = plotwgts[0];
       
-      float bdt = tmvaReader->EvaluateMVA("BDT");
-      ht.fill("bdt", bdt, plotwgts);
-      float mlp_ann = tmvaReader->EvaluateMVA("MLP_ANN");
-      ht.fill("mlp_ann", mlp_ann, plotwgts);
+      bdt_discrim = tmvaReader->EvaluateMVA("BDT");
+      ht.fill("bdt", bdt_discrim, plotwgts);
+      nn_discrim = tmvaReader->EvaluateMVA("MLP_ANN");
+      ht.fill("mlp_ann", nn_discrim, plotwgts);
 
       outTree.Fill();
     }

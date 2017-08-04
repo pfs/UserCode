@@ -186,6 +186,10 @@ void RunFourTopsAnalyzer(TString filename,
       
       //assign randomly a run period
       TString period = assignRunPeriod(runPeriods,random);
+
+      run = ev.run;
+      event = ev.event;
+      lumi = ev.lumi;
       
       //////////////////
       // CORRECTIONS //

@@ -34,7 +34,7 @@ class Plot(object):
 
     def __init__(self,name,com='13 TeV'):
         self.name = name
-        self.cmsLabel='#bf{CMS} #it{preliminary}'
+        self.cmsLabel='#bf{CMS} #it{Work in progress}'
         self.com=com
         self.wideCanvas = True if 'ratevsrun' in self.name else False
         self.doPoissonErrorBars=True

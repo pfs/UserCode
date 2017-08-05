@@ -20,7 +20,7 @@ void printallvars(const char *filename)
 
     Float_t bdt, nn;
 
-    Float_t run, event, lumi;
+    UInt_t run, event, lumi;
 
     tree->SetBranchAddress("n_leptons",&n_leptons);
     tree->SetBranchAddress("n_jets",&n_jets);
@@ -67,9 +67,9 @@ void printallvars(const char *filename)
         fprintf(out, "%f\t", n_ele_m);
         fprintf(out, "%f\t", angle_jets);
         fprintf(out, "%f\t", angle_bjets);
-        fprintf(out, "%f\t", run);
-        fprintf(out, "%f\t", event);
-        fprintf(out, "%f\t", lumi);
+        fprintf(out, "%d\t", run);
+        fprintf(out, "%d\t", event);
+        fprintf(out, "%d\t", lumi);
         fprintf(out, "\n");
     }
 

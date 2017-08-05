@@ -20,6 +20,8 @@ void printallvars(const char *filename)
 
     Float_t bdt, nn;
 
+    Float_t run, event, lumi;
+
     tree->SetBranchAddress("n_leptons",&n_leptons);
     tree->SetBranchAddress("n_jets",&n_jets);
     tree->SetBranchAddress("n_bjets",&n_bjets);
@@ -39,6 +41,10 @@ void printallvars(const char *filename)
 
     tree->SetBranchAddress("bdt_discrim",&bdt);
     tree->SetBranchAddress("nn_discrim",&nn);
+
+    tree->SetBranchAddress("run",&run);
+    tree->SetBranchAddress("event",&event);
+    tree->SetBranchAddress("lumi",&lumi);
 
     FILE *out;
     out = fopen((string("out_")+string(filename)+string(".txt")).c_str(),"w");
@@ -61,6 +67,9 @@ void printallvars(const char *filename)
         fprintf(out, "%f\t", n_ele_m);
         fprintf(out, "%f\t", angle_jets);
         fprintf(out, "%f\t", angle_bjets);
+        fprintf(out, "%f\t", run);
+        fprintf(out, "%f\t", event);
+        fprintf(out, "%f\t", lumi);
         fprintf(out, "\n");
     }
 

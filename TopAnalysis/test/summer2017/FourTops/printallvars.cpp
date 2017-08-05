@@ -13,7 +13,7 @@ void printallvars(const char *filename)
     TFile *file = new TFile(filename);
     TTree *tree = (TTree*) file->Get("TMVAanalysis");
 
-    Float_t n_leptons, n_jets, n_bjets, n_non_bjets;
+    Float_t n_leptons, n_jets, n_bjets;
     Float_t jet_csv_1, jet_csv_2, jet_csv_3, jet_csv_4;
     Float_t n_mu_p, n_mu_m, n_ele_p, n_ele_m;
     Float_t angle_jets, angle_bjets;
@@ -23,7 +23,6 @@ void printallvars(const char *filename)
     tree->SetBranchAddress("n_leptons",&n_leptons);
     tree->SetBranchAddress("n_jets",&n_jets);
     tree->SetBranchAddress("n_bjets",&n_bjets);
-    tree->SetBranchAddress("n_non_bjets",&n_non_bjets);
 
     tree->SetBranchAddress("jet_1_highest_csv",&jet_csv_1);
     tree->SetBranchAddress("jet_2_highest_csv",&jet_csv_2);
@@ -52,7 +51,6 @@ void printallvars(const char *filename)
         fprintf(out, "%f\t", n_leptons);
         fprintf(out, "%f\t", n_jets);
         fprintf(out, "%f\t", n_bjets);
-        fprintf(out, "%f\t", n_non_bjets);
         fprintf(out, "%f\t", jet_csv_1);
         fprintf(out, "%f\t", jet_csv_2);
         fprintf(out, "%f\t", jet_csv_3);

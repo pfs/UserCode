@@ -102,16 +102,16 @@ void plotXSect()
         switch (s)
         {
             case 2: // Dilepton
-                limit2sigdown = 7.6;
+                limit2sigdown = 10.7;
                 limit1sigdown = 15.5;
                 limit1sigup = 41.4;
-                limit2sigup = 42.8;
+                limit2sigup = 68.5;
                 break;
             case 3: // Single lepton
-                limit2sigdown = 10.7;
+                limit2sigdown = 7.6;
                 limit1sigdown = 10.7;
                 limit1sigup = 26.2;
-                limit2sigup = 68.5;
+                limit2sigup = 42.8;
                 break;
             case 4: // Combined
                 limit2sigdown = 3.7;

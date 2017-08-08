@@ -29,19 +29,23 @@ void plotXSect()
     TBox *box1sig, *box2sig;
     TLine *lineexp, *lineobs;
     double limitVal, limitErrVal;
-    double limit2sigdown, limit1sigdown, limit0, limit1sigup, limit2sigup;
+    double limit2sigdown, limit1sigdown, limit0Cache, limit1sigup, limit2sigup;
     double limitObs[numberOfDatasets], limitObsError[numberOfDatasets], limitObsCache;
-    double *limitAddr[] = {&limit2sigdown, &limit1sigdown, &limit0, &limit1sigup, &limit2sigup, &limitObsCache};
+    double limit0[numberOfDatasets];
+    double *limitAddr[] = {&limit2sigdown, &limit1sigdown, &limit0Cache, &limit1sigup, &limit2sigup, &limitObsCache};
 
     double limitYPointCoord[numberOfDatasets], limitYPointCoordErr[numberOfDatasets];
 
     // Hardcoding values for plots
-    limitObs[2] = 16.1;
-    limitObs[3] = 14.9;
-    limitObs[4] = 10.2;
+    limitObs[2] = 14.5; // Dilepton
+    limitObs[3] = 17.2; // Single lepton
+    limitObs[4] = 10.2; // Combined
     limitObsError[2] = 0.;
     limitObsError[3] = 0.;
     limitObsError[4] = 0.;
+    limit0[2] = 24.7;
+    limit0[3] = 16.4;
+    limit0[4] = 12.8;
 
     for (int y = 2; y < 5; y++)
     {
@@ -62,6 +66,7 @@ void plotXSect()
             //printf("limitVal = %lf\n",limitVal);
         }
 
+        limit0[s] = limit0Cache;
         limitObs[s] = limitObsCache;
         tree->GetEntry(5);
         limitObsError[s] = limitErrVal;
@@ -97,22 +102,22 @@ void plotXSect()
         switch (s)
         {
             case 2: // Dilepton
-                limit2sigdown = 9.4;
-                limit1sigdown = 13.9;
-                limit1sigup = 38.5;
-                limit2sigup = 64.0;
+                limit2sigdown = ;
+                limit1sigdown = 15.5;
+                limit1sigup = 41.4;
+                limit2sigup = ;
                 break;
             case 3: // Single lepton
-                limit2sigdown = 5.9;
-                limit1sigdown = 8.3;
-                limit1sigup = 20.5;
-                limit2sigup = 32.8;
+                limit2sigdown = ;
+                limit1sigdown = 10.7;
+                limit1sigup = 26.2;
+                limit2sigup = ;
                 break;
             case 4: // Combined
-                limit2sigdown = 5.0;
-                limit1sigdown = 7.0;
-                limit1sigup = 17.5;
-                limit2sigup = 28.3;
+                limit2sigdown = ;
+                limit1sigdown = 8.3;
+                limit1sigup = 21.1;
+                limit2sigup = ;
                 break;
         }
 
@@ -149,6 +154,15 @@ void plotXSect()
     obsPoints->SetMarkerSize(1.6);
     obsPoints->SetMarkerColor(1);
     obsPoints->Draw("SAME P");
+    TGraphErrors *expPoints = new TGraphErrors(numberOfDatasets, limit0, limitYPointCoord, limitObsError, limitYPointCoordErr);
+    expPoints->SetLineColor(1);
+    expPoints->SetLineWidth(1);
+    expPoints->SetLineStyle(9);
+    expPoints->SetMarkerColor(1);
+    expPoints->SetMarkerStyle(0);
+    expPoints->SetMarkerSize(1.6);
+    expPoints->SetMarkerColor(1);
+    expPoints->Draw("SAME P");
 
     // A couple of texts
     tex->DrawLatex(0,7.1,"#bf{CMS} #it{Work in progress}");

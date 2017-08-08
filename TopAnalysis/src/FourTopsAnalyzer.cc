@@ -167,6 +167,7 @@ void RunFourTopsAnalyzer(TString filename,
   ht.addHist("njets",    new TH1F("njets",";Jet multiplicity;Events",15,-0.5,14.5));
   ht.addHist("nbjets",   new TH1F("nbjets",";b jet multiplicity;Events",10,-0.5,9.5));
   ht.addHist("nleptons", new TH1F("nleptons",";Lepton multiplicity;Events",6,-0.5,5.5));
+  ht.addHist("jet_ht",   new TH1F("ht",";Jet H_{T};Events",24,0.,1200.));
   ht.addHist("bdt",      new TH1F("bdt",";BDT;Events",50,-1,1));
   ht.addHist("mlp_ann",  new TH1F("mlp_ann",";MLP_ANN; Events",50,0.,1.));
 
@@ -372,6 +373,8 @@ void RunFourTopsAnalyzer(TString filename,
 
       jet_ht = 0.;
       for (size_t i=0;i<jets.size();i++) jet_ht += jets[i].pt();
+
+      ht.fill("jet_ht", jet_ht, plotwgts);
 
       jet_btag_ht = 0.;
       jet_non_btag_ht = 0.;

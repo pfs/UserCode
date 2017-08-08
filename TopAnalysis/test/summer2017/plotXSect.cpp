@@ -157,7 +157,7 @@ void plotXSect()
     TGraphErrors *expPoints = new TGraphErrors(numberOfDatasets, limit0, limitYPointCoord, limitObsError, limitYPointCoordErr);
     expPoints->SetLineColor(1);
     expPoints->SetLineWidth(1);
-    expPoints->SetLineStyle(9);
+    expPoints->SetLineStyle(7);
     expPoints->SetMarkerColor(1);
     expPoints->SetMarkerStyle(0);
     expPoints->SetMarkerSize(1.6);
@@ -183,6 +183,7 @@ void plotXSect()
     legend->SetLineColor(0);
     legend->SetHeader("limits on #sigma_{tttt}");
     legend->AddEntry(obsPoints,"observed","lep");
+    legend->AddEntry(expPoints,"expected","l");
     legend->AddEntry(hist1sigDummy,"expected #pm 1 #sigma","f");
     legend->AddEntry(hist2sigDummy,"expected #pm 2 #sigma","f");
     legend->Draw();

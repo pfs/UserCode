@@ -67,9 +67,9 @@ void printallvars(const char *filename)
         fprintf(out, "%f\t", n_ele_m);
         fprintf(out, "%f\t", angle_jets);
         fprintf(out, "%f\t", angle_bjets);
-        fprintf(out, "%d\t", run);
-        fprintf(out, "%d\t", event);
-        fprintf(out, "%d\t", lumi);
+        fprintf(out, "%u\t", run);
+        fprintf(out, "%u\t", event);
+        fprintf(out, "%u\t", lumi);
         fprintf(out, "\n");
     }
 

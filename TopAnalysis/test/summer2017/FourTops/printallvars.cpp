@@ -70,6 +70,7 @@ void printallvars(const char *filename)
         fprintf(out, "%d\t", run);
         fprintf(out, "%d\t", event);
         fprintf(out, "%d\t", lumi);
+        fpritnf(out, "%s\t", filename);
         fprintf(out, "\n");
     }
 

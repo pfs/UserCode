@@ -11,7 +11,7 @@ void plotXSect()
     TTree *tree;
     
     // Dataset name here
-    string fileName[] = {"#splitline{#bf{Four lepton NN}}{#scale[0.7]{This analysis}}", "#splitline{#bf{Four lepton BDT}}{#scale[0.7]{This analysis}}", "#splitline{#bf{SS Dilepton}}{#scale[0.7]{EPJC 76 (2016) 439}}", "#splitline{#bf{OS Dilepton}}{#scale[0.7]{TOP-16-016}}",  "#splitline{#bf{Single lepton}}{#scale[0.7]{TOP-16-016}}", "#splitline{#bf{Combined}}{#scale[0.7]{TOP-16-016}}"};
+    string fileName[] = {"#splitline{#bf{Four lepton NN}}{#scale[0.7]{This analysis}}", "#splitline{#bf{Four lepton BDT}}{#scale[0.7]{This analysis}}", "#splitline{#bf{SS Dilepton}}{#scale[0.7]{EPJC 76 (2016) 439}}", "#splitline{#bf{OS Dilepton}}{#scale[0.7]{TOP-16-016}}",  "#splitline{#bf{Single lepton}}{#scale[0.7]{TOP-16-016}}", "#splitline{#bf{Combined}}{#scale[0.4]{TOP-16-016 + EPJC 76 (2016) 439}}"};
 
     TCanvas *canvas = new TCanvas("canvas","Upper limits for four tops",800,600);
     canvas->Draw();
@@ -40,7 +40,7 @@ void plotXSect()
     limitObs[2] = 12.9; // SS Dilepton
     limitObs[3] = 14.5; // OS Dilepton
     limitObs[4] = 17.2; // Single lepton
-    limitObs[5] = 10.2; // Combined
+    limitObs[5] = 7.4; // Combined
     limitObsError[2] = 0.;
     limitObsError[3] = 0.;
     limitObsError[4] = 0.;
@@ -48,7 +48,7 @@ void plotXSect()
     limit0[2] = 11.0;
     limit0[3] = 24.7;
     limit0[4] = 16.4;
-    limit0[5] = 12.8;
+    limit0[5] = 7.7;
 
     for (int y = 2; y < 6; y++)
     {
@@ -124,8 +124,8 @@ void plotXSect()
                 break;
             case 5: // Combined
                 limit2sigdown = 3.7;
-                limit1sigdown = 8.3;
-                limit1sigup = 21.1;
+                limit1sigdown = 5.1;
+                limit1sigup = 11.8;
                 limit2sigup = 17.4;
                 break;
         }

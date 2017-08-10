@@ -105,10 +105,11 @@ void plotXSect()
         switch (s)
         {
             case 2: // SS Dilepton
-                limit2sigdown = 0.;
+                limit2sigdown = 7.2;
                 limit1sigdown = 7.2;
                 limit1sigup = 17.2;
-                limit2sigup = 0.;
+                limit2sigup = 17.2;
+                break;
             case 3: // OS Dilepton
                 limit2sigdown = 10.7;
                 limit1sigdown = 15.5;
@@ -144,7 +145,7 @@ void plotXSect()
     }
 
     // Separate between our analysis and TOP-16-016
-    TLine *lineSep = new TLine(0, 3.5, 100, 3.5);
+    TLine *lineSep = new TLine(0, 4.5, 100, 4.5);
     lineSep->Draw();
 
     // Line indicating where SM is

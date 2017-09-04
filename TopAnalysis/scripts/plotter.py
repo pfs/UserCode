@@ -105,7 +105,7 @@ def main():
                 for flav in [(1,sample[3]+'+l'),(4,sample[3]+'+c'),(5,sample[3]+'+b',sample[4])]:
                     subProcs.append(('%d_%s'%(flav[0],tag),flav[1],sample[4]+3*len(subProcs)))
             for sp in subProcs:
-
+                print 'Opening %s/%s.root'%(opt.inDir, sp[0])
                 fIn=ROOT.TFile.Open('%s/%s.root' % ( opt.inDir, sp[0]) )
                 if not fIn : continue
 
@@ -159,6 +159,7 @@ def main():
                             else:
                                 histos.append(obj)
                                 histos[-1].SetTitle(sp[1])
+                        elif not obj.InheritsFrom('TH1'): continue
                         else:
                             fixExtremities(obj, False, False)
                             histos.append(obj)
@@ -205,6 +206,7 @@ def main():
     else:                outDir = opt.outDir
     os.system('mkdir -p %s' % outDir)
     os.system('rm %s/%s'%(outDir,opt.outName))
+    print 'Now printing plots!'
     for p in plots : 
         plots[p].mcUnc=opt.mcUnc
         if opt.saveLog    : plots[p].savelog=True

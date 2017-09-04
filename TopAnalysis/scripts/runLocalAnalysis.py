@@ -62,6 +62,7 @@ def main():
     parser.add_option(      '--skipexisting',dest='skipexisting',help='skip jobs with existing output files  [%default]',       default=False,      action='store_true')
     parser.add_option(      '--exactonly',   dest='exactonly',   help='match only exact sample tags to process  [%default]',    default=False,      action='store_true')
     parser.add_option(      '--outputonly',        dest='outputonly',        help='filter job submission for a csv list of output files  [%default]',             default=None,       type='string')
+    parser.add_option(      '--jobflavour',  dest='jobflavour',  help='job flavour to be submitted in condor [%default]', default='longlunch', type='string')
     parser.add_option(      '--farmappendix',        dest='farmappendix',        help='Appendix to condor FARM directory [%default]',             default=None,       type='string')
     (opt, args) = parser.parse_args()
 
@@ -191,7 +192,8 @@ def main():
             condor.write('executable = {0}/$(cfgFile).sh\n'.format(FarmDirectory))
             condor.write('output     = {0}/output_$(cfgFile).out\n'.format(FarmDirectory))
             condor.write('error      = {0}/output_$(cfgFile).err\n'.format(FarmDirectory))
-            condor.write('+JobFlavour = "{0}"\n'.format(opt.queue))
+            condor.write('log        = {0}/output_$(cfgFile).log\n'.format(FarmDirectory))
+            condor.write('+JobFlavour = "%s"\n'%opt.jobflavour)
 
             jobNb=0
             for method,inF,outF,channel,charge,flav,runSysts,systVar,era,tag,debug in task_list:

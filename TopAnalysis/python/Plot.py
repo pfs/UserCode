@@ -34,7 +34,7 @@ class Plot(object):
 
     def __init__(self,name,com='13 TeV'):
         self.name = name
-        self.cmsLabel='#bf{CMS} #it{preliminary}'
+        self.cmsLabel='#bf{CMS} #it{Work in progress}'
         self.com=com
         self.wideCanvas = True if 'ratevsrun' in self.name else False
         self.doPoissonErrorBars=True
@@ -210,7 +210,12 @@ class Plot(object):
         nlegCols = 0
 
         if self.dataH is not None:
-            if self.data is None: self.finalize()
+            print type(self.data)
+            if self.data is None: 
+                print 'self.data is NoneType'
+                print self.name
+                self.finalize()
+                print type(self.data)
             leg.AddEntry( self.data, self.data.GetTitle(),'p')
             nlegCols += 1
         for h in self.mc:
@@ -573,8 +578,11 @@ def convertToPoissonErrorGr(h):
     try:
         htype=h.ClassName()
     except:
+        print 'Unable to obtain class name. Returning NoneType object.'
         return None
-    if htype.find('TH1')<0 : return None
+    if htype.find('TH1')<0 :
+        print 'Not a TH1 object. Returning NoneType object.'
+        return None
 
     #check https://twiki.cern.ch/twiki/bin/view/CMS/PoissonErrorBars
     alpha = 1 - 0.6827;

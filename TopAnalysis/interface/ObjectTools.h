@@ -54,7 +54,7 @@ class Jet : public TLorentzVector {
     Jet(TLorentzVector p4, float csv, int idx)
       : TLorentzVector(p4), csv_(csv), idx_(idx) {}
     Jet(const Jet &j) 
-      : TLorentzVector(j.Px(),j.Py(),j.Pz(),j.E()), particles_(j.particles_), trks_(j.trks_), csv_(j.csv_), flavor_(j.flavor_), idx_(j.idx_), overlap_(j.overlap_) {}
+      : TLorentzVector(j.Px(),j.Py(),j.Pz(),j.E()), particles_(j.particles_), trks_(j.trks_), csv_(j.csv_), pumva_(j.pumva_), flavor_(j.flavor_), idx_(j.idx_), overlap_(j.overlap_) {}
     ~Jet() {}
 
     double pt()     { return TLorentzVector::Pt();  }
@@ -73,6 +73,8 @@ class Jet : public TLorentzVector {
     //TLorentzVector &getVec() { return p4_; }
     float &getCSV() { return csv_; }
     void setCSV(float csv) { csv_=csv; }
+    float &getPUMVA() { return pumva_; }
+    void setPUMVA(float pumva) { pumva_=pumva; }
     void setDeepCSV(float deepcsv) { deepcsv_=deepcsv; }
     int &getJetIndex() { return idx_; }
     std::vector<IdTrack> &getTracks() { return trks_; }
@@ -88,6 +90,7 @@ class Jet : public TLorentzVector {
     std::vector<Particle> particles_;
     std::vector<IdTrack> trks_;
     float csv_,deepcsv_;
+    float pumva_;
     int flavor_;
     int idx_;
     int overlap_;

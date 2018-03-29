@@ -288,6 +288,7 @@ void attachToMiniEventTree(TTree *t,MiniEvent_t &ev,bool full)
   t->SetBranchAddress("j_eta",      ev.j_eta);
   t->SetBranchAddress("j_phi",      ev.j_phi);
   t->SetBranchAddress("j_mass",     ev.j_mass);
+  t->SetBranchAddress("j_pumva",    ev.j_pumva);
   t->SetBranchAddress("j_csv",      ev.j_csv);
   t->SetBranchAddress("j_btag",     ev.j_btag);
   t->SetBranchAddress("j_deepcsv",     ev.j_deepcsv);  

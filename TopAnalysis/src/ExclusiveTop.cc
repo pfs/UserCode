@@ -22,6 +22,8 @@
 #include "TopLJets2015/CTPPSAnalysisTools/interface/AlignmentsFactory.h"
 #include "TopLJets2015/CTPPSAnalysisTools/interface/XiReconstructor.h"
 
+#include "TopLJets2015/TopAnalysis/CODESamplesExclusiveTop/header/Impacts.h"
+
 using namespace std;
 
 
@@ -44,11 +46,11 @@ void RunExclusiveTop(TString filename,
   proton_reco.feedDispersions(Form("%s/src/TopLJets2015/CTPPSAnalysisTools/data/2017/dispersions.txt", CMSSW_BASE));
 
   ctpps::AlignmentsFactory ctpps_aligns;
-  ctpps_aligns.feedAlignments(Form("%s/src/TopLJets/CTPPSAnalysisTools/data/2017/alignments_30jan2017.txt", CMSSW_BASE));
+  ctpps_aligns.feedAlignments(Form("%s/src/TopLJets2015/CTPPSAnalysisTools/data/2017/alignments_30jan2017.txt", CMSSW_BASE));
 
   ctpps::LHCConditionsFactory lhc_conds;
-  lhc_conds.feedConditions(Form("%s/src/TopLJets/CTPPSAnalysisTools/data/2017/xangle_tillTS2.csv", CMSSW_BASE));
-  lhc_conds.feedConditions(Form("%s/src/TopLJets/CTPPSAnalysisTools/data/2017/xangle_afterTS2.csv", CMSSW_BASE));
+  lhc_conds.feedConditions(Form("%s/src/TopLJets2015/CTPPSAnalysisTools/data/2017/xangle_tillTS2.csv", CMSSW_BASE));
+  lhc_conds.feedConditions(Form("%s/src/TopLJets2015/CTPPSAnalysisTools/data/2017/xangle_afterTS2.csv", CMSSW_BASE));
 
   bool isTTbar( filename.Contains("_TTJets") or (normH and TString(normH->GetTitle()).Contains("_TTJets")));
   
@@ -89,14 +91,35 @@ void RunExclusiveTop(TString filename,
   HistTool ht;
   ht.setNsyst(0);
   ht.addHist("puwgtctr",     new TH1F("puwgtctr",    ";Weight sums;Events",2,0,2));
-  ht.addHist("nvtx",         new TH1F("nvtx",        ";Vertex multiplicity;Events",55,-0.5,49.5));
+  ht.addHist("nvtx",         new TH1F("nvtx",        ";Vertex multiplicity;Events",100,-0.5,99.5));
   ht.addHist("njets",        new TH1F("njets",       ";Jet multiplicity;Events",15,-0.5,14.5));
   ht.addHist("nbjets",       new TH1F("nbjets",      ";b jet multiplicity;Events",10,-0.5,9.5));
-  ht.addHist("ht",           new TH1F("ht",          ";H_{T} [GeV];Events",50,0,250));
-  ht.addHist("mttbar_cen",   new TH1F("mttbar_cen",  ";M_{ttbar} [GeV];Events",50,300,500));
+  ht.addHist("ht",           new TH1F("ht",          ";H_{T} [GeV];Events",100,-5,1995));
+  ht.addHist("mttbar_cen",   new TH1F("mttbar_cen",  ";M_{ttbar} [GeV];Events",200,-5,1995));
+  ht.addHist("nfwdtrk",	     new TH1F("nfwdtrk",     ";nfwdtrk;Events",16,-0.5,15.5));
+  ht.addHist("j_mass",  new TH1F("j_mass",	";jet mass;Events",60,-0.5,59.5));
+  ht.addHist("j_pt",	new TH1F("j_pt",	";jet pt;Events",200,-1,400));
+  ht.addHist("rho",	new TH1F("rho",		";rho;Events",100,-0.5,99.5));
+
+
+  ht.addHist("RP003: impacts",	new TH2F("RP003: impacts",	";x;y;Events",100,-0.0005,0.0995,100,-0.0505,0.0495));
+  ht.addHist("RP103: impacts",	new TH2F("RP103: impacts",	";x;y;Events",100,-0.0005,0.0995,100,-0.0505,0.0495));
+  ht.addHist("RP023: impacts",	new TH2F("RP023: impacts",	";x;y;Events",100,-0.0005,0.0995,100,-0.0505,0.0495));
+  ht.addHist("RP123: impacts",	new TH2F("RP123: impacts",	";x;y;Events",100,-0.0005,0.0995,100,-0.0505,0.0495));
+  ht.addHist("RP003: Xi",	new TH1F("RP003: Xi",		";Fractional momentum loss Xi;Events",100,-0.005,0.995));
+  ht.addHist("RP103: Xi",	new TH1F("RP103: Xi",		";Fractional momentum loss Xi;Events",100,-0.005,0.995));
+  ht.addHist("RP023: Xi",	new TH1F("RP023: Xi",		";Fractional momentum loss Xi;Events",100,-0.005,0.995));
+  ht.addHist("RP123: Xi",	new TH1F("RP123: Xi",		";Fractional momentum loss Xi;Events",100,-0.005,0.995));
+
+  ht.addHist("ngdP_low",	new TH1F("ngdP_low",		";Number of good protons;Events",20,-0.5,19.5));
+  ht.addHist("ngdP_mid",	new TH1F("ngdP_mid",		";Number of good protons;Events",20,-0.5,19.5));
+  ht.addHist("ngdP_high",	new TH1F("ngdP_high",		";Number of good protons;Events",20,-0.5,19.5));
+
+  ht.addHist("run",		new TH1F("run",			";Run number;Events",10000,290000,310000));
+  ht.addHist("run_nosel",	new TH1F("run_nosel",		";Run number;Events",10000,290000,310000));
 
   std::cout << "init done" << std::endl;
-
+  if (debug){std::cout<<"\n DEBUG MODE"<<std::endl;}
   ///////////////////////
   // LOOP OVER EVENTS //
   /////////////////////
@@ -107,10 +130,11 @@ void RunExclusiveTop(TString filename,
   for (Int_t iev=0;iev<nentries;iev++)
     {
       t->GetEntry(iev);
-      if(iev%10==0) printf ("\r [%3.0f%%] done", 100.*(float)iev/(float)nentries);
+      if(debug){if(iev%10==0) printf ("\r [%3.0f%%] done", 100.*(float)iev/(float)nentries);}
 
-//      int fill_number = run_to_fill.getFillNumber(ev.run);
-//      proton_reco.setAlignmentConstants(pots_align.getAlignmentConstants(fill_number));
+      //int fill_number = run_to_fill.getFillNumber(ev.run);
+      //if(debug){std::cout<<"fill number = "<<fill_number<<std::endl;}
+      //proton_reco.setAlignmentConstants(pots_align.getAlignmentConstants(fill_number));
       
       //assign randomly a run period
       TString period = lumi.assignRunPeriod();
@@ -142,8 +166,6 @@ void RunExclusiveTop(TString filename,
 
       //require one good lepton
       if(leptons.size()!=1) continue;
-      bool passJets(jets.size()>=4);
-      bool passBJets(bJets.size()>=2);
       
       ////////////////////
       // EVENT WEIGHTS //
@@ -160,7 +182,11 @@ void RunExclusiveTop(TString filename,
         double puWgt(lumi.pileupWeight(ev.g_pu,period)[0]);
         std::vector<double>puPlotWgts(1,puWgt);
         ht.fill("puwgtctr",1,puPlotWgts);
-        
+
+      	if (jets.size()>=10){
+		std::cout<<"\n\tFound an entry with "<<jets.size()<<" jets"<<"\teventnr "<<iev+1<<"\tpuWgt = "<<puWgt<<"\tnvtx = "<<ev.nvtx<<"\tev.g_pu = "<<ev.g_pu<<std::endl;}
+	
+
         // lepton trigger*selection weights
         EffCorrection_t trigSF = lepEffH.getTriggerCorrection(leptons,{},{},period);
         EffCorrection_t  selSF = lepEffH.getOfflineCorrection(leptons[0], period);
@@ -184,43 +210,68 @@ void RunExclusiveTop(TString filename,
       }
 
       if (ev.isData) {
-        const edm::EventID ev_id( ev.run, ev.lumi, ev.event );
-        // LHC information retrieval from LUT
-        const ctpps::conditions_t lhc_cond = lhc_conds.get( ev_id );
-        const double xangle = lhc_cond.crossing_angle;
-        for (int ift=0; ift<ev.nfwdtrk; ift++) {
-          // only look at strips!
-          const unsigned short pot_raw_id = 100*ev.fwdtrk_arm[ift]+/*10*ev.fwdtrk_station[ift]+*/ev.fwdtrk_pot[ift];
-          const ctpps::alignment_t align = ctpps_aligns.get( ev_id, pot_raw_id );
-          double xi, xi_error;
-          proton_reco.reconstruct(xangle, pot_raw_id, ev.fwdtrk_x[ift]/10.+align.x_align, xi, xi_error);
-        }
-      }
+
+
+	if(bJets.size()>=2 && lightJets.size()>=2){
+		
+		ImpactsRP(ev, ht, plotwgts);
+		
+		/*const edm::EventID ev_id( ev.run, ev.lumi, ev.event );
+		// LHC information retrieval from LUT
+		const ctpps::conditions_t lhc_cond = lhc_conds.get( ev_id );
+		const double xangle = lhc_cond.crossing_angle;
+		std::cout<<"xangle = "<<xangle<<std::endl;
+		XiPerRP(ev, ht, xangle, ctpps_aligns, plotwgts, proton_reco);*/
+
+		int nvtxlow = 15;
+		int nvtxhigh = 25;
+		NGDPvsPU(ev, ht, nvtxlow, nvtxhigh, plotwgts);
+		
+	}
+
+
+      }//end of if (ev.isData)
+
 
       //control histograms
-      ht.fill("nvtx",     ev.nvtx,        plotwgts);
-      if(passJets)   ht.fill("nbjets", bJets.size(), plotwgts);
-      if(passBJets)  ht.fill("njets",  jets.size(),  plotwgts);
-      if(bJets.size()>=2 && lightJets.size()>=2)
-        {
-          //visible system
-          TLorentzVector visSystem(leptons[0].p4()+bJets[0].p4()+bJets[1].p4()+lightJets[0].p4()+lightJets[1].p4());
-          
-          //determine the neutrino kinematics
-          TLorentzVector met(0,0,0,0);
-          met.SetPtEtaPhiM(ev.met_pt[0],0,ev.met_phi[0],0.);
-          neutrinoPzComputer.SetMET(met);
-          neutrinoPzComputer.SetLepton(leptons[0].p4());
-          float nupz=neutrinoPzComputer.Calculate();
-          TLorentzVector neutrinoP4(met.Px(),met.Py(),nupz ,TMath::Sqrt(TMath::Power(met.Pt(),2)+TMath::Power(nupz,2)));
-          
-          //ttbar system
-          TLorentzVector ttbarSystem(visSystem+neutrinoP4);
 
-          ht.fill("ht",         scalarht, plotwgts);          
-          ht.fill("mttbar_cen", ttbarSystem.M(),   plotwgts);
-        }
-    }
+	if(ev.isData){	ht.fill("run_nosel",ev.run,plotwgts);}
+
+	if(bJets.size()>=2 && lightJets.size()>=2){
+
+	  	ht.fill("nbjets", bJets.size(), plotwgts);
+	  	ht.fill("njets",  jets.size(),  plotwgts);
+          	ht.fill("nvtx",     ev.nvtx,    plotwgts);
+		ht.fill("rho",	ev.rho,		plotwgts);
+
+		if(ev.isData){
+			ht.fill("run",ev.run,plotwgts);}
+
+		for (size_t i=0;i<jets.size();i++){
+      	     		ht.fill("j_mass",ev.j_mass[i],plotwgts);
+       			ht.fill("j_pt",ev.j_pt[i],plotwgts);
+			//std::cout<<"\tj_id = "<<ev.j_id[i]<<"\tj_btag = "<<ev.j_btag[i]<<std::endl;
+		}
+	
+	 	//visible system
+	 	 TLorentzVector visSystem(leptons[0].p4()+bJets[0].p4()+bJets[1].p4()+lightJets[0].p4()+lightJets[1].p4());
+	  
+		//determine the neutrino kinematics
+		TLorentzVector met(0,0,0,0);
+		met.SetPtEtaPhiM(ev.met_pt[0],0,ev.met_phi[0],0.);
+		neutrinoPzComputer.SetMET(met);
+		neutrinoPzComputer.SetLepton(leptons[0].p4());
+		float nupz=neutrinoPzComputer.Calculate();
+		TLorentzVector neutrinoP4(met.Px(),met.Py(),nupz ,TMath::Sqrt(TMath::Power(met.Pt(),2)+TMath::Power(nupz,2)));
+		  
+		//ttbar system
+		TLorentzVector ttbarSystem(visSystem+neutrinoP4);
+
+		ht.fill("ht",         scalarht, plotwgts);          
+		ht.fill("mttbar_cen", ttbarSystem.M(),   plotwgts);
+	}
+
+    }//end of loop over events
   
   //close input file
   f->Close();

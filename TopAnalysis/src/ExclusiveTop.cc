@@ -211,6 +211,7 @@ void RunExclusiveTop(TString filename,
 
       if (ev.isData) {
 
+
 	if(bJets.size()>=2 && lightJets.size()>=2){
 		
 		ImpactsRP(ev, ht, plotwgts);
@@ -230,6 +231,7 @@ void RunExclusiveTop(TString filename,
 
 
       }//end of if (ev.isData)
+
 
       //control histograms
 

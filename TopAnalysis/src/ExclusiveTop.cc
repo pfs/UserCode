@@ -249,9 +249,10 @@ void RunExclusiveTop(TString filename,
 
 		for (size_t i=0;i<jets.size();i++){
       	     		ht.fill("j_mass",ev.j_mass[i],plotwgts);
-       			ht.fill("j_pt",ev.j_pt[i],plotwgts);}
+       			ht.fill("j_pt",ev.j_pt[i],plotwgts);
 			std::cout<<"\tj_id = "<<ev.j_id[i]<<"\tj_btag = "<<ev.j_btag[i]<<std::endl;
-
+		}
+	
 	 	//visible system
 	 	 TLorentzVector visSystem(leptons[0].p4()+bJets[0].p4()+bJets[1].p4()+lightJets[0].p4()+lightJets[1].p4());
 	  

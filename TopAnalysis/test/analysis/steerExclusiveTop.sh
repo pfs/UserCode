@@ -12,12 +12,12 @@ fi
 
 #to run locally use local as queue + can add "--njobs 8" to use 8 parallel jobs
 queue=workday
-githash=c29f431
+githash=87e53fb
 eosdir=/store/cmst3/group/top/RunIIFall17/${githash}
 lumi=41367
 lumiUnc=0.025
 outdir=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/ExclusiveTop
-wwwdir=~/www/ExclusiveTop
+wwwdir=/eos/user/p/pmeiring/www/ExclusiveTop/CMSSW942
 
 
 RED='\e[31m'
@@ -26,9 +26,9 @@ case $WHAT in
 
     TESTSEL )
 	python scripts/runLocalAnalysis.py \
-            -i ${eosdir}/MC13TeV_TTJets/MergedMiniEvents_0_ext0.root \
+            -i /store/cmst3/group/top/RunIIFall17/c29f431/MC13TeV_W3Jets/MergedMiniEvents_4_ext0.root \
             -o MC13TeV_TTJets.root \
-            --njobs 1 -q local \
+            --njobs 1 -q local --debug \
             --era era2017 -m ExclusiveTop::RunExclusiveTop --ch 0 --runSysts;
         ;;
     SEL )
@@ -38,7 +38,22 @@ case $WHAT in
             -q ${queue} \
             --era era2017 -m ExclusiveTop::RunExclusiveTop --ch 0 --runSysts;
 	;;
-
+    SELDATA )
+	python scripts/runLocalAnalysis.py -i ${eosdir} \
+	    --only data/era2017/top_samples_dataonly.json --exactonly \
+            -o ${outdir} -q ${queue} \
+	    --skipexisting \
+            --era era2017 \
+	    -m ExclusiveTop::RunExclusiveTop --ch 0 --runSysts;	
+	;;
+    SELMC )
+	python scripts/runLocalAnalysis.py -i /store/cmst3/group/top/RunIIFall17/c29f431 \
+            --era era2017 -m ExclusiveTop::RunExclusiveTop --ch 0 --runSysts \
+	    -o ${outdir} \
+            -q ${queue} \
+            --skipexisting \
+            --only data/era2017/top_samples_MConly.json --exactonly;
+	;;
     MERGE )
 	./scripts/mergeOutputs.py ${outdir};
 	;;
@@ -47,8 +62,8 @@ case $WHAT in
 	python scripts/plotter.py ${commonOpts}; 
 	;;
     WWW )
-	mkdir -p ${wwwdir}/sel
-	cp ${outdir}/plots/*.{png,pdf} ${wwwdir}/sel
-	cp test/index.php ${wwwdir}/sel
+	mkdir -p ${wwwdir}
+	cp ${outdir}/plots/*.{png,pdf} ${wwwdir}
+	cp test/index.php ${wwwdir}
 	;;
 esac

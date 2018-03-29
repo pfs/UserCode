@@ -22,7 +22,8 @@ class LumiTools
   TH1F *countH_;
   std::vector<RunPeriod_t> runPeriods_;
   void defineRunPeriods();
-  std::map<TString, std::vector<TGraph *> > puWgtGr_;
+  //std::map<TString, std::vector<TGraph *> > puWgtGr_;
+  std::map<TString, std::vector<TH1 *> > puWgtGr_;
   void parsePileupWeightsMap(TH1 *);
   TString era_;
   TRandom3 rand_;

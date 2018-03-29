@@ -10,6 +10,7 @@ void RunExclusiveTop(TString filename,
                      Int_t channelSelection, 
                      Int_t chargeSelection, 
                      TH1F *normH, 
+                     TH1F *genPU,
                      TString era,
                      Bool_t debug=false);
 

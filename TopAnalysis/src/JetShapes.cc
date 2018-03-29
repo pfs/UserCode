@@ -30,7 +30,7 @@ typedef math::XYZTLorentzVector LorentzVector;
     (1,1) -> broadening/width/girth
     (2,1) -> thrust (m^2/e)
 */
-double calcGA(double beta, double kappa, pat::Jet *jet, bool includeNeutrals, double ptcut) {
+double calcGA(double beta, double kappa, const pat::Jet *jet, bool includeNeutrals, double ptcut) {
   int mult = 0;
   double sumpt = 0.;
   LorentzVector axis(0., 0., 0., 0.);
@@ -38,11 +38,12 @@ double calcGA(double beta, double kappa, pat::Jet *jet, bool includeNeutrals, do
     const reco::Candidate *pf=jet->daughter(ipf);
     if (not includeNeutrals and pf->charge() == 0) continue;
     if (ptcut > pf->pt()) continue;
+    mult += 1;
     sumpt += pf->pt();
     axis  += pf->p4();
   }
   if (mult < 2) return -1.;
-  //std::cout << "sumpt" << beta << kappa << iptcut << icharge << ": " << sumpt << std::endl;
+  //std::cout << "sumpt=" << sumpt << " mult=" << mult << std::endl;
   
   double ga = 0.;
   for(size_t ipf=0; ipf<jet->numberOfDaughters(); ipf++) {
@@ -51,8 +52,7 @@ double calcGA(double beta, double kappa, pat::Jet *jet, bool includeNeutrals, do
     if (ptcut > pf->pt()) continue;
     ga += pow(pf->p4().Pt()/sumpt, kappa) * pow(deltaR(axis, pf->p4())/0.4, beta);
   }
-  
-  //std::cout << "ga" << beta << kappa << iptcut << icharge << ": " << ga << std::endl;
+  //std::cout << "ga(" << beta <<","<< kappa << ") ga=" << ga << std::endl;
   
   /*
   if (ga > 1. && beta == 1 && kappa == 1 && iptcut == 0 && icharge == 0) {
@@ -73,7 +73,7 @@ double calcGA(double beta, double kappa, pat::Jet *jet, bool includeNeutrals, do
   return ga;
 }
 
-double getMult(pat::Jet *jet, bool includeNeutrals, double ptcut) {
+double getMult(const pat::Jet *jet, bool includeNeutrals, double ptcut) {
   //std::cout << "getMult()" << std::endl;
   double sumWeight = 0.;
   for(size_t ipf=0; ipf<jet->numberOfDaughters(); ipf++) {
@@ -85,7 +85,7 @@ double getMult(pat::Jet *jet, bool includeNeutrals, double ptcut) {
   return sumWeight;
 }
 
-double getPtD(pat::Jet *jet, bool includeNeutrals,  double ptcut) {
+double getPtD(const pat::Jet *jet, bool includeNeutrals,  double ptcut) {
   //std::cout << "getPtD()" << std::endl;
   int mult = 0;
   double sumpt  = 0.;
@@ -103,7 +103,7 @@ double getPtD(pat::Jet *jet, bool includeNeutrals,  double ptcut) {
   return ptd;
 }
 
-double getPtDs(pat::Jet *jet, bool includeNeutrals, double ptcut) {
+double getPtDs(const pat::Jet *jet, bool includeNeutrals, double ptcut) {
   //std::cout << "getPtDs()" << std::endl;
   double mult   = 0.;
   double sumpt  = 0.;
@@ -120,7 +120,7 @@ double getPtDs(pat::Jet *jet, bool includeNeutrals, double ptcut) {
   return max(0., sqrt((ptd-1./mult) * mult/(mult-1.)));
 }
 
-double getWidth(pat::Jet *jet, bool includeNeutrals, double ptcut) {
+double getWidth(const pat::Jet *jet, bool includeNeutrals, double ptcut) {
   //std::cout << "getWidth()" << std::endl;
   int mult = 0;
   double sumpt   = 0.;
@@ -145,7 +145,7 @@ double getWidth(pat::Jet *jet, bool includeNeutrals, double ptcut) {
   return width;
 }
 
-double getEcc(pat::Jet *jet, bool includeNeutrals, double ptcut) {
+double getEcc(const pat::Jet *jet, bool includeNeutrals, double ptcut) {
   //std::cout << "getEcc()" << std::endl;
   // Get mean axis
   int mult = 0;
@@ -178,7 +178,7 @@ double getEcc(pat::Jet *jet, bool includeNeutrals, double ptcut) {
   return ecc;
 }
 
-double getTau(int N, int M, pat::Jet *jet, bool includeNeutrals, double ptcut) {
+double getTau(int N, int M, const pat::Jet *jet, bool includeNeutrals, double ptcut) {
   // Recluster constituents with CA
   int mult = 0.;
   vector<PseudoJet> particles;
@@ -203,7 +203,7 @@ double getTau(int N, int M, pat::Jet *jet, bool includeNeutrals, double ptcut) {
   return tau_ratio(cajet);
 }
 
-double getC(int N, double beta, pat::Jet *jet, bool includeNeutrals, double ptcut) {
+double getC(int N, double beta, const pat::Jet *jet, bool includeNeutrals, double ptcut) {
   // Recluster constituents with CA
   int mult = 0.;
   vector<PseudoJet> particles;
@@ -228,7 +228,7 @@ double getC(int N, double beta, pat::Jet *jet, bool includeNeutrals, double ptcu
   return C(cajet);
 }
 
-std::vector<double> getZg(pat::Jet *jet, bool includeNeutrals, double ptcut) {
+std::vector<double> getZg(const pat::Jet *jet, bool includeNeutrals, double ptcut) {
   //std::cout << "getZg()" << std::endl;
   // Recluster constituents with CA
   int mult = 0.;
@@ -265,7 +265,7 @@ std::vector<double> getZg(pat::Jet *jet, bool includeNeutrals, double ptcut) {
 
 double mapAngleMPiToPi(double phi) { return TVector2::Phi_mpi_pi(phi); }
 
-double getNSD(double zcut, double beta, pat::Jet *jet, bool includeNeutrals, double ptcut) {
+double getNSD(double zcut, double beta, const pat::Jet *jet, bool includeNeutrals, double ptcut) {
   // Recluster constituents with CA
   int mult = 0.;
   vector<PseudoJet> particles;
@@ -297,7 +297,7 @@ double getNSD(double zcut, double beta, pat::Jet *jet, bool includeNeutrals, dou
   return nsd;
 }
 
-std::map<TString,double> getECF(pat::Jet *jet, bool includeNeutrals, double ptcut) {
+std::map<TString,double> getECF(const pat::Jet *jet, bool includeNeutrals, double ptcut) {
   int mult = 0.;
   vector<PseudoJet> particles;
   for(size_t ipf=0; ipf<jet->numberOfDaughters(); ipf++) {
@@ -341,7 +341,7 @@ std::map<TString,double> getECF(pat::Jet *jet, bool includeNeutrals, double ptcu
   return results;
 }
 
-double getPFFraction(std::vector<int> pids, pat::Jet *jet) {
+double getPFFraction(std::vector<int> pids, const pat::Jet *jet) {
   double sumpt_pid = 0.;
   double sumpt_all = 0.;
   for(size_t ipf=0; ipf<jet->numberOfDaughters(); ipf++) {

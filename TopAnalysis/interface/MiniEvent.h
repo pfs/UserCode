@@ -42,12 +42,14 @@ struct MiniEvent_t
 
   Int_t ngamma;
   Bool_t gamma_isPromptFinalState[50],gamma_passElectronVeto[50],gamma_hasPixelSeed[50];
-  Int_t gamma_pid[50],gamma_g[200];
+  Int_t gamma_pid[50],gamma_g[50];
   Float_t gamma_pt[50],gamma_eta[50],gamma_phi[50], gamma_scaleUnc[50], gamma_smearUnc[50], gamma_mva[50], gamma_chargedHadronIso[50],gamma_neutralHadronIso[50],gamma_photonIso[50],gamma_hoe[50],gamma_r9[50],gamma_sieie[50];
 
   Int_t nj;
   Float_t j_pt[200],j_eta[200],j_phi[200],j_mass[200],j_area[200],j_rawsf[200];
   Float_t j_csv[200],j_deepcsv[200],j_pumva[200];
+  Float_t j_c1_00[200],j_c1_02[200],j_c1_05[200],j_c1_10[200],j_c1_20[200],j_c2_00[200],j_c2_02[200],j_c2_05[200],j_c2_10[200],j_c2_20[200],j_c3_00[200],j_c3_02[200],j_c3_05[200],j_c3_10[200],j_c3_20[200];
+  Float_t j_zg[200],j_mult[200],j_gaptd[200],j_gawidth[200],j_gathrust[200],j_tau32[200],j_tau21[200];
   Float_t j_vtxmass[200],j_vtx3DVal[200],j_vtx3DSig[200],j_vtxpx[200],j_vtxpy[200],j_vtxpz[200];
   Bool_t j_btag[200];
   Int_t j_vtxNtracks[200],j_flav[200],j_id[200],j_pid[200],j_hadflav[200],j_g[200];

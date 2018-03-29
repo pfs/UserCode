@@ -50,6 +50,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TopLJets2015/TopAnalysis/interface/MiniEvent.h"
 #include "TopLJets2015/TopAnalysis/interface/MyIPTools.h"
+#include "TopLJets2015/TopAnalysis/interface/JetShapes.h"
 #include "DataFormats/TrackReco/interface/HitPattern.h"
 #include "PhysicsTools/SelectorUtils/interface/PFJetIDSelectionFunctor.h"
 #include "DataFormats/Common/interface/ValueMap.h"
@@ -65,8 +66,6 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "FWCore/Framework/interface/Run.h"
 //#include "TopQuarkAnalysis/BFragmentationAnalyzer/interface/BFragmentationAnalyzerUtils.h"
-
-//#include "KaMuCa/Calibration/interface/KalmanMuonCalibrator.h"
 
 #include "TLorentzVector.h"
 #include "TH1.h"
@@ -821,6 +820,30 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
       ev_.j_btag[ev_.nj]       = (ev_.j_csv[ev_.nj]>0.8484);
       ev_.j_deepcsv[ev_.nj]   = j->bDiscriminator("pfDeepCSVDiscriminatorsJetTags:BvsAll");
       
+      //jet shape variables
+      ev_.j_c1_00[ev_.nj]    = getC(1, 0.0, &(*j), true, 0.9);
+      ev_.j_c1_02[ev_.nj]    = getC(1, 0.2, &(*j), true, 0.9);
+      ev_.j_c1_05[ev_.nj]    = getC(1, 0.5, &(*j), true, 0.9);
+      ev_.j_c1_10[ev_.nj]    = getC(1, 1.0, &(*j), true, 0.9);
+      ev_.j_c1_20[ev_.nj]    = getC(1, 2.0, &(*j), true, 0.9);
+      ev_.j_c2_00[ev_.nj]    = getC(2, 0.0, &(*j), true, 0.9);
+      ev_.j_c2_02[ev_.nj]    = getC(2, 0.2, &(*j), true, 0.9);
+      ev_.j_c2_05[ev_.nj]    = getC(2, 0.5, &(*j), true, 0.9);
+      ev_.j_c2_10[ev_.nj]    = getC(2, 1.0, &(*j), true, 0.9);
+      ev_.j_c2_20[ev_.nj]    = getC(2, 2.0, &(*j), true, 0.9);
+      ev_.j_c3_00[ev_.nj]    = getC(3, 0.0, &(*j), true, 0.9);
+      ev_.j_c3_02[ev_.nj]    = getC(3, 0.2, &(*j), true, 0.9);
+      ev_.j_c3_05[ev_.nj]    = getC(3, 0.5, &(*j), true, 0.9);
+      ev_.j_c3_10[ev_.nj]    = getC(3, 1.0, &(*j), true, 0.9);
+      ev_.j_c3_20[ev_.nj]    = getC(3, 2.0, &(*j), true, 0.9);
+      ev_.j_zg[ev_.nj]       = getZg(&(*j),true,0.9)[0];
+      ev_.j_mult[ev_.nj]     = calcGA(0,0,&(*j),true,0.9);
+      ev_.j_gaptd[ev_.nj]    = calcGA(0,2,&(*j),true,0.9);
+      ev_.j_gawidth[ev_.nj]  = calcGA(1,1,&(*j),true,0.9);
+      ev_.j_gathrust[ev_.nj] = calcGA(2,1,&(*j),true,0.9);
+      ev_.j_tau32[ev_.nj]    = getTau(3,2,&(*j),true,0.9);
+      ev_.j_tau21[ev_.nj]    = getTau(2,1,&(*j),true,0.9);
+
       if( j->hasTagInfo("pfInclusiveSecondaryVertexFinder") )
 	{
 	  const reco::CandSecondaryVertexTagInfo *candSVTagInfo = j->tagInfoCandSecondaryVertex("pfInclusiveSecondaryVertexFinder");

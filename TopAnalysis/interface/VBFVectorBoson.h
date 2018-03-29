@@ -8,11 +8,12 @@
 //Vector boson will be either Z or photon at the moment
 
 void RunVBFVectorBoson(TString filename,
-                     TString outname,
-                     Int_t channelSelection, 
-                     Int_t chargeSelection, 
-                     TH1F *normH, 
-                     TString era,
-                     Bool_t debug=false);
+                       TString outname,
+                       Int_t channelSelection, 
+                       Int_t chargeSelection, 
+                       TH1F *normH, 
+                       TH1F *genPU,
+                       TString era,
+                       Bool_t debug=false);
 
 #endif

@@ -54,14 +54,16 @@ int main(int argc, char* argv[])
 
   //open normalization file
   TH1F *normH=0;
+  TH1F *puH=0;
   TFile *normF=TFile::Open(era+"/genweights.root");
   if(normF)
     {
       normH=(TH1F *)normF->Get(normTag);
-      if(normH) {
+      if(normH) 
         normH->SetDirectory(0);
-        normH->SetTitle(normTag);
-      }
+      puH=(TH1F *)normF->Get(normTag+"_pu");
+      if(puH)
+        puH->SetDirectory(0);    
       normF->Close();
     }
   if(normH==0)
@@ -82,8 +84,8 @@ int main(int argc, char* argv[])
     }
 
   //check method to run
-  if(method=="ExclusiveTop::RunExclusiveTop")          RunExclusiveTop(in,out,channel,charge,normH,era,debug);
-  else if(method=="VBFVectorBoson::RunVBFVectorBoson") RunVBFVectorBoson(in,out,channel,charge,normH,era,debug);
+  if(method=="ExclusiveTop::RunExclusiveTop")          RunExclusiveTop(in,out,channel,charge,normH,puH,era,debug);
+  else if(method=="VBFVectorBoson::RunVBFVectorBoson") RunVBFVectorBoson(in,out,channel,charge,normH,puH,era,debug);
   else {
       cout << "Check method=" << method <<endl;
       printHelp();

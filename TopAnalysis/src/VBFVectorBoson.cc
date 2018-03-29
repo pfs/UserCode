@@ -26,7 +26,8 @@ void RunVBFVectorBoson(TString filename,
                        TString outname,
                        Int_t channelSelection, 
                        Int_t chargeSelection, 
-                       TH1F *normH, 
+                       TH1F *normH,
+                       TH1F *genPU,
                        TString era,
                        Bool_t debug)
 {
@@ -43,7 +44,6 @@ void RunVBFVectorBoson(TString filename,
   //READ TREE FROM FILE
   MiniEvent_t ev;
   TFile *f = TFile::Open(filename);
-  TH1 *genPU=(TH1 *)f->Get("analysis/putrue");
   TH1 *triggerList=(TH1 *)f->Get("analysis/triggerList");
   TTree *t = (TTree*)f->Get("analysis/data");
   attachToMiniEventTree(t,ev,true);

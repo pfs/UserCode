@@ -23,6 +23,13 @@
 "MC13TeV_DY50toInf_HT800to1200"     : [5765.4, 0,  "/DYJetsToLL_M-50_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DY", 41, false, false, 1],
 "MC13TeV_DY50toInf_HT2500toInf"     : [5765.4, 0,  "/DYJetsToLL_M-50_HT-2500toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DY", 41, false, false, 1],
 
+"MC13TeV_DY1Jets50toInf_mgMLM" : [5765.4, 0,  "/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DY", 41, false, false, 1],
+"MC13TeV_DY1Jets50toInf_mgMLM_ext" : [5765.4, 0,  "/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10_ext1-v1/MINIAODSIM", "DY", 41, false, false, 1],
+"MC13TeV_DY2Jets50toInf_mgMLM" : [5765.4, 0,  "/DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DY", 41, false, false, 1],
+"MC13TeV_DY2Jets50toInf_mgMLM_ext" : [5765.4, 0,  "/DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10_ext1-v1/MINIAODSIM", "DY", 41, false, false, 1],
+"MC13TeV_DY3Jets50toInf_mgMLM" : [5765.4, 0,  "/DY3JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2/MINIAODSIM", "DY", 41, false, false, 1],
+"MC13TeV_DY4Jets50toInf_mgMLM" : [5765.4, 0,  "/DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DY", 41, false, false, 1],
+
 "MC13TeV_QCDEM_15to20"  : [2302200, 0,  "/QCD_Pt-15to20_EMEnriched_TuneCP5_13TeV_pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "QCD", 41, false, false, 1],
 "MC13TeV_QCDEM_20to30"  : [5352960, 0,  "/QCD_Pt-20to30_EMEnriched_TuneCP5_13TeV_pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "QCD", 41, false, false, 1],
 "MC13TeV_QCDEM_30to50"  : [9928000, 0,  "/QCD_Pt-30to50_EMEnriched_TuneCP5_13TeV_pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "QCD", 41, false, false, 1],

@@ -2,6 +2,7 @@
 
 import optparse
 import os,sys
+import math
 import ROOT
 from subprocess import Popen, PIPE
 
@@ -28,10 +29,12 @@ def main():
 
     #loop over samples available
     genweights={}
+    puprofile={}
     for sample in os.listdir('%s/%s' % (baseEOS,opt.inDir)):
 
         #sum weight generator level weights
         wgtCounter=None
+        putrue=None
         labelH=None
         for f in os.listdir('%s/%s/%s' % (baseEOS,opt.inDir,sample ) ):
             fIn=ROOT.TFile.Open('%s/%s/%s/%s' % (baseEOS,opt.inDir,sample,f ) )
@@ -39,17 +42,22 @@ def main():
                 if wgtCounter is None:
                     try:
                         wgtCounter=fIn.Get('analysis/fidcounter').ProjectionX('genwgts',1,1)
+                        wgtCounter.SetDirectory(0)
+                        wgtCounter.Reset('ICE')
+                        putrue=fIn.Get('analysis/putrue').Clone()
+                        putrue.SetDirectory(0)
+                        putrue.Reset('ICE')
                     except:
                         print 'Check %s/%s/%s/%s probably corrupted?' % (baseEOS,opt.inDir,sample,f )
                         continue
-                    wgtCounter.SetDirectory(0)
-                    wgtCounter.Reset('ICE')
+                    
                 labelH=fIn.Get('analysis/generator_initrwgt')
                 if labelH : labelH.SetDirectory(0)                             
                 try:
                     px=fIn.Get('analysis/fidcounter').ProjectionX('px',1,1)
                     wgtCounter.Add(px)
                     px.Delete()
+                    putrue.Add( fIn.Get('analysis/putrue') )
                 except:
                     print 'Check eos/cms/%s/%s/%s probably corrupted?' % (opt.inDir,sample,f )
                     continue
@@ -80,17 +88,25 @@ def main():
         print sample,' initial sum of weights=',wgtCounter.GetBinContent(1)
         for xbin in xrange(1,wgtCounter.GetNbinsX()+1):
             val=wgtCounter.GetBinContent(xbin)
-            if val==0: continue
-            wgtCounter.SetBinContent(xbin,1./val)
+            if val==0 or math.isnan(val): val=0
+            else:                         val=1./val
+            wgtCounter.SetBinContent(xbin,val)
             wgtCounter.SetBinError(xbin,0.)
+            
+        #normalize pudistribution
+        totalEvts=putrue.Integral(0,putrue.GetNbinsX()+1)
+        if totalEvts>0: putrue.Scale(1./totalEvts)
        
         genweights[sample]=wgtCounter
+        puprofile[sample]=putrue
 
     #dump to ROOT file    
     cachefile=ROOT.TFile.Open(opt.cache,'UPDATE' if opt.update else 'RECREATE')
     for sample in genweights:
         genweights[sample].SetDirectory(cachefile)
         genweights[sample].Write(sample)
+        puprofile[sample].SetDirectory(cachefile)
+        puprofile[sample].Write(sample+'_pu')
     cachefile.Close()
     print 'Produced normalization cache @ %s'%opt.cache
 

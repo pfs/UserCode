@@ -184,7 +184,7 @@ void RunExclusiveTop(TString filename,
         ht.fill("puwgtctr",1,puPlotWgts);
 
       	if (jets.size()>=10){
-		std::cout<<"\nFound an entry with >10 jets:\t"<<iev+1<<"\tpuWgt = "<<puWgt<<"\tnvtx = "<<ev.nvtx<<"\tev.g_pu = "<<ev.g_pu<<std::endl;}
+		std::cout<<"\n\tFound an entry with "<<jets.size()<<" jets"<<"\teventnr "<<iev+1<<"\tpuWgt = "<<puWgt<<"\tnvtx = "<<ev.nvtx<<"\tev.g_pu = "<<ev.g_pu<<std::endl;}
 	
 
         // lepton trigger*selection weights
@@ -250,7 +250,7 @@ void RunExclusiveTop(TString filename,
 		for (size_t i=0;i<jets.size();i++){
       	     		ht.fill("j_mass",ev.j_mass[i],plotwgts);
        			ht.fill("j_pt",ev.j_pt[i],plotwgts);
-			std::cout<<"\tj_id = "<<ev.j_id[i]<<"\tj_btag = "<<ev.j_btag[i]<<std::endl;
+			//std::cout<<"\tj_id = "<<ev.j_id[i]<<"\tj_btag = "<<ev.j_btag[i]<<std::endl;
 		}
 	
 	 	//visible system

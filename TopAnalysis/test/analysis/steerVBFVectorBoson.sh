@@ -2,7 +2,6 @@
 
 WHAT=$1; 
 EXTRA=$2
-QCD=$3
 if [ "$#" -lt 1 ]; then 
     echo "steerVBFVectorBoson.sh <SEL/MERGE/PLOT/WWW> [extra]";
     echo "        SEL          - launches selection jobs to the batch, output will contain summary trees and control plots"; 
@@ -16,8 +15,6 @@ fi
 queue=workday
 githash=f93b8d8
 eosdir=/store/cmst3/group/top/RunIIReReco/${githash}
-githashJetHT=$gitash
-eosdirJetHT=/store/cmst3/group/top/RunIIReReco/${githashJetHT}
 fulllumi=41367
 vbflumi=7661
 lumiUnc=0.025
@@ -82,20 +79,20 @@ case $WHAT in
     SELJETHT )
 	json=data/era2017/JetHT.json;
 	extraOpts=" --CR"
-	echo ${QCD} 
-	if [ ${QCD} == "QCDTemp" ]; then
+	echo ${EXTRA} 
+	if [ ${EXTRA} == "QCDTemp" ]; then
 	    echo 'I do QCD Template photon selection'
 	    extraOpts=${extraOpts}" --QCDTemp"
 	fi
-        if [ ${QCD} == "SRfake" ]; then
+        if [ ${EXTRA} == "SRfake" ]; then
             echo 'I do SRfake photon selection'
             extraOpts=" --SRfake"
         fi
 	python scripts/runLocalAnalysis.py \
-	    -i ${eosdirJetHT} \
-            -o ${outdir}/${githashJetHT}/${EXTRA} \
-            --farmappendix ${githashJetHT} \
-            -q ${queue} --genWeights genweights_${githashJetHT}.root \
+	    -i ${eosdir} \
+            -o ${outdir}/${githash}${EXTRA} \
+            --farmappendix ${githash}${EXTRA} \
+            -q ${queue} --genWeights genweights_${githash}.root \
             --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --only ${json} --runSysts ${extraOpts};
 	;;
 

@@ -18,6 +18,7 @@ def main():
     parser = optparse.OptionParser(usage)
     parser.add_option(     '--mcUnc',        dest='mcUnc'  ,     help='common MC related uncertainty (e.g. lumi)',        default=0,              type=float)
     parser.add_option(     '--com',          dest='com'  ,       help='center of mass energy',                            default='13 TeV',       type='string')
+    parser.add_option(     '--rawYields',    dest='rawYields',   help='do not scale by lumi, xsec, etc.',                 default=False, action='store_true')
     parser.add_option('-j', '--json',        dest='json'  ,      help='json with list of files',        default=None,              type='string')
     parser.add_option( '--systJson',         dest='systJson',    help='json with list of systematics', default=None, type='string')
     parser.add_option(      '--signalJson',  dest='signalJson',  help='signal json list',               default=None,              type='string')
@@ -188,7 +189,8 @@ def main():
                                     if not tag+'_' in key: continue
                                     lumi=lumiSpecs[tag]
                                     break
-                                hist.Scale(xsec*lumi*puNormSF*sfVal)                    
+                                if not opt.rawYields:
+                                    hist.Scale(xsec*lumi*puNormSF*sfVal)                    
                             
                             #rebin if needed
                             if opt.rebin>1:  hist.Rebin(opt.rebin)
@@ -223,7 +225,7 @@ def main():
             break
 
         #continue
-        plots[p].show(outDir=outDir,lumi=lumi,noStack=opt.noStack,saveTeX=opt.saveTeX)
+        if not skipPlot: plots[p].show(outDir=outDir,lumi=lumi,noStack=opt.noStack,saveTeX=opt.saveTeX)
         plots[p].appendTo('%s/%s'%(outDir,opt.outName))
         plots[p].reset()
 

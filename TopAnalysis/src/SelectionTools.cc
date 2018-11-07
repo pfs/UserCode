@@ -112,11 +112,11 @@ TString SelectionTool::flagFinalState(MiniEvent_t &ev, std::vector<Particle> pre
 	  }
 	}
       } else {
-	bool passPhoton = (!isSRfake && !isQCDTemp && inclusivePhotons.size()>=1) || (!isSRfake && isQCDTemp && tmpPhotons.size()>=1) || (isSRfake && fakePhotons.size()>=1);
+	if(isSRfake) return "";
+	bool passPhoton = (!isSRfake && !isQCDTemp && inclusivePhotons.size()>=1) || (!isSRfake && isQCDTemp && tmpPhotons.size()>=1);
 	if(passPhoton) {
 	  chTag="A";
-	  if (isSRfake)       photons_   =fakePhotons;
-	  else if(!isQCDTemp) photons_   =inclusivePhotons;
+	  if(!isQCDTemp) photons_   =inclusivePhotons;
 	  else                photons_   =tmpPhotons;
 	  //cout<< "Number of very loose photons: "<<photons_.size()<<endl;
 	  leptons_   =tightLeptons;
@@ -139,11 +139,10 @@ TString SelectionTool::flagFinalState(MiniEvent_t &ev, std::vector<Particle> pre
   met_.SetPtEtaPhiM( ev.met_pt[1], 0, ev.met_phi[1], 0. );
 
   //check if triggers have fired and are consistent with the offline selection
-  bool hasETrigger(  hasTriggerBit("HLT_Ele35_eta2p1_WPTight_Gsf_v",           ev.triggerBits) ||
-                     hasTriggerBit("HLT_Ele28_eta2p1_WPTight_Gsf_HT150_v",     ev.triggerBits) ||
-                     hasTriggerBit("HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned_v",     ev.triggerBits) );
-  bool hasMTrigger(  //hasTriggerBit("HLT_IsoMu24_2p1_v",                                        ev.triggerBits) || 
-		     hasTriggerBit("HLT_IsoMu27_v",                                            ev.triggerBits) );
+  bool hasETrigger(  hasTriggerBit("HLT_Ele35_WPTight_Gsf_v",                               ev.triggerBits) );
+  bool hasMTrigger(  hasTriggerBit("HLT_IsoMu24_v",                                         ev.triggerBits) ||
+                     hasTriggerBit("HLT_IsoMu24_2p1_v",                                     ev.triggerBits) ||
+                     hasTriggerBit("HLT_IsoMu27_v",                                         ev.triggerBits) );
   bool hasEMTrigger( hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",     ev.triggerBits) ||
                      hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",  ev.triggerBits) ||
                      hasTriggerBit("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",  ev.triggerBits) ||
@@ -175,16 +174,9 @@ TString SelectionTool::flagFinalState(MiniEvent_t &ev, std::vector<Particle> pre
   if(chTag=="MM")
     {
       if(!hasMMTrigger && !hasMTrigger)                         chTag="";
-      if(anType_==TOP)
-        {
-          if(isMuonEGPD_ || isSingleElectronPD_ || isDoubleEGPD_)   chTag="";
-          if(isSingleMuonPD_ && (hasMMTrigger || !hasMTrigger) )    chTag="";
-          if(isDoubleMuonPD_ && !hasMMTrigger)                      chTag="";
-        }
-      if(anType_==VBF)
-        {
-          if(ev.isData && !isSingleMuonPD_ && !hasMTrigger) chTag="";
-        }
+      if(isMuonEGPD_ || isSingleElectronPD_ || isDoubleEGPD_)   chTag="";
+      if(isSingleMuonPD_ && (hasMMTrigger || !hasMTrigger) )    chTag="";
+      if(isDoubleMuonPD_ && !hasMMTrigger)                      chTag="";
     }
   if(chTag=="M")
     {
@@ -255,15 +247,13 @@ std::vector<Particle> SelectionTool::flaggedLeptons(MiniEvent_t &ev)
     Float_t unc(0.);
     if(abs(ev.l_id[il])==11)
       {
-	if( pt>20 && eta<2.1 ) {
+	if( pt>20 && eta<2.5 ) {
+          if((pid>>1)&0x1)  qualityFlagsWord |= (0x1 << VETO);
           if((pid>>5)&0x1)  qualityFlagsWord |= (0x1 << MEDIUM);
           if((pid>>7)&0x1)  qualityFlagsWord |= (0x1 << TIGHT);
           if((pid>>9)&0x1)  qualityFlagsWord |= (0x1 << MVA80);
           if((pid>>10)&0x1) qualityFlagsWord |= (0x1 << MVA90);
-	}
-	if( pt>15 && eta<2.4 && ((pid>>1) &0x1))                   qualityFlagsWord |= (0x1 << VETO);
-	if( pt>26 && eta<2.1 && ((pid>>6) &0x1)==0 && relIso>0.4)  qualityFlagsWord |= (0x1 << CONTROL);
-
+        }
         unc = TMath::Sqrt(
                           pow(ev.l_scaleUnc1[il],2)+
                           pow(ev.l_scaleUnc2[il],2)+
@@ -276,12 +266,11 @@ std::vector<Particle> SelectionTool::flaggedLeptons(MiniEvent_t &ev)
       }
     else
       {
-        if(pt>20 && eta<2.1) {
-          if( ((pid>>reco::Muon::Selector::CutBasedIdMediumPrompt) &0x1) && relIso<0.15)  qualityFlagsWord |= (0x1 << MEDIUM);
-          if( ((pid>>reco::Muon::Selector::CutBasedIdTight) &0x1) && relIso<0.15)         qualityFlagsWord |= (0x1 << TIGHT);
+        if(pt>20 && eta<2.5) {
+          if( ((pid>>reco::Muon::Selector::CutBasedIdMediumPrompt)&0x1) && relIso<0.15)  qualityFlagsWord |= (0x1 << MEDIUM);
+          if( ((pid>>reco::Muon::Selector::CutBasedIdTight) &0x1)       && relIso<0.15)  qualityFlagsWord |= (0x1 << TIGHT);
+          if( ((pid>>reco::Muon::Selector::CutBasedIdLoose) &0x1)       && relIso<0.25)  qualityFlagsWord |= (0x1 << VETO);
         }
-	if( pt>15 && eta<2.4 && ((pid>>reco::Muon::Selector::CutBasedIdLoose) &0x1) && relIso<0.25)         qualityFlagsWord |= (0x1 << VETO);
-	if( pt>26 && eta<2.1 && ((pid>>reco::Muon::Selector::CutBasedIdTight) &0x1) && relIso>0.25)         qualityFlagsWord |= (0x1 << CONTROL);
       }
 
     if(debug_) cout << "Lepton #" << il << " id=" << ev.l_id[il] 

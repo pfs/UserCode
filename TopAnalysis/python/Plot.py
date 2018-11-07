@@ -25,6 +25,21 @@ def fixExtremities(h,addOverflow=True,addUnderflow=True):
 	h.SetBinContent(nbins+1,0)
 	h.SetBinError(nbins+1,0)
 
+def scaleTo(h,val):
+    """ scale histogram integral to a given value """
+    total=h.Integral()
+    if total==0 : return
+    h.Scale(val/total)
+
+def divideByBinWidth(h):
+    """ loop over the bins and divide contents by its width"""
+    for xbin in xrange(1,h.GetNbinsX()+1):
+        wid=h.GetXaxis().GetBinWidth(xbin)
+        val=h.GetBinContent(xbin)
+        unc=h.GetBinError(xbin)
+        h.SetBinContent(xbin,val/wid)
+        h.SetBinError(xbin,unc/wid)
+
 
 
 """
@@ -54,7 +69,7 @@ class Plot(object):
         self.frameMax=1.45
         self.mcUnc=0
 
-    def add(self, h, title, color, isData, spImpose, isSyst):
+    def add(self, h, title, color, isData, spImpose, isSyst, doDivideByBinWidth=False):
 
         if 'ratevsrun' in self.name and not isData: return
 
@@ -64,6 +79,8 @@ class Plot(object):
         try:
             if not h.InheritsFrom('TH2') and not h.InheritsFrom('TGraph'):
                 fixExtremities(h=h,addOverflow=True,addUnderflow=True)
+            if doDivideByBinWidth:
+                divideByBinWidth(h=h)
         except:
             pass
 
@@ -219,8 +236,9 @@ class Plot(object):
 
         if self.dataH is not None:
             if self.data is None: self.finalize()
-            leg.AddEntry( self.data, self.data.GetTitle(),'ep')
-            nlegCols += 1
+            if self.data is not None:
+                leg.AddEntry( self.data, self.data.GetTitle(),'ep')
+                nlegCols += 1
 
         for h in self.mc:
 

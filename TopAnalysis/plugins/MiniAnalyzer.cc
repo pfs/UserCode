@@ -821,7 +821,7 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
       int tightBits( g.userInt("cutBasedPhotonID-Fall17-94X-V1-tight") );
       //bool passTightId( (tightBits & 0x3)== 0x3);  //require first two bits (h/e + sihih)
       bool ismvawp80( g.photonID("mvaPhoID-RunIIFall17-v1-wp80"));
-      bool ismvawp90( g.photonID("mvaPhoID-RunIIFall17-v1-wp90"));
+      bool ismvawp90( g.photonID("mvaPhoID-RunIIFall17-v-wp90"));
       bool ismva1p1w80( g.photonID("mvaPhoID-RunIIFall17-v1p1-wp80"));
       bool ismva1p1w90( g.photonID("mvaPhoID-RunIIFall17-v1p1-wp90"));
 

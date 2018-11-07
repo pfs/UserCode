@@ -2,6 +2,8 @@
 
 WHAT=$1; 
 EXTRA=$2
+QCD=""
+
 if [ "$#" -lt 1 ]; then 
     echo "steerVBFVectorBoson.sh <SEL/MERGE/PLOT/WWW> [extra]";
     echo "        SEL          - launches selection jobs to the batch, output will contain summary trees and control plots"; 
@@ -11,6 +13,9 @@ if [ "$#" -lt 1 ]; then
     exit 1; 
 fi
 
+if [ "$#" -gt 2 ]; then 
+    QCD=$3
+fi
 #to run locally use local as queue + can add "--njobs 8" to use 8 parallel jobs
 queue=workday
 githash=f93b8d8
@@ -27,21 +32,11 @@ NC='\e[0m'
 case $WHAT in
 
     TESTSEL )
-        # input=${eosdir}/MC13TeV_DY50toInf/MergedMiniEvents_0_ext0.root
-        # output=MC13TeV_DY4Jets50toInf.root
-        # tag="--tag MC13TeV_DY50toInf"
 
-        input=${eosdir}/Data13TeV_2017C_SinglePhoton/MergedMiniEvents_0_ext0.root
-        output=Data13TeV_2017C_SinglePhoton.root #MC13TeV_AJJ_EWK_INT_LO_mjj500_dr04.root
-        tag="--tag Data13TeV_2017C_SinglePhoton" #MC13TeV_AJJ_EWK_INT_LO_mjj500_dr04"
+        input=${eosdir}/Data13TeV_2017F_SingleMuon/MergedMiniEvents_12_ext0.root
+        output=Data13TeV_2017F_SingleMuon_4.root #MC13TeV_AJJ_EWK_INT_LO_mjj500_dr04.root
+        tag="--tag Data13TeV_2017F_SingleMuon" #MC13TeV_AJJ_EWK_INT_LO_mjj500_dr04"
 
-        #input=${eosdir}/Data13TeV_SinglePhoton_2017F/MergedMiniEvents_0_ext0.root
-        #output=Data13TeV_SinglePhoton_2017F.root
-        #tag="--tag Data13TeV_SinglePhoton_2017F"
-
-        #input=${eosdir2018}/Data13TeV_EGamma_2018A/MergedMiniEvents_0_ext0.root
-        #output=Data13TeV_EGamma_2018A.root
-        #tag="--tag Data13TeV_EGamma_2018A"
 
 	python scripts/runLocalAnalysis.py \
             -i ${input} -o ${output} ${tag} \
@@ -52,17 +47,17 @@ case $WHAT in
         ;;
 
     SEL )
-#	json=data/era2017/vbf_samples.json;
-	json=vbf_syst_samples.json;
-	extraOpts="" #" --SRfake" #"--mvatree"
+	json=data/era2017/tmp.json;
+#	json=vbf_syst_samples.json;
+	extraOpts=" --mvatree" #" --SRfake" #"--mvatree"
 	python scripts/runLocalAnalysis.py \
 	    -i ${eosdir} --only QCDEM\
             -o ${outdir}/${githash}/${EXTRA} \
             --farmappendix ${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts ${extraOpts};
+            --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --only ${json} --skip DR04 --runSysts ${extraOpts};
 	;;
-        #extraOpts=" --mvatree"
+
 
     SEL2018 )
 	python scripts/runLocalAnalysis.py -i /store/cmst3/group/top/RunIISpring18/f3174df\
@@ -78,22 +73,22 @@ case $WHAT in
 
     SELJETHT )
 	json=data/era2017/JetHT.json;
-	extraOpts=" --CR"
-	echo ${EXTRA} 
-	if [ ${EXTRA} == "QCDTemp" ]; then
+	extraOpts=""
+	echo ${QCD} 
+	if [[ ${QCD} == "QCDTemp" ]]; then
 	    echo 'I do QCD Template photon selection'
 	    extraOpts=${extraOpts}" --QCDTemp"
 	fi
-        if [ ${EXTRA} == "SRfake" ]; then
+        if [[ ${QCD} == "SRfake" ]]; then
             echo 'I do SRfake photon selection'
             extraOpts=" --SRfake"
         fi
 	python scripts/runLocalAnalysis.py \
 	    -i ${eosdir} \
-            -o ${outdir}/${githash}${EXTRA} \
-            --farmappendix ${githash}${EXTRA} \
+            -o ${outdir}/${githash}/${EXTRA}${QCD} \
+            --farmappendix ${githash}${EXTRA}${QCD} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --only ${json} --runSysts ${extraOpts};
+            --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --only ${json} --runSysts ${extraOpts} --skipexisting;
 	;;
 
     SELWEIGHTED )
@@ -108,9 +103,9 @@ case $WHAT in
         if [[ "${EXTRA}" = *"2018"* ]]; then
             gh=${githash2018}
         fi
-	if [[ "${EXTRA}" = *"JetHT"* ]]; then
-	    gh=${githashJetHT}
-	fi
+	# if [[ "${EXTRA}" = *"JetHT"* ]]; then
+	#     gh=${githashJetHT}
+	# fi
 	./scripts/mergeOutputs.py ${outdir}/${gh}/${EXTRA};
 	;;
 
@@ -125,6 +120,7 @@ case $WHAT in
         ;;
 
     PLOT )
+<<<<<<< HEAD
 #         json=data/era2017/vbf_samples.json;
 #         lumi=${fulllumi}        
 #         gh=${githash}/
@@ -147,6 +143,10 @@ case $WHAT in
 #         fi
 # 	;;
         json=data/era2017/vbf_dataonly.json;
+=======
+
+        json=data/era2017/vbf_samples.json;
+>>>>>>> 9c3fabcbfa3e9cdbed5f3b21a8fdff332bb38d79
 	syst_json=data/era2017/vbf_syst_samples.json;
         lumi=${fulllumi}        
         gh=${githash}/

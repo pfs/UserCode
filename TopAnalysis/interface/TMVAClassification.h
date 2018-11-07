@@ -45,14 +45,14 @@ public:
   void Set( string options_ );
   TString to_string( TString name );
 
-  TMVA::MethodBDT* BookMethod( Factory* factory , DataLoader* dataloader );
+  TMVA::MethodBDT* BookMethod( Factory* factory , DataLoader* dataloader, TString ext );
   
 
   double ROCIntegral;
   double Signal_TrainTest_Chi2 , Signal_TrainTest_Kolmo , Bkg_TrainTest_Kolmo , Bkg_TrainTest_Chi2 ; 
-  void CalcEfficiency(TMVA::IMethod * method , TDirectory* dir , TString dsname );
+  void CalcEfficiency(TMVA::IMethod * method , TDirectory* dir , TString dsname , TString ext);
   
-  double ReadROC(TMVA::IMethod * method  );
+  double ReadROC(TMVA::IMethod * method, TString ext  );
   double ReadOverTrainingParam(TDirectory* dir , TString methodTitle , TString dsname , bool signal , bool kolmo );
 
   void PrintAll(std::ostream& out  , bool header = false){
@@ -93,7 +93,7 @@ public:
   void FillRange( vector<string> range_info , vector<int>& vals );
   void FillRange( vector<string> range_info , vector<double>& vals );
 
-  void EvaluateAll( Factory* factory , TDirectory* dir ){
+  void EvaluateAll( Factory* factory , TDirectory* dir , TString ext){
     if( this->size() == 0 )
       return;
     
@@ -101,7 +101,7 @@ public:
     myfile.open ( MVATitle + ".csv" );
     this->at(0).PrintAll(myfile , true);
     for(auto option : *this){
-      option.CalcEfficiency( factory->GetMethod( dsName, option.name ) , dir , dsName ) ;
+      option.CalcEfficiency( factory->GetMethod( dsName, option.name+ext ) , dir , dsName, ext ) ;
       option.PrintAll(myfile);
     }
   }
@@ -136,12 +136,14 @@ public:
       //Variables for the HighMJJ category
       TMVA::DataLoader::AddVariable( "ht", "ht", "", 'F' ) ;
       TMVA::DataLoader::AddVariable( "forwardeta", "forwardeta", "", 'F' ) ;
-      TMVA::DataLoader::AddVariable("j_c2_02[1]",        "jet_c2_021",       "", 'F' ) ;
       TMVA::DataLoader::AddVariable( "balance", "balance", "", 'F' ) ;
-      TMVA::DataLoader::AddVariable( "aplanarity", "aplanarity", "", 'F' ) ;
       TMVA::DataLoader::AddVariable( "dphivj0", "dphivj0", "", 'F' ) ;
       TMVA::DataLoader::AddVariable( "mjj", "mjj", "", 'F' ) ;
-      TMVA::DataLoader::AddVariable( "D", "D", "", 'F' ) ;
+      TMVA::DataLoader::AddVariable( "j_qg[0]", "leadjet_qg", "", 'F' ) ;
+      //      TMVA::DataLoader::AddVariable("j_c2_02[1]",        "jet_c2_021",       "", 'F' ) ;   
+      //      TMVA::DataLoader::AddVariable( "aplanarity", "aplanarity", "", 'F' ) ;
+      //      TMVA::DataLoader::AddVariable( "D", "D", "", 'F' ) ;
+      //      TMVA::DataLoader::AddVariable( "j_qg[1]", "subleadjet_qg", "", 'F' ) ;
 
       
       /* if(isHighMJJ) */

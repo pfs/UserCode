@@ -154,16 +154,29 @@ void RunExclusiveTop(TString filename,
   ht.addHist("lmeta",        new TH1F("lmeta",       ";Lepton 1 pseudo-rapidity;Events",10,0,2.5));
   ht.addHist("lppt",         new TH1F("lppt",        ";Lepton 2 transverse momentum [GeV];Events",50,20,200));
   ht.addHist("lpeta",        new TH1F("lpeta",       ";Lepton 2 pseudo-rapidity;Events",10,0,2.5));
-  ht.addHist("mll",          new TH1F("mll",         ";Dilepton invariant mass [GeV];Events",100,0,500));
-  ht.addHist("ptll",         new TH1F("ptll",        ";Dilepton transverse momentum [GeV];Events",50,0,250));  
+  Float_t mllbins[]={0,20,50,60,70,75,85,90,95,100,105,115,125,200,300,500};
+  ht.addHist("mll",          new TH1F("mll",         ";Dilepton invariant mass [GeV];Events",sizeof(mllbins)/sizeof(Float_t)-1,mllbins));
+  ht.addHist("drll",         new TH1F("drll",        ";#DeltaR(l,l');Events",50,0,6));
+  Float_t ptllbins[]={0,25,50,75,100,150,200,250,500,750,1000,2000};
+  ht.addHist("ptll",         new TH1F("ptll",        ";Dilepton transverse momentum [GeV];Events",sizeof(ptllbins)/sizeof(Float_t)-1,ptllbins));
   ht.addHist("phistar",      new TH1F("phistar",     ";log_{10}(dilepton #phi^{*});Events",50,-3,3));
   ht.addHist("costhetaCS",   new TH1F("costhetaCS",  ";Dilepton cos#theta^{*}_{CS};Events",50,-1,1));
+  ht.addHist("met",          new TH1F("met",         ";Missing transverse energy [GeV];Events",50,0,200));
+  ht.addHist("mindphijmet",  new TH1F("mindphijmet", ";min#Delta#phi(jet,E_{T}^{miss}) [rad];Events",20,0,TMath::Pi()));
   ht.addHist("acopl",        new TH1F("acopl",       ";Acoplanarity;Events",50,0,1.0));
-  ht.addHist("ratevsrun",    new TH1F("ratevsrun",   ";Run number; #sigma [pb]",int(lumiPerRun.size()),0,float(lumiPerRun.size())));
   ht.addHist("ntkrp",        new TH1F("ntkrp",       ";Track multiplicity; Events",6,0,6) );
   ht.addHist("csirp",        new TH1F("csirp",       ";#csi = #deltap/p; Events",50,0,0.3) );
   ht.addHist("xangle",       new TH1F("xangle",      ";Crossing angle; Events",10,100,200) );
- 
+  ht.addHist("evyields",     new TH1F("evyields",    ";Category; Events",6,0,6) );
+  ht.getPlots()["evyields"]->GetXaxis()->SetBinLabel(1,"inc");
+  ht.getPlots()["evyields"]->GetXaxis()->SetBinLabel(2,"inv");
+  ht.getPlots()["evyields"]->GetXaxis()->SetBinLabel(3,"#geq3l");
+  ht.getPlots()["evyields"]->GetXaxis()->SetBinLabel(4,"#gamma");
+  ht.getPlots()["evyields"]->GetXaxis()->SetBinLabel(5,"jj");
+  ht.getPlots()["evyields"]->GetXaxis()->SetBinLabel(6,"bb");
+  ht.addHist("ratevsrun",    new TH1F("ratevsrun",   ";Run number; #sigma [pb]",int(lumiPerRun.size()),0,float(lumiPerRun.size())));
+
+
   int i=0;
   for(auto key : lumiPerRun) {
     i++;
@@ -183,7 +196,28 @@ void RunExclusiveTop(TString filename,
   for (Int_t iev=0;iev<nentries;iev++)
     {
       t->GetEntry(iev);
-      if(iev%1000==0) printf ("\r [%3.0f%%] done", 100.*(float)iev/(float)nentries);
+      if(iev%1000==0) { printf("\r [%3.0f%%] done", 100.*(float)iev/(float)nentries); fflush(stdout); }
+
+      //particle level dilepton
+      std::vector<double> trivialwgts(1,1.0);
+      float gen_llpt(-1),gen_mll(-1),gen_drll(-1);
+      TString gen_dilCat("");
+      if(!ev.isData){
+        std::vector<Particle> genLeptons=selector.getGenLeptons(ev,20.,2.5);
+        
+        if(genLeptons.size()>=2) {
+          gen_llpt=(genLeptons[0]+genLeptons[1]).Pt();
+          gen_mll=(genLeptons[0]+genLeptons[1]).M();
+          gen_drll=genLeptons[0].DeltaR(genLeptons[1]);
+          int gen_dilcode=abs(genLeptons[0].id()*genLeptons[1].id());
+          if(gen_dilcode==11*11) gen_dilCat="genee";
+          if(gen_dilcode==11*13) gen_dilCat="genem";
+          if(gen_dilcode==13*13) gen_dilCat="genmm";
+          ht.fill("ptll", gen_llpt, trivialwgts, gen_dilCat);
+          ht.fill("mll",  gen_mll,  trivialwgts, gen_dilCat);
+          ht.fill("drll", gen_drll,  trivialwgts, gen_dilCat);
+        }
+      }
 
       //start weights and pu weight control
       float wgt(1.0);
@@ -235,11 +269,41 @@ void RunExclusiveTop(TString filename,
                         selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v", ev.triggerBits) );
         }
       }
+
+      //trigger efficiency
+      if( (gen_dilCat=="genee" && (hasEETrigger || hasETrigger)) ||
+          (gen_dilCat=="genmm" && (hasMMTrigger || hasMTrigger)) ||
+          (gen_dilCat=="genem" && (hasEMTrigger || hasETrigger || hasEMTrigger)) ) { 
+        ht.fill("ptll", gen_llpt, trivialwgts, gen_dilCat+"trig");
+        ht.fill("mll",  gen_mll,  trivialwgts, gen_dilCat+"trig");
+        ht.fill("drll", gen_drll,  trivialwgts, gen_dilCat+"trig");
+      }
+      if( (gen_dilCat=="genee" && hasETrigger) ||
+          (gen_dilCat=="genmm" && hasMTrigger) ||
+          (gen_dilCat=="genem" && (hasETrigger || hasEMTrigger)) ) { 
+        ht.fill("ptll", gen_llpt, trivialwgts, gen_dilCat+"singletrig");
+        ht.fill("mll",  gen_mll,  trivialwgts, gen_dilCat+"singletrig");
+        ht.fill("drll", gen_drll,  trivialwgts, gen_dilCat+"singletrig");
+      }
+
       
       //identify the offline final state from the leading leptons
       int l1idx(0),l2idx(1);
       std::vector<Particle> flaggedLeptons = selector.flaggedLeptons(ev);
-      std::vector<Particle> leptons        = selector.selLeptons(flaggedLeptons,SelectionTool::TIGHT,SelectionTool::MVA80,20.,2.1);
+      std::vector<Particle> leptons  = selector.selLeptons(flaggedLeptons, SelectionTool::MEDIUM, SelectionTool::MVA90,20.,2.4);
+      //require the leading lepton to be tight
+      bool hasLeadingTightLepton(false), hasSubLeadingTightLepton(false);
+      if(leptons.size()){
+        if(leptons[0].Pt()>30 && fabs(leptons[0].Eta())<2.1){
+          if( (leptons[0].id()==11  && leptons[0].hasQualityFlag(SelectionTool::MVA80) ) ||
+              (leptons[0].id()==13 && leptons[0].hasQualityFlag(SelectionTool::TIGHT) ) ) hasLeadingTightLepton=true;
+        }
+        if(leptons[1].Pt()>30 && fabs(leptons[0].Eta())<2.1){
+          if( (leptons[1].id()==11  && leptons[0].hasQualityFlag(SelectionTool::MVA80) ) ||
+              (leptons[1].id()==13 && leptons[0].hasQualityFlag(SelectionTool::TIGHT) ) ) hasSubLeadingTightLepton=true;
+        }
+      }
+
       //photons
       std::vector<Particle> flaggedPhotons = selector.flaggedPhotons(ev);
       std::vector<Particle> photons        = selector.selPhotons(flaggedPhotons,SelectionTool::MVA80,leptons,30.,2.1);
@@ -278,7 +342,7 @@ void RunExclusiveTop(TString filename,
         if(!hasJetTrigger) continue;
 
         outVars["dilcode"]=0;
-        if(leptons.size()>=2){
+        if(leptons.size()>=2 && hasLeadingTightLepton){
           outVars["l1pt"]=leptons[0].Pt();
           outVars["l1eta"]=leptons[0].Eta();
           outVars["l1phi"]=leptons[0].Phi(); 
@@ -294,7 +358,7 @@ void RunExclusiveTop(TString filename,
       else {
             
         if(leptons.size()<2) continue;
-        if(leptons[0].Pt()<30 || fabs(leptons[0].Eta())>2.1) continue;
+        if(!hasLeadingTightLepton) continue;
         Int_t dilcode=leptons[l1idx].id()*leptons[l2idx].id();
         isSF=( leptons[l1idx].id()==leptons[l2idx].id() );
         isSS=( leptons[l1idx].charge()*leptons[l2idx].charge() > 0 );
@@ -357,7 +421,7 @@ void RunExclusiveTop(TString filename,
         std::vector<Jet> allJets = selector.getGoodJets(ev,25.,2.5,leptons,photons);
         int njets(0);
         std::vector<Jet> bJets,lightJets,jets;
-        float scalarht(0.),scalarhtb(0.),scalarhtj(0.);
+        float scalarht(0.),scalarhtb(0.),scalarhtj(0.),mindphijmet(99999.);
         for(size_t ij=0; ij<allJets.size(); ij++) 
           {
             int idx=allJets[ij].getJetIndex();
@@ -370,6 +434,10 @@ void RunExclusiveTop(TString filename,
             njets++;
             jets.push_back(allJets[ij]);
             scalarht += jets[ij].pt();
+
+            float dphij2met=fabs(allJets[ij].DeltaPhi(met));
+            if(dphij2met>mindphijmet) continue;
+            mindphijmet=dphij2met;
           }
         
         
@@ -385,21 +453,30 @@ void RunExclusiveTop(TString filename,
         
         //baseline categories and additional stuff produced with the dilepton
         std::vector<TString> cats(1,"inc");
-        
         dilCat=(isSS ? "ss" : "os" );
-        dilCat+=!isSF ? "em" : dilcode==121 ? "ee" : "mm";
-        if(isZ) dilCat += "z";
+        dilCat+=!isSF ? "em" : dilcode==121 ? "ee" : "mm";        
         cats.push_back(dilCat);       
+        
+        //selection efficiency
+        if(isZ) {
+          ht.fill("ptll", gen_llpt, trivialwgts,gen_dilCat+"rec");
+          ht.fill("mll",  gen_mll,  trivialwgts,gen_dilCat+"rec");
+          ht.fill("drll", gen_drll,  trivialwgts, gen_dilCat+"rec");
+          
+          if(hasSubLeadingTightLepton){
+            ht.fill("ptll", gen_llpt, trivialwgts,gen_dilCat+"tightrec");
+            ht.fill("mll",  gen_mll,  trivialwgts,gen_dilCat+"tightrec");
+            ht.fill("drll", gen_drll,  trivialwgts, gen_dilCat+"tightrec");
+          }
+        }
         
         TLorentzVector X(met);
         float xScaleUnc(metScaleUnc);
         float xEtaUnc(0);
         Int_t xid(0);
         Float_t xht(0);
-        Float_t mt3l(-1);      
-        cats.push_back(dilCat+"inv");
+        Float_t mt3l(-1);              
         if(leptons.size()>2){
-          cats[2]=dilCat+"3l"; 
           int l3idx(2);
           neutrinoPzComputer.SetMET(met);
           neutrinoPzComputer.SetLepton(leptons[l3idx].p4());
@@ -429,21 +506,18 @@ void RunExclusiveTop(TString filename,
           mt3l=computeMT(leptons[l3idx],met);
         }
         else if(photons.size()>0) {
-          cats[2]=dilCat+"a";
           X=photons[0].p4();
           xScaleUnc=photons[0].scaleUnc();
           xid=22;
           xht=X.Pt();
         }
         else if (jets.size()>2) {
-          cats[2]=dilCat+"jj";
           X=jets[0]+jets[1];
           xScaleUnc=TMath::Sqrt(pow(jets[0].getScaleUnc()*jets[0].Pt(),2)+
                                 pow(jets[1].getScaleUnc()*jets[1].Pt(),2))/X.Pt();
           xid=2121;
           xht=jets[0].Pt()+jets[1].Pt();
-          if(bJets.size()>1) {          
-            cats[2]=dilCat+"bb";
+          if(bJets.size()>1) {                      
             X=bJets[0]+bJets[1];
             xScaleUnc=TMath::Sqrt(pow(bJets[0].getScaleUnc()*bJets[0].Pt(),2)+
                                   pow(bJets[1].getScaleUnc()*bJets[1].Pt(),2))/X.Pt();
@@ -501,13 +575,22 @@ void RunExclusiveTop(TString filename,
         //control histograms
         ht.fill("nvtx",       ev.nvtx,         plotwgts, cats);
       
+        //event yields
+        ht.fill("evyields",  0,  plotwgts, cats);
+        if(xid==0)         ht.fill("evyields",  1,  plotwgts, cats);
+        else if(xid==22)   ht.fill("evyields",  3,  plotwgts, cats);
+        else if(xid==2121) ht.fill("evyields",  4,  plotwgts, cats);
+        else if(xid==55)   ht.fill("evyields",  5,  plotwgts, cats);
+        else               ht.fill("evyields",  2,  plotwgts, cats);
+
         //dilepton system
         ht.fill("nlep",       leptons.size(),  plotwgts, cats);
         ht.fill("lmpt",       lm.Pt(),         plotwgts, cats);
         ht.fill("lmeta",      fabs(lm.Eta()),  plotwgts, cats);
         ht.fill("lppt",       lp.Pt(),         plotwgts, cats);
         ht.fill("lmeta",      fabs(lp.Eta()),  plotwgts, cats);
-        ht.fill("mll",        dil.M(),         plotwgts, cats);
+        ht.fill("mll",        dil.M(),         plotwgts, cats);        
+        ht.fill("drll",       leptons[l1idx].DeltaR(leptons[l2idx]),plotwgts,cats);
         ht.fill("ptll",       dil.Pt(),        plotwgts, cats);
         ht.fill("phistar",    TMath::Log10(llphistar),  plotwgts, cats);
         ht.fill("costhetaCS", llcosthetaCS,      plotwgts, cats);
@@ -536,8 +619,9 @@ void RunExclusiveTop(TString filename,
           ht.fill("aeta",    fabs(a.Eta()),    plotwgts, cats);
         }
         
-        ht.fill("met",           met.Pt(),                         plotwgts, cats);
-        ht.fill("nch",           nch,                              plotwgts, cats);
+        ht.fill("met",           met.Pt(),    plotwgts, cats);
+        ht.fill("mindphijmet",   mindphijmet, plotwgts, cats);
+        ht.fill("nch",           nch,         plotwgts, cats);
             
         //fill tree with central detector information
         outVars["evwgt"]=plotwgts[0];
@@ -610,7 +694,7 @@ void RunExclusiveTop(TString filename,
         outVars["puppirecoil_phi"]=puppiRecoil.Phi();
         outVars["puppirecoil_spher"]=fabs(puppiRecoil.Mod())/puppiRecoilHt;
       }
-
+      
       //fill data with roman pot information
       nRPtk=0;
       if (ev.isData) {
@@ -629,70 +713,72 @@ void RunExclusiveTop(TString filename,
           ht.fill("beamXangle", beamXangle, plotwgts, dilCat);
           
           //only dispersions for these angles are available (@ CTPPSAnalysisTools/data/2017/dispersions.txt)
-          if(beamXangle!=120 && beamXangle!=130 && beamXangle!=140) continue;
-
-          std::vector< std::pair<int,float> > nearCsis;
-          std::map<int,int> ntks;
-          ntks[23]=0; ntks[123]=0;
-          for (int ift=0; ift<ev.nfwdtrk; ift++) {
+          if(beamXangle==120 || beamXangle==130 || beamXangle==140) {
             
-            //only these roman pots are aligned CTPPSAnalysisTools/data/2017/alignments_21aug2018.txt 
-            const unsigned short pot_raw_id = 100*ev.fwdtrk_arm[ift]+10*ev.fwdtrk_station[ift]+ev.fwdtrk_pot[ift];
-            if (pot_raw_id!=3 && pot_raw_id!=23 && pot_raw_id!=103 && pot_raw_id!=123) continue;
+            std::vector< std::pair<int,float> > nearCsis;
+            std::map<int,int> ntks;
+            ntks[23]=0; ntks[123]=0;
+            for (int ift=0; ift<ev.nfwdtrk; ift++) {
             
-            const ctpps::alignment_t align = ctpps_aligns.get( ev_id, pot_raw_id );
-            double xi, xi_error;
+              //only these roman pots are aligned CTPPSAnalysisTools/data/2017/alignments_21aug2018.txt 
+              const unsigned short pot_raw_id = 100*ev.fwdtrk_arm[ift]+10*ev.fwdtrk_station[ift]+ev.fwdtrk_pot[ift];
+              if (pot_raw_id!=3 && pot_raw_id!=23 && pot_raw_id!=103 && pot_raw_id!=123) continue;
             
-            proton_reco.reconstruct(beamXangle, pot_raw_id, ev.fwdtrk_x[ift]*100+align.x_align, xi, xi_error);
-            
-            //information is only saved for the far detectors (pixels)
-            if (pot_raw_id==23 || pot_raw_id==123) {
-              RPid[nRPtk]=pot_raw_id;
-              RPfarcsi[nRPtk]=xi;
-              RPnearcsi[nRPtk]=0;              
-              nRPtk++;
-
-              //monitor track multiplicity and csi values
-              if(ntks.find(pot_raw_id)==ntks.end()) ntks[pot_raw_id]=0;
-              ntks[pot_raw_id]++;
-              ht.fill("csirp",xi,plotwgts, Form("%s_%d",dilCat.Data(),pot_raw_id));
-
-            }
-            else{
-              //save near detector info to match to pixel tracks
-              nearCsis.push_back( std::pair<int,float>(pot_raw_id,xi) );
-            }
-          }
-            
-          //now try to find the best matches for strip in pixels
-          for(auto stk : nearCsis) {
-            
-            int matchTk(-1);
-            float minDcsi=1;
-            for(int itk=0; itk<nRPtk; itk++) {
+              const ctpps::alignment_t align = ctpps_aligns.get( ev_id, pot_raw_id );
+              double xi, xi_error;
               
-              //require on the same side of the beam pipe
-              if( !( (RPid[itk]==123 && stk.first==103) || (RPid[itk]==23 && stk.first==3) ) )
-                continue;
+              proton_reco.reconstruct(beamXangle, pot_raw_id, ev.fwdtrk_x[ift]*100+align.x_align, xi, xi_error);
               
-              float dcsi=fabs(stk.second-RPfarcsi[itk]);
-              if(dcsi>minDcsi) continue;
-              matchTk=itk;
-              minDcsi=dcsi;                
+              //information is only saved for the far detectors (pixels)
+              if (pot_raw_id==23 || pot_raw_id==123) {
+                RPid[nRPtk]=pot_raw_id;
+                RPfarcsi[nRPtk]=xi;
+                RPnearcsi[nRPtk]=0;              
+                nRPtk++;
+                
+                //monitor track multiplicity and csi values
+                if(ntks.find(pot_raw_id)==ntks.end()) ntks[pot_raw_id]=0;
+                ntks[pot_raw_id]++;
+                ht.fill("csirp",xi,plotwgts, Form("%s_%d",dilCat.Data(),pot_raw_id));
+                
+              }
+              else{
+                //save near detector info to match to pixel tracks
+                nearCsis.push_back( std::pair<int,float>(pot_raw_id,xi) );
+              }
             }
             
-            if(matchTk<0) continue;
-            RPnearcsi[matchTk]=stk.second;
-          }
+            //now try to find the best matches for strip in pixels
+            for(auto stk : nearCsis) {
+              
+              int matchTk(-1);
+              float minDcsi=1;
+              for(int itk=0; itk<nRPtk; itk++) {
+                
+                //require on the same side of the beam pipe
+                if( !( (RPid[itk]==123 && stk.first==103) || (RPid[itk]==23 && stk.first==3) ) )
+                  continue;
+              
+                float dcsi=fabs(stk.second-RPfarcsi[itk]);
+                if(dcsi>minDcsi) continue;
+                matchTk=itk;
+                minDcsi=dcsi;                
+              }
+              
+              if(matchTk<0) continue;
+              RPnearcsi[matchTk]=stk.second;
+            }
           
           
-          for(auto nit : ntks) 
-            ht.fill("ntkrp", nit.second, plotwgts, Form("%s_%d",dilCat.Data(),nit.first));
-        
+            for(auto nit : ntks) 
+              ht.fill("ntkrp", nit.second, plotwgts, Form("%s_%d",dilCat.Data(),nit.first));
+
+          }
+          
         }catch(...){
         }
       }
-
+      
       outT->Fill();
     }
     

@@ -8,14 +8,19 @@ Notice: if you are not creating the ntuples, you can skip the part of the instru
 marked with the `##OPTIONAL/##END OPTIONAL` markers
 
 ```
-cmsrel CMSSW_9_4_9_cand2
-cd CMSSW_9_4_9_cand2/src
+cmsrel CMSSW_9_4_10
+cd CMSSW_9_4_10/src
 cmsenv
 
 ##OPTIONAL (USE IF CREATING NTUPLES FROM SCRATCH)
 
+#MVA v2 ids
+git cms-merge-topic guitargeek:EgammaID_9_4_X
 #photon/electron id+scale and smearing fixes for MINIAOD 2017v2 (doesn't harm 2016v3)
-git cms-merge-topic cms-egamma:EgammaPostRecoTools_940 #just adds in an extra file to have a setup function to make things easier
+#just adds in an extra file to have a setup function to make things easier
+git cms-merge-topic cms-egamma:EgammaPostRecoTools_940 
+#re-do MET to mitigate EE noise
+git cms-merge-topic cms-met:METFixEE2017_949_v2
 scram b -j 8
 
 ##END OPTIONAL
@@ -61,7 +66,7 @@ Adding "-s" will trigger the submission to the grid (otherwise the script only w
 
 ```
 python scripts/submitToGrid.py -j data/era2017/samples.json -c ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/runMiniAnalyzer_cfg.py 
-python scripts/submitToGrid.py -j data/era2017/samples.json -c ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/runL1PrefireAna_cfg.py --addParents --only JetHT,SinglePhoton,SingleElectron --lfn /store/group/cmst3/group/top/psilva/l1prefire/2017 -w grid_prefire -s
+python scripts/submitToGrid.py -j data/era2017/samples.json -c ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/runL1PrefireAna_cfg.py --addParents --only JetHT,SinglePhoton,SingleElectron,MuonEG,DoubleEG --lfn /store/group/cmst3/group/top/psilva/l1prefire -w grid_prefire -s
 ```
 
 As soon as ntuple production starts to finish, to move from crab output directories to a simpler directory structure which can be easily parsed by the local analysis runThe merging can be run locally if needed by using the checkProductionIntegrity.py script

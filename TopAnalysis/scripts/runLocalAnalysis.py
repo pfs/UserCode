@@ -84,6 +84,7 @@ def main():
     try:
         for t in opt.only.split(','):
             if '.json' in t:
+                print "The json file is %s" %opt.only
                 try:
                     myfile = open(t, 'r') # or "a+", whatever you need
                 except IOError:
@@ -94,6 +95,7 @@ def main():
                 jsonFile.close()
             else:
                 onlyList.append(t)
+        print onlyList
     except:
         pass
     skipList=[]

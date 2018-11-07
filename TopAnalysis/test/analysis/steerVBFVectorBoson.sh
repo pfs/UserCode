@@ -120,7 +120,7 @@ case $WHAT in
         ;;
 
     PLOT )
-<<<<<<< HEAD
+# HEAD
 #         json=data/era2017/vbf_samples.json;
 #         lumi=${fulllumi}        
 #         gh=${githash}/
@@ -142,17 +142,14 @@ case $WHAT in
 #             #python scripts/plotter.py ${trigOpts} -j data/era2017/vbf_samples_2017F.json -O ${outdir}/${githash}/${EXTRA}/plots_trigger;
 #         fi
 # 	;;
-        json=data/era2017/vbf_dataonly.json;
-=======
-
+       # json=data/era2017/vbf_dataonly.json;
         json=data/era2017/vbf_samples.json;
->>>>>>> 9c3fabcbfa3e9cdbed5f3b21a8fdff332bb38d79
 	syst_json=data/era2017/vbf_syst_samples.json;
         lumi=${fulllumi}        
         gh=${githash}/
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
         if [[ "${EXTRA}" = *"2018"* ]]; then
-            json=data/era2018/vbf_dataonly.json;
+            json=data/era2018/vbf_samples.json;
             lumi=${fulllumi2018}
             vbflumi=${lumi}
             gh=${githash2018}
@@ -160,7 +157,7 @@ case $WHAT in
         kFactors="--procSF MC13TeV_QCDEM_15to20:1.26,MC13TeV_QCDEM_20to30:1.26,MC13TeV_QCDEM_30to50:1.26,MC13TeV_QCDEM_50to80:1.26,MC13TeV_QCDEM_80to120:1.26,MC13TeV_QCDEM_120to170:1.26,MC13TeV_QCDEM_170to300:1.26,MC13TeV_QCDEM_300toInf:1.26,MC13TeV_GJets_HT40to100:1.26,MC13TeV_GJets_HT100to200:1.26,MC13TeV_GJets_HT200to400:1.26,MC13TeV_GJets_HT600toInf:1.26"
 	commonOpts="-i ${outdir}/${gh}/${EXTRA} --puNormSF puwgtctr -l ${lumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs VBFA:${vbflumi},OfflineVBFA:${fulllumi}"
 	commonOpts="-i ${outdir}/${gh}/${EXTRA} --puNormSF puwgtctr --saveLog -l ${lumi} --mcUnc ${lumiUnc} --lumiSpecs HighMJJA:${vbflumi},LowMJJA:${fulllumi},HighMJJMM:${fulllumi},LowMJJMM:${fulllumi} -O ${plotOutDir}"
-	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors}/ --noStack;
+	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors}/ #--noStack;
 	#python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
 
         #trigger efficiencies

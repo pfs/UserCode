@@ -446,11 +446,11 @@ void VBFVectorBoson::readTree(){
   if (debug) nentries = 10000; //restrict number of entries for testing
   //nentries = 10000;
   t->GetEntry(0);
-<<<<<<< HEAD
-  isQCDEMEnriched = filename.Contains("MC13TeV_2017_QCDEM");
-=======
-  isQCDEMEnriched = filename.Contains("_QCDEM_");
->>>>>>> 9c3fabcbfa3e9cdbed5f3b21a8fdff332bb38d79
+
+  //  isQCDEMEnriched = filename.Contains("MC13TeV_2017_QCDEM");
+
+    isQCDEMEnriched = filename.Contains("_QCDEM_");
+
 }
 
 void VBFVectorBoson::prepareOutput(){

@@ -66,40 +66,7 @@ struct Category{
     if(HighPtVBF>0)         chTags.push_back("HighPtVBF"+chTag);
     if(V1J>0)               chTags.push_back("V1J"+chTag);
     if(HighPtOfflineVBF>0)  chTags.push_back("HighPtOfflineVBF"+chTag);
-    if(HighMJJ>0)           chTags.push_back("HighMJJ"+chTag);
-    if(LowMJJ>0)            chTags.push_back("LowMJJ"+chTag);
-    if(HighMJJLP>0)         chTags.push_back("HighMJJLP"+chTag);
-    if(LowMJJLP>0)          chTags.push_back("LowMJJLP"+chTag);
-    return chTags;
-  }
-};
-
-class VBFVectorBoson{
-public:
-	VBFVectorBoson(TString filename_,
-                       TString outname_,
-                       Int_t anFlag_,
-                       TH1F *normH_, 
-                       TH1F *genPU_,
-                       TString era_,
-                       Bool_t debug_=false, Bool_t CR_ =false, Bool_t QCDTemp_ =true, Bool_t SRfake_ = false, Bool_t skimtree_=false, bool blind =true):
-  filename(filename_),outname(outname_),anFlag(anFlag_), normH(0), genPU(0), era(era_), debug(debug_), CR(CR_), QCDTemp(QCDTemp_), SRfake(SRfake_), skimtree(skimtree_), doBlindAnalysis(blind)
-	{
-          if(normH_) normH = (TH1F*)normH_->Clone("normH_c");
-	  if(genPU_) genPU = (TH1F*)genPU_->Clone("genPu_c");
-	  fMVATree = NULL;
-	  newTree = NULL;
-	  init();
-	  setXsecs();
-          rnd.SetSeed(123456789);
-	};
-	~VBFVectorBoson(){}
-	void init(){
-		this->readTree();
-		cout << "...producing " << outname << " from " << nentries << " events" << endl;
-		this->prepareOutput();
-		this->bookHistograms();
-		this->loadCorrections();
+tions();
 		if(skimtree){
 			this->addMVAvars();
 		}
@@ -155,7 +122,7 @@ private:
 	FakeRateTool * fr;
 
 	//Variables to be added to the MVA Tree
-	float centraleta, forwardeta, jjetas, centjy, ncentjj, dphivj0, dphivj1, dphivj2, dphivj3;
+	float centraleta, forwardeta, jjetas, centjy, ncentjj, dphivj0, dphivj1, dphivj2, dphivj3,centralphi;
 	float evtWeight, mjj, detajj , dphijj ,jjpt;
 	float isotropy, circularity,sphericity,	aplanarity, C, D;
 	float scalarht,balance, mht, training, lead_qg;

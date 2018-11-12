@@ -518,6 +518,7 @@ void VBFVectorBoson::bookHistograms(){
   ht->addHist("ntightprompt",  new TH1F("ntightprompt",     ";Number of prompt tight #gamma; Events",20,-0.5,19.5));
   //2D's for Mjj-binned FR
   double bins[]={0,500,1000,2000,4000};
+  
   ht->addHist("relaxedTightMjjEB",  new TH2F("relaxedTightMjjEB",";Relaxed tight #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins)); //80,0,4000
   ht->addHist("tightMjjEB",         new TH2F("tightMjjEB",";Tight #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
   ht->addHist("looseMjjEB",         new TH2F("looseMjjEB",";Loose #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
@@ -530,6 +531,9 @@ void VBFVectorBoson::bookHistograms(){
   ht->addHist("allMjjEE",           new TH2F("allMjjEE",";All #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
   ht->addHist("tmpQCDMjjEE",        new TH2F("tmpQCDMjjEE",";All #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
   // Study of jet variables
+  int_t Xbin=30, Ybin=25;
+  int X1=0.0 , X2=5.0,y1=-3.0 , y2=3.0;
+  ht->addHist("etaphi",       new TH2F("etaphi",       ";Most central jet |#eta|V|#phi|;Events",Xbin,X1,X2,Ybin,y1,y2)); 
   ht->addHist("jet_c2_00", 	  new TH1F("jet_c2_00",          ";Jet shape var. c2_00;Jets",100,-1,1));  
   ht->addHist("jet_c2_02", 	  new TH1F("jet_c2_02",          ";Jet shape var. c2_02;Jets",100,-1,1));  
   ht->addHist("jet_c2_05", 	  new TH1F("jet_c2_05",          ";Jet shape var. c2_05;Jets",100,-1,1));  
@@ -705,7 +709,7 @@ void VBFVectorBoson::fill(MiniEvent_t ev, TLorentzVector boson, std::vector<Jet>
   ht->fill("ntightprompt",  mults["tightprompt"], cplotwgts,c);
 
   //jet histos
-  centraleta = 9999;
+  centraleta = 9999; 
   forwardeta = -9999;
   for(size_t ij=0; ij<min(size_t(2),jets.size());ij++) {
     TString jtype(ij==0?"lead":"sublead");
@@ -720,6 +724,7 @@ void VBFVectorBoson::fill(MiniEvent_t ev, TLorentzVector boson, std::vector<Jet>
     ht->fill("jet_gawidth", ev.j_gawidth[jets[ij].getJetIndex()]	  ,  cplotwgts,c);
     centraleta=min(centraleta,float(fabs(jets[ij].Eta())));
     forwardeta=max(forwardeta,float(fabs(jets[ij].Eta())));
+    ht->fill2D("etaphi",    centraleta[ij],jets.Phi ,   cplotwgts,c);
   }
   
   if(jets.size() >= 2){

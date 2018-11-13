@@ -46,13 +46,13 @@ case $WHAT in
         #--debug --mvatree \
         ;;
 
-    SEL )
+     SEL )
 #	json=data/era2017/vbf_samples.json;
 	json=data/era2017/vbf_dataonly.json;
 #	json=vbf_syst_samples.json;
 	extraOpts=" --mvatree" #" --SRfake" #"--mvatree"
 	python scripts/runLocalAnalysis.py \
-	    -i ${eosdir}   #  --only GJets_HT200to400,SingleMuon \
+	    -i ${eosdir}     \
             -o ${outdir}/${githash}/${EXTRA} \
             --farmappendix ${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \

@@ -194,6 +194,7 @@ void VBFVectorBoson::RunVBFVectorBoson()
       int nLPJets(0);
       for(auto j : jets) {
         scalarht += j.Pt();
+	jet_phi= j.Phi();
         mhtP4 += j;
 	if(j.Pt()>100 && fabs(j.Eta()) > 2.25 && fabs(j.Eta()) < 3.0)
 	  nLPJets++;
@@ -277,7 +278,7 @@ void VBFVectorBoson::RunVBFVectorBoson()
       if(isHighPtAndOfflineVBF) cat[6]=true;
       if(isHighMJJ)             cat[7]=true;
       if(isLowMJJ)              cat[8]=true;
-      if(isHighMJJLP)             cat[9]=true;
+      if(isHighMJJLP)           cat[9]=true;
       if(isLowMJJLP)              cat[10]=true;
       category.set(cat);
       std::vector<TString> chTags( category.getChannelTags() );
@@ -531,8 +532,8 @@ void VBFVectorBoson::bookHistograms(){
   ht->addHist("allMjjEE",           new TH2F("allMjjEE",";All #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
   ht->addHist("tmpQCDMjjEE",        new TH2F("tmpQCDMjjEE",";All #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
   // Study of jet variables
-  int_t Xbin=30, Ybin=25;
-  int X1=0.0 , X2=5.0,y1=-3.0 , y2=3.0;
+  int Xbin=30, Ybin=25;
+  double X1=0.0 , X2=5.0,y1=-3.0 , y2=3.0;
   ht->addHist("etaphi",       new TH2F("etaphi",       ";Most central jet |#eta|V|#phi|;Events",Xbin,X1,X2,Ybin,y1,y2)); 
   ht->addHist("jet_c2_00", 	  new TH1F("jet_c2_00",          ";Jet shape var. c2_00;Jets",100,-1,1));  
   ht->addHist("jet_c2_02", 	  new TH1F("jet_c2_02",          ";Jet shape var. c2_02;Jets",100,-1,1));  
@@ -724,9 +725,9 @@ void VBFVectorBoson::fill(MiniEvent_t ev, TLorentzVector boson, std::vector<Jet>
     ht->fill("jet_gawidth", ev.j_gawidth[jets[ij].getJetIndex()]	  ,  cplotwgts,c);
     centraleta=min(centraleta,float(fabs(jets[ij].Eta())));
     forwardeta=max(forwardeta,float(fabs(jets[ij].Eta())));
-    ht->fill2D("etaphi",    centraleta[ij],jets.Phi ,   cplotwgts,c);
+    
   }
-  
+  ht->fill2D("etaphi",    centraleta,jet_phi ,   cplotwgts,c);
   if(jets.size() >= 2){
     jjetas = jets[0].Eta()*jets[1].Eta();
     //dphivj0 = fabs(jets[0].DeltaPhi(boson));

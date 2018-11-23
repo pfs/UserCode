@@ -1,0 +1,7 @@
+{
+"MC13TeV_AJJ_EWK_LO_mjj500_dr04"     : [4.90, 0,  "/eos/cms/store/cmst3/group/top/RunIIFall17/fbc74ae/MC13TeV_AJJ_EWK_LO_mjj500_dr04",     "EWK #gammaJJ (#DeltaR)", 1, false, false, 1], 
+"MC13TeV_AJJ_EWK_INT_LO_mjj500_dr04" : [0.27, 0,  "/eos/cms/store/cmst3/group/top/RunIIFall17/fbc74ae/MC13TeV_AJJ_EWK_INT_LO_mjj500_dr04", "EWK int #gammaJJ (#Delta R)", "#92c5de", false, false, 1],
+"MC13TeV_AJJ_EWK_LO"     : [32.49, 0,  "/eos/cms/store/cmst3/group/top/RunIIFall17/fbc74ae/MC13TeV_AJJ_EWK_LO",     "EWK #gammaJJ", "#ca0020", false, false, 1], 
+"MC13TeV_AJJ_EWK_INT_LO" : [8.30, 0,  "/eos/cms/store/cmst3/group/top/RunIIFall17/fbc74ae/MC13TeV_AJJ_EWK_INT_LO", "EWK int #gammaJJ", "#f4a582", false, false, 1]
+}
+

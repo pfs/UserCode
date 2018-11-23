@@ -1,0 +1,13 @@
+{
+"MC13TeV_GJets_HT40to100" : [20790 , 0,  "/GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "#gamma+jets 40-100", 1, false, false, 1],
+"MC13TeV_GJets_HT40to100_DR04" : [3150, 0,  "/GJets_DR-0p4_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "#gamma+jets 40-100 #DeltaR", 2, false, false, 1],
+"MC13TeV_GJets_HT100to200": [9238, 0,  "/GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2/MINIAODSIM", "#gamma+jets 100-200", 1, false, false, 1],
+"MC13TeV_GJets_HT100to200_DR04": [750, 0,  "/GJets_DR-0p4_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "#gamma+jets 100-200 #DeltaR", 2, false, false, 1],
+"MC13TeV_GJets_HT200to400": [2305, 0,  "/GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2/MINIAODSIM", "#gamma+jets 200-400", 1, false, false, 1],
+"MC13TeV_GJets_HT200to400_DR04": [143, 0,  "/GJets_DR-0p4_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "#gamma+jets 200-400 #DeltaR", 2, false, false, 1],
+"MC13TeV_GJets_HT400to600": [274.4, 0,  "/GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2/MINIAODSIM", "#gamma+jets 400-600", 1, false, false, 1],
+"MC13TeV_GJets_HT400to600_DR04": [27.3, 0,  "/GJets_DR-0p4_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2/MINIAODSIM", "#gamma+jets 400-600 #DeltaR", 2, false, false, 1],
+"MC13TeV_GJets_HT600toInf": [93.46, 0,  "/GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "#gamma+jets >600", 1, false, false, 1],
+"MC13TeV_GJets_HT600toInf_DR04": [27.3, 0,  "/GJets_DR-0p4_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "#gamma+jets >600 #DeltaR", 2, false, false, 1]
+}
+

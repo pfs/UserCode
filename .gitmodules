@@ -1,0 +1,4 @@
+[submodule "CTPPSAnalysisTools"]
+	path = CTPPSAnalysisTools
+	url = https://github.com/forthommel/CTPPSAnalysisTools.git
+	branch = standalone

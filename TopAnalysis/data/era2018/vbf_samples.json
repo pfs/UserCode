@@ -1,0 +1,5 @@
+{
+"Data13TeV_SingleMuon_2018A" : [1, 1, "/SingleMuon/Run2018A-PromptReco-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_EGamma_2018A"     : [1, 1, "/EGamma/Run2018A-PromptReco-v1/MINIAOD", "Data", 1, false, false, 0]
+}
+

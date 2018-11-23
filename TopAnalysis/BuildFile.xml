@@ -1,0 +1,19 @@
+<use name="root"/>
+<use name="roofit"/>
+<use name="rootrflx"/>
+<use name="roottmva"/>
+<use name="PhysicsTools/PatAlgos"/>
+<use name="CondFormats/BTauObjects"/>
+<use name="CondFormats/JetMETObjects"/>
+<use name="CondTools/BTau"/>
+<use name="TopQuarkAnalysis/TopTools"/>
+<use name="JetMETCorrections/Modules"/>
+<use name="PhysicsTools/CandUtils"/>
+<use name="HiggsAnalysis/CombinedLimit"/>
+<use name="rivet"/>
+<use name="fastjet"/>
+<use name="fastjet-contrib"/>
+<Flags CXXFLAGS="-ggdb"/>
+<export>
+  <lib name="1"/>
+</export>

@@ -1,0 +1,9 @@
+<use name="TopLJets2015/TopAnalysis"/>
+<use name="HiggsAnalysis/CombinedLimit"/>
+<environment>
+  <bin name="analysisWrapper"       file="analysisWrapper.cc"></bin>
+  <bin name="runTMVAClassification" file="runTMVAClassification.cc"></bin>
+  <bin name="runWorkspaceProvider"  file="runWorkspaceProvider.cc"></bin>
+  <bin name="runFRcalculation"  file="runFRcalculation.cc"></bin>
+</environment>
+<Flags CXXFLAGS="-g"/>

@@ -1,0 +1,9 @@
+#
+# Parameterizations for cross section and uncertainty for different PDFs
+# PDF name | central parameterization (3) | scale uncertainty (2) | pdf+alphaS uncertainty (2) | beam energy uncertainty  
+# The parameterization formula is assumed to be 
+#
+# xsec = a0 x (mref/m)^4 x [ 1 + a1 x (m/mref-1) + a2 x (m/mref-1)**2 ]
+#
+MSTW2008nnlo		823.937 -0.715324  0.175732  1.024/0.964  1.037/0.966  1.0146
+NNPDF30_nnlo_as_0118	839.297	-0.715685  0.219059  1.025/0.963  1.022/0.978  1.0146 

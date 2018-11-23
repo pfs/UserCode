@@ -1,0 +1,22 @@
+{
+"MC13TeV_TTJets"        : [832, 0,     "/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "t#bar{t}", 920, true, false, 1],
+"MC13TeV_ZZ"            : [0.5644, 0,  "/ZZTo2L2Nu_13TeV_powheg_pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "Multiboson", 815, false, false, 1],
+"MC13TeV_WZ"            : [47.13, 0,  "/WZ_TuneCP5_13TeV-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "Multiboson", 815, false, false, 1],
+"MC13TeV_WW"            : [12.178, 0,   "/WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "Multiboson", 815, false, false, 1],
+"MC13TeV_W3Jets"        : [942.3, 0, "/W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v3/MINIAODSIM", "W", 797,false,false,1],
+"MC13TeV_W4Jets"        : [524.2, 0, "/W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "W", 797,false,false,1],
+"MC13TeV_SingleTbar_tW" : [35.85, 0,    "/ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "tW", 865, false, false, 1],
+"MC13TeV_SingleT_tW"    : [35.85, 0,    "/ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "tW", 865, false, false, 1],
+"MC13TeV_DY50toInf"     : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DY", 41, false, false, 1],
+"Data13TeV_SingleMuon_2017B" : [1, 1, "/SingleMuon/Run2017B-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleMuon_2017C" : [1, 1, "/SingleMuon/Run2017C-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleMuon_2017D" : [1, 1, "/SingleMuon/Run2017D-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleMuon_2017E" : [1, 1, "/SingleMuon/Run2017E-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleMuon_2017F" : [1, 1, "/SingleMuon/Run2017F-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleElectron_2017B" : [1, 1, "/SingleElectron/Run2017B-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleElectron_2017C" : [1, 1, "/SingleElectron/Run2017C-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleElectron_2017D" : [1, 1, "/SingleElectron/Run2017D-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleElectron_2017E" : [1, 1, "/SingleElectron/Run2017E-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleElectron_2017F" : [1, 1, "/SingleElectron/Run2017F-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0]
+}
+

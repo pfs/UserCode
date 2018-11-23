@@ -1,0 +1,13 @@
+{
+"Data13TeV_SingleMuon_2017B" : [1, 1, "/SingleMuon/Run2017B-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleMuon_2017C" : [1, 1, "/SingleMuon/Run2017C-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleMuon_2017D" : [1, 1, "/SingleMuon/Run2017D-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleMuon_2017E" : [1, 1, "/SingleMuon/Run2017E-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleMuon_2017F" : [1, 1, "/SingleMuon/Run2017F-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleElectron_2017B" : [1, 1, "/SingleElectron/Run2017B-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleElectron_2017C" : [1, 1, "/SingleElectron/Run2017C-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleElectron_2017D" : [1, 1, "/SingleElectron/Run2017D-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleElectron_2017E" : [1, 1, "/SingleElectron/Run2017E-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_SingleElectron_2017F" : [1, 1, "/SingleElectron/Run2017F-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0]
+}
+

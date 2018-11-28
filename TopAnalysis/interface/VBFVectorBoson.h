@@ -90,7 +90,7 @@ class VBFVectorBoson{
 
     leadJetPt_    = 50.;
     subLeadJetPt_ = 50.;
-    jetPuId_      = 1;
+    jetPuId_      = 0;
     cleanEENoise_ = true;
 
     lowVPtCut_        = 75.;

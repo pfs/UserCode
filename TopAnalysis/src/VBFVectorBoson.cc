@@ -629,6 +629,10 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("leadpumva",     new TH1F("leadpumva",        ";Pileup MVA;Events",                  25,-1,1));  
   ht_->addHist("subleadpumva",  new TH1F("subleadpumva"   ,  ";Pileup MVA;Events",                  25,-1,1));  
   ht_->addHist("etaphi",        new TH2F("etaphi",           ";Most central jet |#eta|V|#phi|;Events",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
+  ht_->addHist("centralEtaVphi",   new TH2F("centralEtaVphi",    ";Most central jet #eta;#phi",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
+  ht_->addHist("centralEtaVpuMva", new TH2F("centralEtaVpuMva",  ";Most central jet #eta;PUMVA",30,-4.7,4.7,25,-1,1));
+  ht_->addHist("forwardEtaVphi",   new TH2F("forwardEtaVphi",    ";Most forward jet #eta;#phi",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
+  ht_->addHist("forwardEtaVpuMva", new TH2F("forwardEtaVpuMva",  ";Most forward jet #eta;PUMVA",30,-4.7,4.7,25,-1,1));
   ht_->addHist("jet_raw_pt",    new TH1F("jet_raw_pt",       ";raw PT of jets;Jets",                50,0,200));
   ht_->addHist("jet_raw_empt",  new TH1F("jet_raw_empt",     ";raw e.m. PT of jets;Jets",           50,0,200));
   ht_->addHist("jet_emf",       new TH1F("jet_emf",          ";Electromagnetic fraction;Jets",      50,0,1));
@@ -874,6 +878,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   ht_->fill("njets",        jets.size(), cplotwgts,c);
   ht_->fill("ht",           vbfVars_.scalarht,    cplotwgts,c);
   ht_->fill("mht",          vbfVars_.mht,         cplotwgts,c);
+
   for(size_t ij=0; ij<min(size_t(2),jets.size());ij++) {
     TString jtype(ij==0?"lead":"sublead");
     ht_->fill(jtype+"pt",       jets[ij].Pt(),        cplotwgts,c);          
@@ -894,6 +899,11 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
     ht_->fill("jet_raw_empt" ,j_rawempt        , cplotwgts,c );
     ht_->fill("jet_qg"   ,ev_.j_qg[jets[ij].getJetIndex()]    , cplotwgts,c);
     ht_->fill2D("etaphi",  jets[ij].Eta(),jets[ij].Phi() ,   cplotwgts,c);    
+
+    TString pfix("central");
+    if(fabs(fabs(jets[ij].Eta())-vbfVars_.forwardeta)<0.05) pfix="forward";
+    ht_->fill2D(pfix+"EtaVphi",    jets[ij].Eta(), jets[ij].Phi(),      cplotwgts,c);
+    ht_->fill2D(pfix+"EtaVpuMva",  jets[ij].Eta(), jets[ij].getPUMVA(), cplotwgts,c);
   }
   ht_->fill("centraleta",   vbfVars_.centraleta,  cplotwgts,c);
   ht_->fill("forwardeta",   vbfVars_.forwardeta,  cplotwgts,c);

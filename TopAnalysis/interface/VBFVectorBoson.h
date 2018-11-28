@@ -19,6 +19,7 @@
 #include "TopLJets2015/TopAnalysis/interface/L1PrefireEfficiencyWrapper.h"
 #include "TopLJets2015/TopAnalysis/interface/GeneratorTools.h"
 #include "TopLJets2015/TopAnalysis/interface/VBFDiscriminatorInputs.h"
+#include "TopLJets2015/TopAnalysis/interface/VBFAnalysisCategories.h"
 
 #include <vector>
 #include <set>
@@ -26,202 +27,173 @@
 #include <algorithm>
 #include "TRandom3.h"
 #include "TMath.h"
-using namespace std;
-
-//Vector boson will be either Z or photon at the moment
-
-struct Category{
-  float MM,A,VBF,HighPt,HighPtVBF,V1J,HighPtOfflineVBF,HighMJJ,LowMJJ,HighMJJLP,LowMJJLP;
-  Category(){ reset(); }
-  Category(std::vector<bool> &cat){
-    reset();
-    set(cat);
-  };  
-  void reset(){
-    std::vector<bool> cat(9,false);
-    set(cat);
-  };
-  void set(std::vector<bool> &cat){
-    MM               =(float) cat[0];
-    A                = (float)cat[1];
-    VBF              = (float)cat[2];
-    HighPt           = (float)cat[3];
-    HighPtVBF        = (float)cat[4];
-    V1J              = (float)cat[5];
-    HighPtOfflineVBF = (float)cat[6];
-    HighMJJ        = (float)cat[7];
-    LowMJJ         = (float)cat[8];
-    HighMJJLP       = (float)cat[9];
-    LowMJJLP        = (float)cat[10];
-  };
-  std::vector<TString> getChannelTags() {
-    std::vector<TString> chTags;
-    TString chTag("");
-
-    if(MM>0) chTag="MM";
-    if(A>0)  chTag="A";
-    if(chTag=="") return chTags;
-
-    if(VBF>0)               chTags.push_back("VBF"+chTag);
-    if(HighPt>0)            chTags.push_back("HighPt"+chTag);
-    if(HighPtVBF>0)         chTags.push_back("HighPtVBF"+chTag);
-    if(V1J>0)               chTags.push_back("V1J"+chTag);
-    if(HighPtOfflineVBF>0)  chTags.push_back("HighPtOfflineVBF"+chTag);
-    if(HighMJJ>0)           chTags.push_back("HighMJJ"+chTag);
-    if(LowMJJ>0)            chTags.push_back("LowMJJ"+chTag);
-    if(HighMJJLP>0)         chTags.push_back("HighMJJLP"+chTag);
-    if(LowMJJLP>0)          chTags.push_back("LowMJJLP"+chTag);
-    return chTags;
-  }
-};
 
 class VBFVectorBoson{
-public:
-	VBFVectorBoson(TString filename_,
-                       TString outname_,
-                       Int_t anFlag_,
-                       TH1F *normH_, 
-                       TH1F *genPU_,
-                       TString era_,
-                       Bool_t debug_=false, Bool_t CR_ =false, Bool_t QCDTemp_ =true, Bool_t SRfake_ = false, Bool_t skimtree_=false, bool blind =true):
-  filename(filename_),outname(outname_),anFlag(anFlag_), normH(0), genPU(0), era(era_), debug(debug_), CR(CR_), QCDTemp(QCDTemp_), SRfake(SRfake_), skimtree(skimtree_), doBlindAnalysis(blind)
-	{
-          if(normH_) normH = (TH1F*)normH_->Clone("normH_c");
-	  if(genPU_) genPU = (TH1F*)genPU_->Clone("genPu_c");
-	  fMVATree = NULL;
-	  newTree = NULL;
-	  init();
-	  setXsecs();
-          rnd.SetSeed(123456789);
-	};
-	~VBFVectorBoson(){}
-	void init(){
-		this->readTree();
-		cout << "...producing " << outname << " from " << nentries << " events" << endl;
-		this->prepareOutput();
-		this->bookHistograms();
-		this->loadCorrections();
-		if(skimtree){
-			this->addMVAvars();
-		}
-		selector = new SelectionTool(filename, debug, triggerList,SelectionTool::VBF);
-		std::cout << "init done" << std::endl;
-	}
+ public:
 
-	void saveHistos();
-	void readTree();
-	void prepareOutput();
-	void bookHistograms();
-	void setGammaZPtWeights();
-	void loadCorrections();
-	void addMVAvars();
-	void fill(MiniEvent_t ev, TLorentzVector boson, std::vector<Jet> jets, std::vector<double> cplotwgts, TString c, std::map<TString, int> mults, std::vector<Particle> fakePhotonCR ={}, std::vector<Particle> tightPhotonCR={});
-	void RunVBFVectorBoson();
+  /**
+     @short CTOR for VBF V analysis
+  */
+ VBFVectorBoson(TString filename,
+                TString outname,
+                TH1F *normH, 
+                TH1F *genPU,
+                TString era,
+                Float_t xsec,
+                Bool_t debug=false, 
+                Bool_t CR=false, 
+                Bool_t QCDTemp=true, 
+                Bool_t SRfake= false, 
+                Bool_t skimtree=false, 
+                bool runSysts=false,
+                bool blind =true)
+   : filename_(filename), outname_(outname), normH_(normH), genPU_(genPU), era_(era), 
+    debug_(debug), CR_(CR), QCDTemp_(QCDTemp), SRfake_(SRfake), skimtree_(skimtree), 
+    runSysts_(runSysts), doBlindAnalysis_(blind),
+    xsec_(xsec)
+  {
+    fMVATree_ = NULL;
+    newTree_ = NULL;
+    init();
+    setSelectionCuts();
+    rnd_.SetSeed(123456789);
+  };
+
+  /**
+     @short DTOR
+  */
+  ~VBFVectorBoson()
+    {
+    }
+
+  /**
+     @short initialize all variables
+   */
+  inline void init()
+  {
+    this->readTree();
+    std::cout << "...producing " << outname_ << " from " << nentries_ << " events" << std::endl;
+    this->prepareOutput();
+    this->bookHistograms();
+    this->loadCorrections();
+    if(skimtree_) this->addMVAvars();
+    selector_ = new SelectionTool(filename_, debug_, triggerList_,SelectionTool::VBF);
+    std::cout << "init done" << std::endl;
+  }
+
+  /**
+     @short define baseline selection cuts
+  */
+  inline void setSelectionCuts()
+  {
+    zMassWindow_  = 15.;
+
+    leadJetPt_    = 50.;
+    subLeadJetPt_ = 50.;
+    jetPuId_      = 1;
+    cleanEENoise_ = true;
+
+    lowVPtCut_        = 75.;
+    lowVPtDetaJJCut_  = 3.0;
+    lowVPtMaxRapCut_  = 1.4442;
+    lowVPtPhotonTrigs_.push_back("HLT_Photon75_R9Id90_HE10_IsoM_EBOnly_PFJetsMJJ300DEta3_v");
+
+    highVPtCut_       = 200.;
+    highVPtPhotonTrigs_.push_back("HLT_Photon200_v");
+
+    lowMJJCut_  = 500.;
+    highMJJCut_ = 1000.;        
+
+    applyTrigSafePhoton_=true;
+  } 
+
+  void saveHistos();
+  void readTree();
+  void prepareOutput();
+  void bookHistograms();  
+  void loadCorrections();
+  void addMVAvars();
+
+  /**
+     @short the working horse method
+   */
+  void runAnalysis();
+
+  /**
+     @short histogram filler
+   */
+  void fillControlHistos(TLorentzVector boson, 
+                         std::vector<Jet> jets, 
+                         float wgt,
+                         TString c,
+                         std::map<TString, int> mults, 
+                         std::vector<Particle> fakePhotonCR ={}, 
+                         std::vector<Particle> tightPhotonCR={});
+
 
 private:
-	TString filename, outname, baseName;
-	Int_t anFlag, nentries;
-	TH1F * normH, * genPU;
-	TString era;
-	TH1* triggerList;
-	Bool_t debug, CR, QCDTemp, SRfake, skimtree, vetoPromptPhotons;
-	TFile * f /*inFile*/, *fMVATree, *fOut;
-	TTree * t /*inTree*/, *newTree /*MVA*/;
-  	HistTool * ht;
-	MiniEvent_t ev;
-        float sihih,chiso,r9,hoe, ystar,relbpt,dphibjj,eveto,pixelseed;
-	double mindrl,mindrj;
 
-        std::vector<TString> expSysts_;
-        std::vector<WeightSysts_t> weightSysts_;
-
-	TRandom3 rnd;
-	
-  	//LUMINOSITY+PILEUP
-	LumiTools * lumi;
+  /**
+     @short dice a random number and select for training
+  */
+  inline int useForTraining(float selFrac=0.5)
+  {
+    double myRnd = rnd_.Rndm();
+    return myRnd>=selFrac ? 1 : 0;
+  }
   
-  	//LEPTON EFFICIENCIES
-	EfficiencyScaleFactorsWrapper * gammaEffWR;
   
-        //L1 prefire efficiencies
-        L1PrefireEfficiencyWrapper *l1PrefireWR;
+  //class variables
+  TString filename_, outname_, baseName_;
+  Int_t nentries_;
+  TH1F *normH_, *genPU_, *triggerList_;
+  TString era_;
+  Bool_t debug_, CR_, QCDTemp_, SRfake_, skimtree_, vetoPromptPhotons_;
+  TFile *f_ /*inFile*/, *fMVATree_, *fOut_;
+  TTree *t_ /*inTree*/, *newTree_ /*MVA*/;
+  HistTool *ht_;
+  MiniEvent_t ev_;
 
-  	//JEC/JER
-  	//JECTools * jec;
-	
-        //Photon/Z pt weights
-  	std::map<TString,TGraph *> photonPtWgts;
-  	std::map<TString,std::pair<double,double> > photonPtWgtCtr;
+  //list of systematics
+  std::vector<TString> expSysts_;
+  std::vector<WeightSysts_t> weightSysts_;
 
-	//Fake rate
-	FakeRateTool * fr;
 
-	//Variables to be added to the MVA Tree
-        vbf::DiscriminatorInputs vbfVars_;
-        float vbfmva;
-        float evtWeight;
-        int training;
-        bool doBlindAnalysis;
-        
-	std::vector<Particle> relaxedTightPhotons, photons, tmpPhotons; 
-	/////////////////////////////////////
-	// Categorie for VBF:              //
-	//   MM:A:VBF:HighPt:HighPtVBF:V1J // 
-	/////////////////////////////////////
-	Category category;
+  TRandom3 rnd_;
+  
+  //corrections
+  LumiTools * lumi_;
+  EfficiencyScaleFactorsWrapper * gammaEffWR_;
+  L1PrefireEfficiencyWrapper *l1PrefireWR_;
+  FakeRateTool * fr_;
+  std::vector<Particle> photons_,relaxedTightPhotons_,tmpPhotons_; 
 
-	SelectionTool * selector;
 
-	/////////////////////////////////////////
-	// To select events for training       //
-	/////////////////////////////////////////
+  //Variables to be added to the MVA Tree and additional variables
+  vbf::DiscriminatorInputs vbfVars_;
+  float vbfmva_;
+  float evtWeight_;
+  float sihih_,chiso_,r9_,hoe_,mindrl_,mindrj_;
+  int training_;
+  bool runSysts_;
+  bool doBlindAnalysis_;  
 
-	int useForTraining(){
-	  double myRnd = rnd.Rndm();
-	  if (myRnd >= 0.5) return 1;
-	  return 0;
-	}
+  float xsec_;
 
-	/////////////////////////////////////////
-	// Quick and ugly cross section getter //
-	// To be updated such as to use the    //
-	// json file                           //
-	/////////////////////////////////////////
-	std::map<TString, float> xsecRefs;
-        
-	void setXsecs(){
-          xsecRefs["MC13TeV_2017_TTJets"        ] = 832;
-          xsecRefs["MC13TeV_2017_ZZ"            ] = 0.5644; 
-          xsecRefs["MC13TeV_2017_WZ"            ] = 47.13;  
-          xsecRefs["MC13TeV_2017_WW"            ] = 12.178; 
-          xsecRefs["MC13TeV_2017_SingleTbar_tW" ] = 35.85;  
-          xsecRefs["MC13TeV_2017_SingleT_tW"    ] = 35.85;  
-          xsecRefs["MC13TeV_2017_DY50toInf"     ] = 5765.4; 
-          xsecRefs["MC13TeV_2017_QCDEM_15to20"  ] = 2302200;
-          xsecRefs["MC13TeV_2017_QCDEM_20to30"  ] = 5352960;
-          xsecRefs["MC13TeV_2017_QCDEM_30to50"  ] = 9928000;
-          xsecRefs["MC13TeV_2017_QCDEM_50to80"  ] = 2890800;
-          xsecRefs["MC13TeV_2017_QCDEM_80to120" ] = 350000; 
-          xsecRefs["MC13TeV_2017_QCDEM_120to170"] = 62964;  
-          xsecRefs["MC13TeV_2017_QCDEM_170to300"] = 18810;  
-          xsecRefs["MC13TeV_2017_QCDEM_300toInf"] = 1350;  
-          xsecRefs["MC13TeV_2017_GJets_HT40to100" ] = 20790 ;
-          xsecRefs["MC13TeV_2017_GJets_HT100to200"] = 9238;  
-          xsecRefs["MC13TeV_2017_GJets_HT200to400"] = 2305;  
-          xsecRefs["MC13TeV_2017_GJets_HT400to600"] = 274.4; 
-          xsecRefs["MC13TeV_2017_GJets_HT600toInf"] = 93.46; 
-          xsecRefs["MC13TeV_2017_EWKZJJ"        ] = 4.32;
-          xsecRefs["MC13TeV_2017_EWKAJJ"    ] = 32.49;
-          xsecRefs["MC13TeV_2017_IntAJJ" ] = 8.3;
-	}
-	
-	float getXsec(){
-	  for (auto const& x : xsecRefs){
-	      if (filename.Contains(x.first))
-		return x.second;
-	  }
-	  return 1;
-	}
-	
+  //selection configuration
+  float leadJetPt_, subLeadJetPt_;
+  int jetPuId_;
+  bool cleanEENoise_;
+  float zMassWindow_;
+  float lowVPtCut_,  lowVPtDetaJJCut_, lowVPtMaxRapCut_;
+  float highVPtCut_;
+  float lowMJJCut_, highMJJCut_;
+  std::vector<TString> lowVPtPhotonTrigs_, highVPtPhotonTrigs_;
+  bool applyTrigSafePhoton_;
+  
+  //categorizer and tree reader
+  vbf::Category category_;  
+  SelectionTool *selector_;	
 };
+
 #endif

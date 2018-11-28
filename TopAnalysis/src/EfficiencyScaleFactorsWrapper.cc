@@ -30,7 +30,7 @@ void EfficiencyScaleFactorsWrapper::init(TString era)
     {
       era_=2017;
       cout << "[EfficiencyScaleFactorsWrapper]" << endl
-           << "\tStarting efficiency scale factors for 2017" << endl
+           << "\tStarting efficiency scale factors for " << era << endl
            << "\tWarnings: no trigger SFs for any object" << endl
            << "\t          missing tk eff for muons" << endl
            << "\t          uncertainties returned are of statistical nature only" << endl

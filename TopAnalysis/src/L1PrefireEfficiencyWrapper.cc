@@ -1,6 +1,7 @@
 #include "TopLJets2015/TopAnalysis/interface/L1PrefireEfficiencyWrapper.h"
 
 #include "TFile.h"
+#include "TKey.h"
 #include "TSystem.h"
 
 #include <iostream>
@@ -18,49 +19,78 @@ L1PrefireEfficiencyWrapper::L1PrefireEfficiencyWrapper(bool isData,TString era)
 //
 void L1PrefireEfficiencyWrapper::init(TString era)
 {
-  
-  era_=2016;
-  cout << "[L1PrefireEfficiencyWrapper]" << endl
-       << "\tStarting efficiency scale factors for 2016!" << endl
-       << "\tThis needs to be fixed once 2017 maps are available" << endl;
 
-  era=era.ReplaceAll("era2017","era2016");
-  TString url(era+"/Map_Jet_L1FinOReff_bxm1_looseJet_SingleMuon_Run2016B-H.root");
+  cout << "[L1PrefireEfficiencyWrapper] with efficiencies for " << era << endl;
+
+  TString url(era.Contains("2016") ?
+              era+"/L1prefiring_jetpt_2016BtoH.root" :
+              era+"/L1prefiring_jetpt_2017BtoF.root");
   gSystem->ExpandPathName(url);
   TFile *fIn=TFile::Open(url);
-  effMapsH_["jet_singlemuon"]=(TEfficiency *)fIn->Get("prefireEfficiencyMap")->Clone("jet_singlemuon");
+  TString key(era.Contains("2016") ?
+              "L1prefiring_jetpt_2016BtoH":
+              "L1prefiring_jetpt_2017BtoF");
+  effMapsH_["jet"]=(TH2 *) fIn->Get(key);
+  effMapsH_["jet"]->SetDirectory(0);
   fIn->Close();
       
-  url=era+"/Map_Jet_L1FinOReff_bxm1_looseJet_JetHT_Run2016B-H.root";
+  url = (era.Contains("2016") ?
+         era+"/L1prefiring_photonpt_2016BtoH.root":
+         era+"/L1prefiring_photonpt_2017BtoF.root");
   gSystem->ExpandPathName(url);
   fIn=TFile::Open(url);
-  effMapsH_["jet_jetht"]=(TEfficiency *)fIn->Get("prefireEfficiencyMap")->Clone("jet_jetht");
+  key=(era.Contains("2016") ?
+       "L1prefiring_photonpt_2016BtoH":
+       "L1prefiring_photonpt_2017BtoF");
+  effMapsH_["photon"]=(TH2 *) fIn->Get(key);
+  effMapsH_["photon"]->SetDirectory(0);
   fIn->Close();        
 }
 
 
 //
-EffCorrection_t L1PrefireEfficiencyWrapper::getJetBasedCorrection(std::vector<Jet> jets)
+EffCorrection_t L1PrefireEfficiencyWrapper::getCorrection(std::vector<Jet> &jets,std::vector<Particle> &photons,bool byMax)
 {
   EffCorrection_t corr(1.0,0.0);
-  if(effMapsH_.size()==0) return corr;
 
   //iterate up to two highest-pT jets
+  Double_t ptmax(effMapsH_["jet"]->GetYaxis()->GetXmax());
   for(size_t i=0; i<min(jets.size(),size_t(2)); i++){
-    TEfficiency *eff=0;
-    if (era_==2016) {
-      eff=jets[i].Pt()<300 ? effMapsH_["jet_singlemuon"] : effMapsH_["jet_jetht"];
+    if(fabs(jets[i].Eta())>3 ) continue;
+    if(jets[i].Pt()<30) continue;    
+    Int_t ibin=effMapsH_["jet"]->FindBin(fabs(jets[i].Eta()),min(jets[i].Pt(),ptmax));
+    Float_t effVal(effMapsH_["jet"]->GetBinContent(ibin));
+    Float_t effUnc(effMapsH_["jet"]->GetBinError(ibin));
+    if(byMax) {
+      corr.first *= (1-effVal);
+      corr.second += pow(effUnc,2) + pow(0.2*effVal,2);    
     }
-    if(!eff) continue;
-    Int_t ibin=eff->FindFixBin(fabs(jets[i].Eta()),jets[i].Pt());
-    Float_t effVal(eff->GetEfficiency(ibin));
-    corr.first *= (1-effVal);
-    corr.second += pow(0.5*(eff->GetEfficiencyErrorLow(ibin)+eff->GetEfficiencyErrorUp(ibin)),2);
-    corr.second += pow(0.2*effVal,2);    
+    else if(1-effVal<corr.first) {
+      corr.first  = (1-effVal);
+      corr.second = pow(effUnc,2) + pow(0.2*effVal,2);
+    }
   }
-  corr.second=sqrt(corr.second);
 
-  
+  //photons
+  ptmax=(effMapsH_["photon"]->GetYaxis()->GetXmax());
+  for(size_t i=0; i<photons.size(); i++){
+    if(fabs(photons[i].Eta())>3 ) continue;
+    if(photons[i].Pt()<20) continue;
+    Int_t ibin=effMapsH_["photon"]->FindBin(fabs(photons[i].Eta()),min(photons[i].Pt(),ptmax));
+    Float_t effVal(effMapsH_["photon"]->GetBinContent(ibin));
+    Float_t effUnc(effMapsH_["photon"]->GetBinError(ibin));
+    if(byMax) {
+      corr.first *= (1-effVal);
+      corr.second += pow(effUnc,2) + pow(0.2*effVal,2);    
+    }
+    else if(1-effVal<corr.first) {
+      corr.first  = (1-effVal);
+      corr.second = pow(effUnc,2) + pow(0.2*effVal,2);
+    }
+  }
+
+  //finalize error
+  corr.second=sqrt(corr.second);  
   return corr;
 }
 

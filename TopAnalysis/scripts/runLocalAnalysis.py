@@ -15,12 +15,12 @@ Wrapper to be used when run in parallel
 """
 def RunMethodPacked(args):
 
-    method,inF,outF,channel,charge,flag,runSysts,systVar,era,tag,debug,CR,QCDTemp,SRfake,mvatree,genWeights=args
+    method,inF,outF,channel,charge,flag,runSysts,systVar,era,tag,debug,CR,QCDTemp,SRfake,mvatree,genWeights,xsec=args
     print args
     print 'Running ',method,' on ',inF
     print 'Output file',outF
     print 'Selection ch=',channel,' charge=',charge,' flag=',flag,' systs=',runSysts
-    print 'Normalization applied from tag=',tag,'from',genWeights
+    print 'Normalization applied from tag=',tag,'from',genWeights,'xsec=',xsec
     print 'Corrections will be retrieved for era=',era
     print 'Make the mva tree? ', mvatree
     print 'Make CR for photon fake rate? ', CR
@@ -28,8 +28,8 @@ def RunMethodPacked(args):
     print 'Prepare the region to apply fake ratio?', SRfake
 
     try:
-        cmd='analysisWrapper --era %s --normTag %s --in %s --out %s --method %s --charge %d --channel %d --flag %d --systVar %s --genWeights %s'\
-            %(era, tag, inF, outF, method, charge, channel, flag, systVar,genWeights)
+        cmd='analysisWrapper --era %s --normTag %s --in %s --out %s --method %s --charge %d --channel %d --flag %d --systVar %s --genWeights %s --xsec %f'\
+            %(era, tag, inF, outF, method, charge, channel, flag, systVar,genWeights,xsec)
         if runSysts : cmd += ' --runSysts'
         if debug : cmd += ' --debug'
         if mvatree : cmd += ' --mvatree'
@@ -62,6 +62,7 @@ def main():
     parser.add_option(      '--systVar',     dest='systVar',     help='single systematic variation  [%default]',   default='nominal',       type='string')
     parser.add_option(      '--debug',       dest='debug',       help='debug mode  [%default]',                            default=False,      action='store_true')
     parser.add_option(      '--flag',        dest='flag',        help='job specific flag  [%default]',   default=0,          type=int)
+    parser.add_option(      '--xsec',        dest='xsec',        help='use this xsec value instead of the json one  [%default]',   default=None,          type=float)
     parser.add_option(      '--ch',          dest='channel',     help='channel  [%default]',                                    default=13,         type=int)
     parser.add_option(      '--charge',      dest='charge',      help='charge  [%default]',                                     default=0,          type=int)
     parser.add_option(      '--era',         dest='era',         help='era to use for corrections/uncertainties  [%default]',   default='era2016',       type='string')
@@ -81,6 +82,7 @@ def main():
 
     #parse selection lists
     onlyList=[]
+    onlyListXsec={}
     try:
         for t in opt.only.split(','):
             if '.json' in t:
@@ -91,11 +93,13 @@ def main():
                     print "Could not open file! Please close Excel!"
                 jsonFile = open(t,'r')
                 samplesList = json.load(jsonFile, encoding='utf-8', object_pairs_hook=OrderedDict).items()
-                for s,_ in samplesList: onlyList.append(s)
+                for s,desc in samplesList: 
+                    onlyList.append(s)
+                    onlyListXsec[s]=desc[0]
                 jsonFile.close()
             else:
                 onlyList.append(t)
-        print onlyList
+        print onlyListXsec
     except:
         pass
     skipList=[]
@@ -142,11 +146,14 @@ def main():
     processedTags=[]
     if '.root' in opt.input:
         inF=opt.input
-        if '/store/' in inF and not 'root:' in inF : inF='root://eoscms//eos/cms'+opt.input        
+        if '/store/' in inF and not 'root:' in inF : inF='root://eoscms//eos/cms'+opt.input              
         for systVar in varList:
             outF=opt.output
+            xsec=1.
+            if opt.tag in onlyListXsec: xsec=onlyListXsec[opt.tag]
+            if opt.xsec: xsec=opt.xsec
             if systVar != 'nominal' and not systVar in opt.output: outF=opt.output[:-5]+'_'+systVar+'.root'
-            task_list.append( (opt.method,inF,outF,opt.channel,opt.charge,opt.flag,opt.runSysts,systVar,opt.era,opt.tag,opt.debug, opt.CR, opt.QCDTemp, opt.SRfake, opt.mvatree,opt.genWeights) )
+            task_list.append( (opt.method,inF,outF,opt.channel,opt.charge,opt.flag,opt.runSysts,systVar,opt.era,opt.tag,opt.debug, opt.CR, opt.QCDTemp, opt.SRfake, opt.mvatree,opt.genWeights,xsec) )
     else:
 
         inputTags=getEOSlslist(directory=opt.input,prepend='')
@@ -154,8 +161,11 @@ def main():
 
             tag=os.path.basename(baseDir)
             if tag=='backup' : continue
+            xsec=1.
+            if tag in onlyListXsec: xsec=onlyListXsec[tag]
+            if opt.xsec: xsec=opt.xsec
 
-            #filter tags
+            #filter tags            
             if len(onlyList)>0:
                 processThisTag=False
                 for itag in onlyList:
@@ -186,7 +196,7 @@ def main():
                         continue
                     if (len(outputOnlyList) > 1 and not outF in outputOnlyList):
                         continue
-                    task_list.append( (opt.method,inF,outF,opt.channel,opt.charge,opt.flag,opt.runSysts,systVar,opt.era,tag,opt.debug, opt.CR, opt.QCDTemp, opt.SRfake, opt.mvatree,opt.genWeights) )
+                    task_list.append( (opt.method,inF,outF,opt.channel,opt.charge,opt.flag,opt.runSysts,systVar,opt.era,tag,opt.debug, opt.CR, opt.QCDTemp, opt.SRfake, opt.mvatree,opt.genWeights,xsec) )
                 if (opt.skipexisting and nexisting): print '--skipexisting: %s - skipping %d of %d tasks as files already exist'%(systVar,nexisting,len(input_list))
 
     #run the analysis jobs
@@ -215,7 +225,7 @@ def main():
             condor.write('+JobFlavour = "{0}"\n'.format(opt.queue))
 
             jobNb=0
-            for method,inF,outF,channel,charge,flag,runSysts,systVar,era,tag,debug,CR,QCDTemp,SRfake,mvatree,genWeights in task_list:
+            for method,inF,outF,channel,charge,flag,runSysts,systVar,era,tag,debug,CR,QCDTemp,SRfake,mvatree,genWeights,xsec in task_list:
 
                 jobNb+=1
                 cfgFile='%s'%(os.path.splitext(os.path.basename(outF))[0])
@@ -232,8 +242,8 @@ def main():
                     cfg.write('eval `scram r -sh`\n')
                     cfg.write('cd ${WORKDIR}\n')
                     localOutF=os.path.basename(outF)
-                    runOpts='-i %s -o ${WORKDIR}/%s --charge %d --ch %d --era %s --tag %s --flag %d --method %s --systVar %s --genWeights %s'\
-                        %(inF, localOutF, charge, channel, era, tag, flag, method, systVar,genWeights)
+                    runOpts='-i %s -o ${WORKDIR}/%s --charge %d --ch %d --era %s --tag %s --flag %d --method %s --systVar %s --genWeights %s --xsec %f'\
+                        %(inF, localOutF, charge, channel, era, tag, flag, method, systVar,genWeights,xsec)
                     if runSysts : runOpts += ' --runSysts'
                     if debug :    runOpts += ' --debug'
                     if mvatree :  runOpts += ' --mvatree'                    

@@ -38,6 +38,7 @@ int main(int argc, char* argv[])
   bool runSysts(false);
   bool debug(false), skimtree(false), CR(false), QCDTemp(false), SRfake(false);
   int channel(0),charge(0),flag(0);
+  float xsec(1.0);
   for(int i=1;i<argc;i++){
     string arg(argv[i]);
     if(arg.find("--help") !=string::npos)                       { printHelp(); return -1;} 
@@ -57,6 +58,7 @@ int main(int argc, char* argv[])
     else if(arg.find("--era")!=string::npos && i+1<argc)        { era=argv[i+1]; i++;}
     else if(arg.find("--method")!=string::npos && i+1<argc)     { method=argv[i+1]; i++;}
     else if(arg.find("--genWeights")!=string::npos && i+1<argc) { genWeights=argv[i+1]; i++;}
+    else if(arg.find("--xsec")!=string::npos && i+1<argc)       { sscanf(argv[i+1],"%f",&xsec); i++;}
   }
 
   if(debug) cout << "Debug mode is active, runSysts=" << runSysts << endl;
@@ -95,8 +97,8 @@ int main(int argc, char* argv[])
   //check method to run
   if(method=="ExclusiveTop::RunExclusiveTop")          RunExclusiveTop(in,out,channel,charge,normH,puH,era,debug);
   else if(method=="VBFVectorBoson::RunVBFVectorBoson") {
-    VBFVectorBoson myVBF(in,out,flag,normH,puH,era,debug,CR,QCDTemp,SRfake,skimtree,true);
-    myVBF.RunVBFVectorBoson();
+    VBFVectorBoson myVBF(in,out,normH,puH,era,xsec,debug,CR,QCDTemp,SRfake,skimtree,true);
+    myVBF.runAnalysis();
   }
   else {
       cout << "Check method=" << method <<endl;

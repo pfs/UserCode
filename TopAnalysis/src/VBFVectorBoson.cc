@@ -191,7 +191,7 @@ void VBFVectorBoson::runAnalysis()
         //if running for control region alter the photon defintion
         if(CR_) {
           if(SRfake_) {
-            photons_.clear();
+            photons_ = tmpPhotons_;
           }
           else {
             if(!QCDTemp_) photons_ = selector_->selPhotons(allPhotons,SelectionTool::CONTROL, leptons);
@@ -254,10 +254,14 @@ void VBFVectorBoson::runAnalysis()
         bool passLoosePu((jid>>2)&0x1);
 
         //for the control region the second jet is required to fail a loose PU ID
-        if(!CR_ && !passPu) continue;
-        if(CR_ && jets.size()==1 && passLoosePu) continue;
-
-        if(!passPu) continue;
+        if(!CR_) {
+	     if(!passPu) continue;
+	}
+	else {
+	     if(jets.size()=!1 && !passPu) continue;
+             if(jets.size()==1 && passLoosePu) continue;
+	}
+	      
         jets.push_back(j);
       }
 

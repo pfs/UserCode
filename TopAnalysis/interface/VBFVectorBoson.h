@@ -42,7 +42,7 @@ class VBFVectorBoson{
                 Float_t xsec,
                 Bool_t debug=false, 
                 Bool_t CR=false, 
-                Bool_t QCDTemp=true, 
+                Bool_t QCDTemp=false, 
                 Bool_t SRfake= false, 
                 Bool_t skimtree=false, 
                 bool runSysts=false,
@@ -142,7 +142,6 @@ private:
     return myRnd>=selFrac ? 1 : 0;
   }
   
-  
   //class variables
   TString filename_, outname_, baseName_;
   Int_t nentries_;
@@ -166,7 +165,7 @@ private:
   EfficiencyScaleFactorsWrapper * gammaEffWR_;
   L1PrefireEfficiencyWrapper *l1PrefireWR_;
   FakeRateTool * fr_;
-  std::vector<Particle> photons_,relaxedTightPhotons_,tmpPhotons_; 
+  std::vector<Particle> photons_,relaxedTightPhotons_,tmpPhotons_,fakePhotons_,inclusivePhotons_; 
 
 
   //Variables to be added to the MVA Tree and additional variables
@@ -193,7 +192,7 @@ private:
   
   //categorizer and tree reader
   vbf::Category category_;  
-  SelectionTool *selector_;	
+  SelectionTool *selector_;
 };
 
 #endif

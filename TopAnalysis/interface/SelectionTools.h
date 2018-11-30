@@ -18,7 +18,7 @@ class SelectionTool {
 
   enum AnalysisType	{TOP=0,VBF=1};
 
-  SelectionTool(TString dataset="",bool debug=false,TH1 *triggerList=0, AnalysisType analysisType = TOP);
+  SelectionTool(TString dataset_="",bool debug=false,TH1 *triggerList=0, AnalysisType analysisType = TOP);
   ~SelectionTool() {}
 
   enum FlavourSplitting {NOFLAVOURSPLITTING=0, UDSGSPLITTING=1, CSPLITTING=4, BSPLITTING=5 };
@@ -254,6 +254,7 @@ class SelectionTool {
   bool isJetHTPD(){ return isJetHTPD_; }
 
  private:
+  TString dataset;
   bool debug_;
   AnalysisType anType_;
   bool isSingleElectronPD_,isSingleMuonPD_,isDoubleEGPD_,isDoubleMuonPD_,isMuonEGPD_,isPhotonPD_,isJetHTPD_;

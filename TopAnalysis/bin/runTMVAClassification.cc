@@ -9,7 +9,8 @@ int main( int argc, char** argv )
   BDTOptimizer* bdt_options;
   bdt_options = NULL;
   TString methodList,ext,category;
-  TString DEFAULT_INFNAME  = "";
+  TString signalFile = "";
+  TString bkgFile = "";
   for (int i=1; i<argc; i++) {
     TString regMethod(argv[i]);
     cout<<regMethod<<endl;
@@ -46,9 +47,14 @@ int main( int argc, char** argv )
       methodList += "BoostedFisher";
       continue;
     }
-    if( regMethod=="--indir"){
+    if( regMethod=="--sig"){
       i++;
-      DEFAULT_INFNAME = std::string (*(argv + i)).c_str();
+      signalFile = std::string (*(argv + i)).c_str();
+      continue;
+    }
+    if( regMethod=="--bkg"){
+      i++;
+      bkgFile = std::string (*(argv + i)).c_str();
       continue;
     }
     if( regMethod=="--cat"){
@@ -62,5 +68,5 @@ int main( int argc, char** argv )
     }
   }
   
-  return TMVAClassification(methodList , ext , bdt_options, DEFAULT_INFNAME, category);
+  return TMVAClassification(methodList , ext , bdt_options, signalFile, bkgFile, category);
 }

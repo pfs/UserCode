@@ -1,13 +1,11 @@
 {
-"MC13TeV_DY50toInf_HT100to200"     : [198.153, 0,  "/DYJetsToLL_M-50_HT-100to200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DYloHT", 41, false, false, 1],
-"MC13TeV_DY50toInf_HT200to400"     : [59.8518, 0,  "/DYJetsToLL_M-50_HT-200to400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DYloHT", 41, false, false, 1],
-"MC13TeV_DY50toInf_HT400to600"     : [8.5731, 0,  "/DYJetsToLL_M-50_HT-400to600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DYloHT", 41, false, false, 1],
-"MC13TeV_DY50toInf_HT600to800"     : [2.14389, 0,  "/DYJetsToLL_M-50_HT-600to800_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DYloHT", 41, false, false, 1],
-"MC13TeV_DY50toInf_HT800to1200"     : [0.99015, 0,  "/DYJetsToLL_M-50_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DYloHT", 41, false, false, 1],
-"MC13TeV_DY50toInf_HT2500toInf"     : [0.0042681, 0,  "/DYJetsToLL_M-50_HT-2500toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DYloHT", 41, false, false, 1],
-"MC13TeV_DY1Jets50toInf_mgMLM" : [1070.469, 0,  "/DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DYlo", 41, false, false, 1],
-"MC13TeV_DY2Jets50toInf_mgMLM" : [375.027, 0,  "/DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DYlo", 41, false, false, 1],
-"MC13TeV_DY3Jets50toInf_mgMLM" : [147.108, 0,  "/DY3JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v2/MINIAODSIM", "DYlo", 41, false, false, 1],
-"MC13TeV_DY4Jets50toInf_mgMLM" : [49.7412, 0,  "/DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAOD-94X_mc2017_realistic_v10-v1/MINIAODSIM", "DYlo", 41, false, false, 1]
+"MC13TeV_2017_DY50toInf_HT70to100_mlm"    : [1, 0,  "/DYJetsToLL_M-50_HT-70to100_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "DYlo", 41, false, false, 1],
+"MC13TeV_2017_DY50toInf_HT100to200_mlm"    : [161.1, 0,  "/DYJetsToLL_M-50_HT-100to200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "DYlo", 41, false, false, 1],
+"MC13TeV_2017_DY50toInf_HT200to400_mlm"    : [48.66, 0,  "/DYJetsToLL_M-50_HT-200to400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM", "DYlo", 41, false, false, 1],
+"MC13TeV_2017_DY50toInf_HT400to600_mlm"    : [6.968, 0,  "/DYJetsToLL_M-50_HT-400to600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "DYlo", 41, false, false, 1],
+"MC13TeV_2017_DY50toInf_HT600to800_mlm"    : [1.743, 0,  "/DYJetsToLL_M-50_HT-600to800_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "DYlo", 41, false, false, 1],
+"MC13TeV_2017_DY50toInf_HT800to1200_mlm"    : [0.8052, 0,  "/DYJetsToLL_M-50_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "DYlo", 41, false, false, 1],
+"MC13TeV_2017_DY50toInf_HT1200to2500_mlm"    : [0.1933, 0,  "/DYJetsToLL_M-50_HT-1200to2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "DYlo", 41, false, false, 1],
+"MC13TeV_2017_DY50toInf_HT2500toInf_mlm"    : [0.003468, 0,  "/DYJetsToLL_M-50_HT-2500toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "DYlo", 41, false, false, 1]
 }
 

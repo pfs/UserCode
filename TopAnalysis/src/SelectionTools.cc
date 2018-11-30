@@ -6,7 +6,8 @@
 using namespace std;
 
 //
-SelectionTool::SelectionTool(TString dataset,bool debug,TH1 *triggerList, AnalysisType anType) :
+SelectionTool::SelectionTool(TString dataset_,bool debug,TH1 *triggerList, AnalysisType anType) :
+  dataset(dataset_),
   debug_(debug),
   anType_(anType),
   isSingleElectronPD_(dataset.Contains("SingleElectron")), 
@@ -361,7 +362,7 @@ std::vector<Particle> SelectionTool::flaggedPhotons(MiniEvent_t &ev)
         if( (pid&0x7f)==0x7f )            qualityFlagsWord |= (0x1 << LOOSE);
         if( ((pid>>10)&0x7f)==0x7f   )    qualityFlagsWord |= (0x1 << MEDIUM);
         if( ((pid>>20)&0x7f)==0x7f   )    qualityFlagsWord |= (0x1 << TIGHT);
-        if( ((addpid>>2)&0x1)         )   qualityFlagsWord |= (0x1 << MVA80);
+        if( ((addpid>>2)&0x1)        )    qualityFlagsWord |= (0x1 << MVA80);
         if( ((addpid>>3)&0x1) )           qualityFlagsWord |= (0x1 << MVA90);
 	if( isInclusivePhoton(ev,ig) )    qualityFlagsWord |= (0x1 << CONTROL);
 	if( isQCDTemplate(ev,ig))         qualityFlagsWord |= (0x1 << QCDTEMP);
@@ -451,6 +452,17 @@ std::vector<Jet> SelectionTool::getGoodJets(MiniEvent_t &ev, double minPt, doubl
     
     //jet kinematic selection
     if(jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) continue;
+
+    //ECAL noise cleaning 
+    //if(ev.isData && dataset.Contains("2017")){
+    // if(dataset.Contains("2017")){
+    //   if(abs(jp4.Eta()) > 2.7 && abs(jp4.Eta()) < 3.0)
+    // 	if(jp4.Pt() < 60) continue;
+    // }
+    // if(dataset.Contains("2017")){
+    //   if(abs(jp4.Eta()) > 2.7 && abs(jp4.Eta()) < 3.0)
+    // 	if(ev.j_emf[k] > 0.5) continue;
+    // }
 
     //flavor based on b tagging
     int flavor = 0;

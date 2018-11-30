@@ -77,7 +77,7 @@ def main():
     parser.add_option(      '--mvatree',     dest='mvatree',     help='make mva tree  [%default]',                            default=False,      action='store_true'),
     parser.add_option(      '--CR',          dest='CR',          help='provide control region for photon FR  [%default]',                            default=False,      action='store_true')
     parser.add_option(      '--QCDTemp',     dest='QCDTemp',     help='provide template for fake photons [%default]',                            default=False,      action='store_true')
-    parser.add_option(      '--SRfake',     dest='SRfake',     help='provide the region to apply the fake ratio [%default]',                            default=False,      action='store_true')
+    parser.add_option(      '--SRfake',      dest='SRfake',     help='provide the region to apply the fake ratio [%default]',                            default=False,      action='store_true')
     (opt, args) = parser.parse_args()
 
     #parse selection lists
@@ -86,7 +86,7 @@ def main():
     try:
         for t in opt.only.split(','):
             if '.json' in t:
-                print "The json file is %s" %opt.only
+                print "The json file is %s" %t
                 try:
                     myfile = open(t, 'r') # or "a+", whatever you need
                 except IOError:

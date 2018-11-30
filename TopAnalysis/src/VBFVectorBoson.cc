@@ -170,6 +170,7 @@ void VBFVectorBoson::runAnalysis()
       photons_.clear();
       relaxedTightPhotons_.clear();
       tmpPhotons_.clear();
+      fakePhotons_.clear();
       sihih_ = 0, chiso_ = 0, r9_ = 0, hoe_ = 0;
       std::vector<Particle> fakeACR,tightACR,QCDTemplate;
       std::map<TString, int> mults;
@@ -187,18 +188,39 @@ void VBFVectorBoson::runAnalysis()
         photons_              = selector_->selPhotons(allPhotons, SelectionTool::TIGHT, leptons);   
         relaxedTightPhotons_  = selector_->selPhotons(allPhotons,SelectionTool::QCDTEMP, leptons);
         tmpPhotons_           = selector_->selPhotons(allPhotons,SelectionTool::RELAXEDTIGHT, leptons);     
+	inclusivePhotons_     = selector_->selPhotons(allPhotons,SelectionTool::CONTROL, leptons);
+	for(auto a : inclusivePhotons_) {
+	  int idx = a.originalReference();
+	  if (!selector_->isFakePhoton(ev_,idx)) continue;
+	  fakePhotons_.push_back(a);
+	}
 
-        //if running for control region alter the photon defintion
-        if(CR_) {
-          if(SRfake_) {
-            photons_ = tmpPhotons_;
-          }
-          else {
-            if(!QCDTemp_) photons_ = selector_->selPhotons(allPhotons,SelectionTool::CONTROL, leptons);
-            else          photons_ = tmpPhotons_;                            
-          }
-        }
-       
+        //Special treatments for based on 
+	//being SR or CR (CR_ option), 
+	//aiming to extract the QCD template (QCDTemp option), 
+	//aiming to apply the fake rate (SRfake option).
+	//Also differences between jet data and photon data
+        if(!CR_){
+	  if (!SRfake_) {
+	    if( photons_.size()>=1) chTag="A";
+	  } else {
+	    if(fakePhotons_.size()>=1){
+	      chTag="A";
+	      photons_.clear();
+	      photons_   =fakePhotons_;
+	    }
+	  }
+	} else {
+	  if(SRfake_) chTag = "";
+	  bool passPhoton = (!SRfake_ && !QCDTemp_ && inclusivePhotons_.size()>=1) || (!SRfake_ && QCDTemp_ && tmpPhotons_.size()>=1);
+	  if(passPhoton) {
+	    chTag="A";
+	    photons_.clear();
+	    if(!QCDTemp_)      photons_   =inclusivePhotons_;
+	    else                photons_   =tmpPhotons_;
+	  }
+	}
+
         //assign relevant information
         if(photons_.size()>0) {
           boson         = photons_[0];
@@ -217,7 +239,6 @@ void VBFVectorBoson::runAnalysis()
           }          
           
           //trigger will be verified later when dividing the categories
-          chTag="A";
         }
         
         //MC truth for the selected photons
@@ -245,23 +266,20 @@ void VBFVectorBoson::runAnalysis()
       std::vector<Jet> alljets = selector_->getGoodJets(ev_,30.,4.7,leptons,photons_);
       std::vector<Jet> jets;
       for(auto j : alljets) {
-
         int idx=j.getJetIndex();
         if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
-
         int jid=ev_.j_id[idx];
         bool passPu((jid>>jetPuId_)&0x1);
         bool passLoosePu((jid>>2)&0x1);
 
         //for the control region the second jet is required to fail a loose PU ID
-        if(!CR_) {
-	     if(!passPu) continue;
+	if(!CR_) {
+	  if(!passPu) continue;
+	} else {
+	  if(jets.size()!=1 && !passPu) continue;
+	  if(jets.size()==1 && passLoosePu) continue;
 	}
-	else {
-	     if(jets.size()=!1 && !passPu) continue;
-             if(jets.size()==1 && passLoosePu) continue;
-	}
-	      
+        
         jets.push_back(j);
       }
 
@@ -289,8 +307,8 @@ void VBFVectorBoson::runAnalysis()
         passHighVPtTrig=false;
         for(auto tname : highVPtPhotonTrigs_) passHighVPtTrig |= selector_->hasTriggerBit(tname,ev_.triggerBits);
       }
-      cat[3]  = ( boson.Pt()>lowVPtCut_  && boson.Pt()<=highVPtCut_ && isBosonTrigSafe);
-      cat[4]  = ( boson.Pt()>highVPtCut_ && isBosonTrigSafe);
+      cat[3]  = ( passLowVPtTrig  && boson.Pt()>lowVPtCut_  && boson.Pt()<=highVPtCut_ && isBosonTrigSafe);
+      cat[4]  = ( passHighVPtTrig && boson.Pt()>highVPtCut_ && isBosonTrigSafe);
       if(jets.size()>=2 && jets[0].Pt()>leadJetPt_ && jets[1].Pt()>subLeadJetPt_) {
         cat[5]  =  (vbfVars_.mjj>lowMJJCut_ && vbfVars_.mjj<=highMJJCut_);
         cat[6]  =  (vbfVars_.mjj>highMJJCut_);
@@ -632,11 +650,21 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("subleadeta",    new TH1F("subleadeta",       ";Sub-leading jet |#eta|;Events",      25,0,5));  
   ht_->addHist("leadpumva",     new TH1F("leadpumva",        ";Pileup MVA;Events",                  25,-1,1));  
   ht_->addHist("subleadpumva",  new TH1F("subleadpumva"   ,  ";Pileup MVA;Events",                  25,-1,1));  
-  ht_->addHist("etaphi",        new TH2F("etaphi",           ";Most central jet |#eta|V|#phi|;Events",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
-  ht_->addHist("centralEtaVphi",   new TH2F("centralEtaVphi",    ";Most central jet #eta;#phi",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
-  ht_->addHist("centralEtaVpuMva", new TH2F("centralEtaVpuMva",  ";Most central jet #eta;PUMVA",30,-4.7,4.7,25,-1,1));
-  ht_->addHist("forwardEtaVphi",   new TH2F("forwardEtaVphi",    ";Most forward jet #eta;#phi",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
-  ht_->addHist("forwardEtaVpuMva", new TH2F("forwardEtaVpuMva",  ";Most forward jet #eta;PUMVA",30,-4.7,4.7,25,-1,1));
+
+  // Study the jet bump
+  ht_->addHist("ptcentj",          new TH2F("ptcentj",          ";Cent Jet p_{T}; #eta_{j}",25,20,280,25,0,5));  
+  ht_->addHist("ptfwdj",           new TH2F("ptfwdj",           ";Fwd Jet p_{T}; #eta_{j}",25,30,280,25,0,5)); 
+  ht_->addHist("gawidthcentj",     new TH2F("gawidthcentj",     ";gawidth cent jet;#eta_{j}",100,-1,1,25,0,5));
+  ht_->addHist("gawidthfwdj",      new TH2F("gawidthfwdj",      ";gawidth fwd jet;#eta_{j}",100,-1,1,25,0,5));
+  ht_->addHist("emfcentj",         new TH2F("emfcentj",         ";emf cent jet;#eta_{j}",100,0,2,25,0,5));
+  ht_->addHist("emffwdj",          new TH2F("emffwdj",          ";emf fwd jet;#eta_{j}",100,0,2,25,0,5));
+  ht_->addHist("etaphi",           new TH2F("etaphi",           ";Most central jet #eta;#phi [rad];Events",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
+  ht_->addHist("centEtaVphi",      new TH2F("centEtaVphi",      ";Most central jet #eta;#phi [rad]",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
+  ht_->addHist("centEtaVpuMva",    new TH2F("centEtaVpuMva",    ";Most central jet #eta;PUMVA",30,-4.7,4.7,25,-1,1));
+  ht_->addHist("fwdEtaVphi",       new TH2F("fwdEtaVphi",       ";Most forward jet #eta;#phi [rad]",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
+  ht_->addHist("fwdEtaVpuMva",     new TH2F("fwdEtaVpuMva",     ";Most forward jet #eta;PUMVA",30,-4.7,4.7,25,-1,1));
+
+  //other jet variables
   ht_->addHist("jet_raw_pt",    new TH1F("jet_raw_pt",       ";raw PT of jets;Jets",                50,0,200));
   ht_->addHist("jet_raw_empt",  new TH1F("jet_raw_empt",     ";raw e.m. PT of jets;Jets",           50,0,200));
   ht_->addHist("jet_emf",       new TH1F("jet_emf",          ";Electromagnetic fraction;Jets",      50,0,1));
@@ -648,7 +676,7 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("jet_gaptd",     new TH1F("jet_gaptd",        ";Jet p_{T}^{D};Jets",                 50,0,1));  
   ht_->addHist("jet_gawidth",   new TH1F("jet_gawidth",      ";Jet width;Jets",                     50,0,1));
 
-  ht_->addHist("mjj", 	       new TH1F("mjj",              ";Dijet invariant mass [GeV];Events", 40,0,4000));  
+  ht_->addHist("mjj", 	        new TH1F("mjj",              ";Dijet invariant mass [GeV];Events", 40,0,4000));  
   ht_->addHist("detajj",        new TH1F("detajj" ,          ";#Delta#eta(J,J);Events",            20,0,8));  
   ht_->addHist("dphijj",        new TH1F("dphijj" ,          ";#Delta#phi(J,J) [rad];Events",      20,-3.15,3.15));  
   ht_->addHist("dijetpt",       new TH1F("dijetpt",          ";Dijet p_{T} [GeV];Events",          20,0,1000));  
@@ -669,7 +697,7 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("circularity",   new TH1F("circularity",      ";Circularity;;Events",               20,0,1.0));
   //additional variables from https://link.springer.com/content/pdf/10.1140/epjc/s10052-017-5315-6.pdf
   ht_->addHist("jjetas",        new TH1F("jjetas",           ";#eta_{j1}#eta_{j2};Events",50,-25,15));  
-  ht_->addHist("centjy",	       new TH1F("centjy",           ";Central jet rapidity;Jets",25,0,3));  
+  ht_->addHist("centjy",	new TH1F("centjy",           ";Central jet rapidity;Jets",25,0,3));  
   ht_->addHist("ncentj",        new TH1F("ncentjj",          ";Number of central jets;Events",10,-0.5,9.5));  
   ht_->addHist("dphivj0",       new TH1F("dphivj0",          ";#Delta#phi(V,j0);Jets",20,0,TMath::Pi()));  
   ht_->addHist("dphivj1",       new TH1F("dphivj1",          ";#Delta#phi(V,j1);Jets",20,0,TMath::Pi()));  
@@ -737,6 +765,7 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("ntightprompt",     new TH1F("ntightprompt",     ";Number of prompt tight #gamma; Events",20,-0.5,19.5));
   //2D's for Mjj-binned FR
   double bins[]={0,500,1000,2000,4000};
+
   ht_->addHist("relaxedTightMjjEB",  new TH2F("relaxedTightMjjEB",";Relaxed tight #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins)); //80,0,4000
   ht_->addHist("tightMjjEB",         new TH2F("tightMjjEB",";Tight #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
   ht_->addHist("looseMjjEB",         new TH2F("looseMjjEB",";Loose #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
@@ -767,6 +796,7 @@ void VBFVectorBoson::loadCorrections(){
 
 //
 void VBFVectorBoson::addMVAvars(){
+
   newTree_->Branch("centralEta",       &vbfVars_.centraleta);
   newTree_->Branch("forwardeta",       &vbfVars_.forwardeta);
   newTree_->Branch("leadj_pt",         &vbfVars_.leadj_pt);
@@ -879,6 +909,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   }
 
   //jet histos
+
   ht_->fill("njets",        jets.size(), cplotwgts,c);
   ht_->fill("ht",           vbfVars_.scalarht,    cplotwgts,c);
   ht_->fill("mht",          vbfVars_.mht,         cplotwgts,c);
@@ -904,10 +935,15 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
     ht_->fill("jet_qg"   ,ev_.j_qg[jets[ij].getJetIndex()]    , cplotwgts,c);
     ht_->fill2D("etaphi",  jets[ij].Eta(),jets[ij].Phi() ,   cplotwgts,c);    
 
-    TString pfix("central");
-    if(fabs(fabs(jets[ij].Eta())-vbfVars_.forwardeta)<0.05) pfix="forward";
-    ht_->fill2D(pfix+"EtaVphi",    jets[ij].Eta(), jets[ij].Phi(),      cplotwgts,c);
-    ht_->fill2D(pfix+"EtaVpuMva",  jets[ij].Eta(), jets[ij].getPUMVA(), cplotwgts,c);
+    TString postfix("centj");
+    if(fabs(fabs(jets[ij].Eta())-vbfVars_.forwardeta)<0.05) {
+      postfix = "fwdj";
+    }
+    ht_->fill2D(postfix+"EtaVphi",    jets[ij].Eta(), jets[ij].Phi(),      cplotwgts,c);
+    ht_->fill2D(postfix+"EtaVpuMva",  jets[ij].Eta(), jets[ij].getPUMVA(), cplotwgts,c);
+    ht_->fill2D("pt"+postfix,      fabs(jets[ij].Eta()), jets[ij].Pt(), cplotwgts,c);
+    ht_->fill2D("gawidth"+postfix, ev_.j_gawidth[jets[ij].getJetIndex()],  fabs(jets[ij].Eta()), cplotwgts,c);
+    ht_->fill2D("emf"+postfix,     ev_.j_emf[jets[ij].getJetIndex()],      fabs(jets[ij].Eta()), cplotwgts,c);
   }
   ht_->fill("centraleta",   vbfVars_.centraleta,  cplotwgts,c);
   ht_->fill("forwardeta",   vbfVars_.forwardeta,  cplotwgts,c);
@@ -918,7 +954,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   ht_->fill("jjetas",       vbfVars_.jjetas,   cplotwgts,c);
   ht_->fill("dphivj0",      vbfVars_.dphivj0 ,  cplotwgts,c);
   ht_->fill("dphivj1",      vbfVars_.dphivj1 ,  cplotwgts,c);
-  
+ 
   //central jet activity
   ht_->fill("ncentj", vbfVars_.ncentj, cplotwgts, c);
   if(vbfVars_.ncentj>0){

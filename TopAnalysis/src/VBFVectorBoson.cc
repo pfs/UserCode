@@ -330,8 +330,8 @@ void VBFVectorBoson::runAnalysis()
       //evaluate discriminator MVA for categories of interest
       //FIXME: this probably needs to be modified for the new training
       vbfmva_ = -1000;
-      if(cat[4] || cat[5]) {
-        TString key(cat[4] ?"BDT_VBF0HighMJJ":"BDT_VBF0LowMJJ");
+      if(cat[5] || cat[6]) {
+        TString key(cat[3] ?"BDT_VBF0HighMJJ":"BDT_VBF0LowMJJ");
         vbfmva_ = readers[key]->EvaluateMVA(key);
         if(mvaCDFinv[key]) vbfmva_=max(0.,mvaCDFinv[key]->Eval(vbfmva_));
         if(doBlindAnalysis_ && ev_.isData && vbfmva_>0.8) vbfmva_=-1000;
@@ -433,8 +433,7 @@ void VBFVectorBoson::runAnalysis()
         else if(sname=="seldn")       iwgt *= puWgts[0]*trigSF.first*(selSF.first-selSF.second)*l1prefireProb.first;
         else if(sname=="l1prefireup") iwgt *= puWgts[0]*trigSF.first*selSF.first*(l1prefireProb.first+l1prefireProb.second);
         else if(sname=="l1prefiredn") iwgt *= puWgts[0]*trigSF.first*selSF.first*(l1prefireProb.first-l1prefireProb.second);
-        else                          iwgt = wgt;
-
+        else                          iwgt = wgt;           
 
         if(sname.Contains("aes") && chTag=="A")  {
           reSelect=true;
@@ -659,10 +658,10 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("emfcentj",         new TH2F("emfcentj",         ";emf cent jet;#eta_{j}",100,0,2,25,0,5));
   ht_->addHist("emffwdj",          new TH2F("emffwdj",          ";emf fwd jet;#eta_{j}",100,0,2,25,0,5));
   ht_->addHist("etaphi",           new TH2F("etaphi",           ";Most central jet #eta;#phi [rad];Events",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
-  ht_->addHist("centEtaVphi",      new TH2F("centEtaVphi",      ";Most central jet #eta;#phi [rad]",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
-  ht_->addHist("centEtaVpuMva",    new TH2F("centEtaVpuMva",    ";Most central jet #eta;PUMVA",30,-4.7,4.7,25,-1,1));
-  ht_->addHist("fwdEtaVphi",       new TH2F("fwdEtaVphi",       ";Most forward jet #eta;#phi [rad]",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
-  ht_->addHist("fwdEtaVpuMva",     new TH2F("fwdEtaVpuMva",     ";Most forward jet #eta;PUMVA",30,-4.7,4.7,25,-1,1));
+  ht_->addHist("centjEtaVphi",      new TH2F("centjEtaVphi",      ";Most central jet #eta;#phi [rad]",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
+  ht_->addHist("centjEtaVpuMva",    new TH2F("centjEtaVpuMva",    ";Most central jet #eta;PUMVA",30,-4.7,4.7,25,-1,1));
+  ht_->addHist("fwdjEtaVphi",       new TH2F("fwdjEtaVphi",       ";Most forward jet #eta;#phi [rad]",30,-4.7,4.7,25,-TMath::Pi(),TMath::Pi()));
+  ht_->addHist("fwdjEtaVpuMva",     new TH2F("fwdjEtaVpuMva",     ";Most forward jet #eta;PUMVA",30,-4.7,4.7,25,-1,1));
 
   //other jet variables
   ht_->addHist("jet_raw_pt",    new TH1F("jet_raw_pt",       ";raw PT of jets;Jets",                50,0,200));

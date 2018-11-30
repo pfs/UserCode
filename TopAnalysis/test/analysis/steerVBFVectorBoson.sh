@@ -35,16 +35,15 @@ NC='\e[0m'
 case $WHAT in
 
     TESTSEL )
-       
-        #tag=Data13TeV_2017C_SinglePhoton
+               
         json=data/era2017/vbf_samples.json
         tag=MC13TeV_2017_EWKAJJ
-        tag=Data13TeV_2017B_DoubleEG
+        #tag=Data13TeV_2017B_DoubleEG
         input=${eosdir}/${tag}/Chunk_0_ext0.root
         output=${tag}.root 
 
 	python scripts/runLocalAnalysis.py \
-            -i ${input} -o ${output} --tag ${tag} --only ${json}\
+            -i ${input} -o ${output} --tag ${tag} --only ${json} --mvatree\
             --njobs 1 -q local --genWeights genweights_${githash}.root \
             --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --debug;
 

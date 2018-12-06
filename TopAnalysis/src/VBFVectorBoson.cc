@@ -286,6 +286,10 @@ void VBFVectorBoson::runAnalysis()
 
       //variables
       vbfVars_.fillDiscriminatorVariables(boson,jets,ev_);
+      //Flexiblity for jet pt cut --- similar to reselect part 
+      if(vbfVars_.leadj_pt    < leadJetPt_)    continue;
+      if(vbfVars_.subleadj_pt < subLeadJetPt_) continue;
+
       mindrl_=9999.;
       for(auto &l: leptons) mindrl_ = min(l.DeltaR(boson),Double_t(mindrl_));
       mindrj_=9999.;
@@ -307,9 +311,9 @@ void VBFVectorBoson::runAnalysis()
         passHighVPtTrig=false;
         for(auto tname : highVPtPhotonTrigs_) passHighVPtTrig |= selector_->hasTriggerBit(tname,ev_.triggerBits);
       }
-      cat[3]  = ( passLowVPtTrig  && boson.Pt()>lowVPtCut_  && boson.Pt()<=highVPtCut_ && isBosonTrigSafe);
-      cat[4]  = ( passHighVPtTrig && boson.Pt()>highVPtCut_ && isBosonTrigSafe);
-      if(jets.size()>=2 && jets[0].Pt()>leadJetPt_ && jets[1].Pt()>subLeadJetPt_) {
+      cat[3]  = (passLowVPtTrig && boson.Pt()>lowVPtCut_  && boson.Pt()<=highVPtCut_ && isBosonTrigSafe);
+      cat[4]  = (passHighVPtTrig && boson.Pt()>highVPtCut_ && isBosonTrigSafe);
+      if(jets.size()>=2) {
         cat[5]  =  (vbfVars_.mjj>lowMJJCut_ && vbfVars_.mjj<=highMJJCut_);
         cat[6]  =  (vbfVars_.mjj>highMJJCut_);
       }
@@ -397,6 +401,9 @@ void VBFVectorBoson::runAnalysis()
       if(skimtree_) {
         evtWeight_ = plotwgts[0]*xsec_;
         training_ = useForTraining(); 	
+	if(!cat[2]) continue;
+	if(!cat[3] && !cat[4]) continue;
+	if (float(iev) > nentries_*0.2) break;
         newTree_->Fill();
       }
 
@@ -516,7 +523,7 @@ void VBFVectorBoson::runAnalysis()
             ijets.push_back(j);
           }
         }
-        
+
         //re-select if needed
         if(reSelect) {
           

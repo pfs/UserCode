@@ -79,34 +79,20 @@ int TMVAClassification( TString myMethodList , TString extention, BDTOptimizer* 
 
    std::vector<TString> cats = TMVA::gTools().SplitString( string(category), ':' );
    TString cut = "";
-   bool isHighMJJ (false), isLowMJJ(false);
+   bool isLowVptHighMJJ (false), isLowVpt(false), isHighMJJ(false), isHighVpt(false);
    for (unsigned int iCat = 0; iCat < cats.size(); iCat++){
-     if (cats[iCat] == "VBF") {cout<<"It is HighMJJ!"<<endl; isHighMJJ = true;}
-     if (cats[iCat] == "HighPt") {cout<<"It is LowMJJ!"<<endl; isLowMJJ = true; }
+     if (cats[iCat] == "LowVPt") {cout<<"It is LowVPt!"<<endl; isLowVpt = true;}
+     if (cats[iCat] == "HighVPt") {cout<<"It is HighVPt!"<<endl; isHighVpt = true; }
+     if (cats[iCat] == "HighMJJ") {cout<<"It is HighMJJ!"<<endl; isHighMJJ = true; }
 
      cut+= "category." + cats[iCat] + " == 1 ";
      if(iCat < cats.size() - 1)
        cut+= " && ";
      
    }
-   cut += " && j_pt[1] > 50 && j_pt[0] > 50 ";
-   TString nTrainBkg = "nTrain_Background=";
-   //HighMJJ
-   if (isHighMJJ){
-     cut += " && mjj > 1000 && gamma_pt[0] < 200 ";
-     nTrainBkg=nTrainBkg+"5000";
-   } 
-   //LowMJJ
-   else if (isLowMJJ){
-     cut += " && mjj > 500";
-     if (extention.Contains("HPtHM"))
-       cut += " && mjj > 1000";
-     if (extention.Contains("HPtLM"))
-       cut += " && mjj < 1000";
-     nTrainBkg=nTrainBkg+"10000";
-   }
 
-   if (nTrainBkg=="nTrain_Background=") nTrainBkg=nTrainBkg+"5000";
+   isLowVptHighMJJ = (isLowVpt && isHighMJJ);
+   
 
    TString cutB = cut;
    int idx = cutB.Index("category.A");
@@ -116,21 +102,16 @@ int TMVAClassification( TString myMethodList , TString extention, BDTOptimizer* 
    TCut mycutb = TCut(cut) || dyCut;
 
    if (Use["VBF"]) {
-     if(isLowMJJ){
-       if(extention.Contains("HPtHM"))
-	 //dataloader->setHPtHMVariables();
-	 dataloader->setAllVariables();
-       else if(extention.Contains("HPtLM"))
-	 //	 dataloader->setHPtLMVariables();
-	 dataloader->setAllVariables();
-       else  	 dataloader->setAllVariables(); //dataloader->setLowMJJVariables(); 
-     } else if (isHighMJJ)
-       //       dataloader->setHighMJJVariables(); 
-       dataloader->setAllVariables();
+     if(isHighVpt)
+       dataloader->setHighVPtVariables();
+     //dataloader->setAllVariables();
+     else if (isLowVptHighMJJ)
+       dataloader->setLowVPtHighMJJVariables(); 
+     //dataloader->setAllVariables();
      else dataloader->setAllVariables(false); 
    }
    else if (Use["Cuts"] || Use["CutsD"]) dataloader->setCutOptVars();
-   else if (Use["Fisher"] || Use["BoostedFisher"]) dataloader->setBestVars(isHighMJJ, false);
+   else if (Use["Fisher"] || Use["BoostedFisher"]) dataloader->setBestVars(isLowVptHighMJJ, false);
   
    dataloader->AddSignalTree( signalTree,     signalWeight );
    dataloader->AddBackgroundTree( background, 1 );

@@ -45,7 +45,7 @@ case $WHAT in
 	python scripts/runLocalAnalysis.py \
             -i ${input} -o ${output} --tag ${tag} --only ${json} --mvatree\
             --njobs 1 -q local --genWeights genweights_${githash}.root \
-            --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --debug;
+            --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --debug --mvatree;
 
         #--debug --mvatree \
         ;;
@@ -58,14 +58,17 @@ case $WHAT in
 
         json=data/era2017/vbf_samples.json,data/era2017/vbf_syst_samples.json
 	if [[ -z ${EXTRA} ]]; then
+	    echo "Making trees ... "
 	    extraOpts=" --mvatree"
+	    json=data/era2017/vbf_trees.json
+	    EXTRA="MVATrees"
         fi
 	python scripts/runLocalAnalysis.py \
 	    -i ${eosdir} --only ${json}\
             -o ${outdir}/${githash}/${EXTRA} \
             --farmappendix ${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts ${extraOpts};
+            --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --skip DR04 ${extraOpts};
 	;;
 
 

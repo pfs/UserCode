@@ -38,14 +38,14 @@ def submitProduction(tag,lfnDirBase,dataset,isData,cfg,workDir,lumiMask,era='era
     config_file.write('config.Data.inputDataset = "%s"\n' % dataset)
     config_file.write('config.Data.inputDBS = "global"\n')
     config_file.write('config.Data.useParent = %s\n'% bool(addParents) )
-    config_file.write('config.Data.splitting = "Automatic"\n')
     if isData :         
+        config_file.write('config.Data.splitting = "Automatic"\n')
         #config_file.write('config.Data.splitting = "LumiBased"\n')
         #config_file.write('config.Data.unitsPerJob = 100\n')
         config_file.write('config.Data.lumiMask = \'%s\'\n' %lumiMask)
-    #else : 
-        #config_file.write('config.Data.splitting = "FileBased"\n')
-        #config_file.write('config.Data.unitsPerJob = 4\n')
+    else : 
+        config_file.write('config.Data.splitting = "FileBased"\n')
+        config_file.write('config.Data.unitsPerJob = 4\n')
      
     config_file.write('config.Data.ignoreLocality = False\n')    
     config_file.write('config.Data.publication = False\n')

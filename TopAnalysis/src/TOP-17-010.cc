@@ -541,13 +541,17 @@ void TOP17010::runAnalysis()
 
         //fill with new values/weights
         std::vector<double> eweights(1,iwgt);
+
         ht_->fill2D("evcount_exp", 0.,  is, eweights, icat);
         for(auto p4 : lbPairs){
           ht_->fill2D("drlb_exp",  p4.getDR(),  is, eweights, icat);
           ht_->fill2D("ptlb_exp",  p4.M(),      is, eweights, icat);
           ht_->fill2D("mlb_exp",   p4.M(),      is, eweights, icat);
+
           TString c(icat+(p4.Pt()>100?"highpt":"lowpt"));
-          ht_->fill2D("mlb_exp",   p4.M(),      is, eweights, c);
+          std::vector<TString> cat_vec(2,c);
+          cat_vec[1] += (lbPairs.size()==1 ? "1b" : "2b");
+          ht_->fill2D("mlb_exp",   p4.M(),      is, eweights, cat_vec);
         }
       }
 
@@ -597,7 +601,9 @@ void TOP17010::fillControlHistograms(TopWidthEvent &twe,float &wgt) {
     ht_->fill("ptlb", p4.Pt(), cplotwgts, twe.cat);
     ht_->fill("mlb",  p4.M(),  cplotwgts, twe.cat);
     TString c(twe.cat+(p4.Pt()>100?"highpt":"lowpt"));
-    ht_->fill("mlb",  p4.M(),  cplotwgts, c);
+    std::vector<TString> cat_vec(2,c);
+    cat_vec[1] += (lbPairs.size()==1 ? "1b" : "2b");
+    ht_->fill("mlb",  p4.M(),  cplotwgts, cat_vec);
   }
 
   //theory uncertainties are filled only for MC
@@ -615,7 +621,9 @@ void TOP17010::fillControlHistograms(TopWidthEvent &twe,float &wgt) {
       ht_->fill2D("ptlb_th",  p4.Pt(), is, sweights, twe.cat);
       ht_->fill2D("mlb_th",   p4.M(),  is, sweights, twe.cat);
       TString c(twe.cat+(p4.Pt()>100?"highpt":"lowpt"));
-      ht_->fill2D("mlb_th",   p4.M(),  is, sweights, c);
+      std::vector<TString> cat_vec(2,c);
+      cat_vec[1] += (lbPairs.size()==1 ? "1b" : "2b");
+      ht_->fill2D("mlb_th",   p4.M(),  is, sweights, cat_vec);
     }
   }
 }

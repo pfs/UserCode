@@ -1,5 +1,7 @@
 {
 "MC13TeV_2016_TTJets"               : [832, 0,     "/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM", "t#bar{t}", 920, true, false, 1],
+"MC13TeV_2016_TTJetsTo2L2Nu"        : [87.5, 0,     "/TTTo2L2Nu_TuneCUETP8M2_ttHtranche3_13TeV-powheg-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "t#bar{t}", 920, true, false, 1],
+"MC13TeV_2016_TTJetsTo2L2Nu_fxfx"   : [87.5, 0,     "/TTJets_Dilept_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM", "t#bar{t}", 920, true, false, 1],
 "MC13TeV_2016_TTJets_fsrdn_ext"     : [832, 0,     "/TT_TuneCUETP8M2T4_13TeV-powheg-fsrdown-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v1/MINIAODSIM", "t#bar{t} fsrdn", 920, true, false, 1],
 "MC13TeV_2016_TTJets_fsrup"         : [832, 0,     "/TT_TuneCUETP8M2T4_13TeV-powheg-fsrup-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM", "t#bar{t} fsrup", 920, true, false, 1],
 "MC13TeV_2016_TTJets_fsrup_ext"     : [832, 0,     "/TT_TuneCUETP8M2T4_13TeV-powheg-fsrup-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v1/MINIAODSIM", "t#bar{t} fsrup", 920, true, false, 1],
@@ -33,6 +35,10 @@
 "MC13TeV_2016_WZ"                    : [47.13, 0,   "/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM", "Multiboson", 815, false, false, 1],
 "MC13TeV_2016_WW"                    : [12.178, 0,  "/WW_TuneCUETP8M1_13TeV-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM", "Multiboson", 815, false, false, 1],
 "MC13TeV_2016_WJets_mlm"             : [524.2, 0,   "/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v2/MINIAODSIM", "W", 797,false,false,1],
+"MC13TeV_2016_DY50toInf_fxfx_psup"        : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_UpPS/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "DYpsup", 41, false, false, 1],
+"MC13TeV_2016_DY50toInf_fxfx_psdn"        : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_DownPS/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "DYpsdn", 41, false, false, 1],
+"MC13TeV_2016_DY50toInf_fxfx_ueup"        : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_CUETP8M1Up/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "DYueup", 41, false, false, 1],
+"MC13TeV_2016_DY50toInf_fxfx_uedn"        : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_CUETP8M1Down/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "DYuedn", 41, false, false, 1],
 "MC13TeV_2016_DY50toInf_fxfx"        : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v1/MINIAODSIM", "DY", 41, false, false, 1],
 "MC13TeV_2016_DY50toInf_mlm"         : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM", "DY", 41, false, false, 1],
 "MC13TeV_2016_DY50toInf_mlm_ext"     : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v2/MINIAODSIM", "DY", 41, false, false, 1],

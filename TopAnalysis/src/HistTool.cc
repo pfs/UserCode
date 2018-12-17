@@ -65,6 +65,12 @@ void HistTool::fill(TString title, double value, std::vector<double> weights,TSt
 }
 
 
+void HistTool::fill2D(TString title, double valueX, double valueY, std::vector<double> weights,std::vector<TString> cats) {
+  for(auto &c : cats)
+    fill2D(title,valueX,valueY,weights,c);
+}
+
+
 void HistTool::fill2D(TString title, double valueX, double valueY, std::vector<double> weights,TString cat) {
   
   if (not all2dPlots_.count(title)) {

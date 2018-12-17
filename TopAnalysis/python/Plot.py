@@ -5,10 +5,10 @@ from collections import OrderedDict
 
 from TopLJets2015.TopAnalysis.rounding import *
 
-"""
-increments the first and the last bin to show the under- and over-flows
-"""
 def fixExtremities(h,addOverflow=True,addUnderflow=True):
+
+    """increments the first and the last bin to show the under- and over-flows"""
+
     if addUnderflow :
         fbin  = h.GetBinContent(0) + h.GetBinContent(1)
 	fbine = ROOT.TMath.Sqrt(h.GetBinError(0)*h.GetBinError(0) + h.GetBinError(1)*h.GetBinError(1))

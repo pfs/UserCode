@@ -26,6 +26,7 @@ def main():
     parser.add_option('-O', '--outDir',      dest='outDir' ,     help='output directory',                default=None,              type='string')
     parser.add_option('-o', '--outName',     dest='outName' ,    help='name of the output file',        default='plotter.root',    type='string')
     parser.add_option(      '--noStack',     dest='noStack',     help='don\'t stack distributions',     default=False,             action='store_true')
+    parser.add_option(      '--binWid',      dest='binWid',      help='divide by bin width',            default=False,             action='store_true')
     parser.add_option(      '--saveLog',     dest='saveLog' ,    help='save log versions of the plots', default=False,             action='store_true')
     parser.add_option(      '--silent',      dest='silent' ,     help='only dump to ROOT file',         default=False,             action='store_true')
     parser.add_option(      '--ratioRange',  dest='ratioRange' , help='ratio range',                    default="0.4,1.6",         type='string')
@@ -160,8 +161,7 @@ def main():
                                                 obj.SetBinContent(xbin, ybin, 0)
                                                 obj.SetBinError(xbin, ybin, 0)
                                         weighthist = obj.ProjectionX('_px'+str(ybin), ybin, ybin)
-                                        weighthist.SetTitle(sp[1]+' weight '+str(ybin))
-                                        fixExtremities(weighthist, False, False)
+                                        weighthist.SetTitle(sp[1]+' weight '+str(ybin))                                  
                                         weighthist.Draw()
                                         if (weighthist.Integral() > 0): histos.append(weighthist)
                                 else:
@@ -170,7 +170,6 @@ def main():
                                 histos.append(obj)
                                 histos[-1].SetTitle(sp[1])
                         else:
-                            fixExtremities(obj, False, False)
                             histos.append(obj)
                             histos[-1].SetTitle(sp[1])
 
@@ -204,7 +203,13 @@ def main():
                                 plots[key].ratiorange=opt.ratioRange
 
                             #add process to plot
-                            plots[key].add(h=hist,title=hist.GetTitle(),color=sp[2],isData=sample[1],spImpose=isSignal,isSyst=(isSyst or keyIsSyst))
+                            plots[key].add(h=hist,
+                                           title=hist.GetTitle(),
+                                           color=sp[2],
+                                           isData=sample[1],
+                                           spImpose=isSignal,
+                                           isSyst=(isSyst or keyIsSyst),
+                                           doDivideByBinWidth=opt.binWid)
                             
                     except Exception as e:
                         print e

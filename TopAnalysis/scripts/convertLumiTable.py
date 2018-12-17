@@ -17,7 +17,7 @@ def getLumiTable(args):
 
     #run brilcalc
     extraOpt='--hltpath %s*'%trig if trig!='inc' else ''    
-    rawLumiTable=commands.getstatusoutput('brilcalc lumi -b "STABLE BEAMS" -u /pb -i %s %s'%(opt.lumiMask,extraOpt))[1].split('\n')
+    rawLumiTable=commands.getstatusoutput('brilcalc lumi -b "STABLE BEAMS" -u /pb -i %s --normtag %s %s'%(opt.lumiMask,opt.normtag,extraOpt))[1].split('\n')
 
     #parse lumi output file
     valList=[]
@@ -70,7 +70,8 @@ def main():
     #configuration
     usage = 'usage: %prog [options]'
     parser = optparse.OptionParser(usage)
-    parser.add_option('-o', '--out',      dest='out'   ,      help='output dir',    default='data/era2017/',    type='string')
+    parser.add_option('-o', '--out',      dest='out'   ,      help='output dir',         default='data/era2017/',    type='string')
+    parser.add_option(      '--normtag',  dest='normtag'   ,  help='norm tag',           default='/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json',    type='string')
     parser.add_option('-y', '--year',     dest='year'   ,     help='year [%default]',    default=2017, type=int)
     parser.add_option('-l', '--lumi',     dest='lumiMask',    help='json with list of good lumis', default='/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt')
     (opt, args) = parser.parse_args()

@@ -24,7 +24,6 @@ if [ -z "$WHAT" ]; then
     echo "        WWW          - move plots to web-based (if given \"extra\" is appended to the directory)"
     exit 1; 
 fi
-
 githash=3129835
 eosdir=/store/cmst3/group/top/RunIIReReco/${githash}
 fulllumi=41367
@@ -33,7 +32,7 @@ lumiUnc=0.025
 if [[ ${ERA} == "2016" ]]; then
     githash=0c522df
     eosdir=/store/cmst3/group/top/RunIIReReco/2016/${githash}
-    fulllumi=37000
+    fulllumi=35.500
     vbflumi=28000
 fi
 
@@ -73,7 +72,7 @@ case $WHAT in
         ### --CR     : gives a control region to evaluate fake rates in the photon data samples
         ### --SRfake : gives the distributions of fakes, normalised based on fake rates
 
-        json=data/era${ERA}/vbf_samples.json  #,data/era2017/vbf_syst_samples.json
+        json=data/era${ERA}/vbf_signal_samples.json,data/era${ERA}/vbf_syst_samples.json
 	if [[ -z ${EXTRA} ]]; then
 	    echo "Making trees ... "
 	    extraOpts=" --mvatree"
@@ -116,7 +115,7 @@ case $WHAT in
 
     PLOT )
 	
-        json=data/era${ERA}/vbf_samples.json;
+        json=data/era${ERA}/vbf_signal_samples.json;
 	syst_json=data/${ERA}/vbf_syst_samples.json;
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
         kFactors="--procSF MC13TeV_era${ERA}_QCDEM_15to20:1.26,MC13TeV_era${ERA}_QCDEM_20to30:1.26,MC13TeV_era${ERA}_QCDEM_30to50:1.26,MC13TeV_era${ERA}_QCDEM_50to80:1.26,MC13TeV_era${ERA}_QCDEM_80to120:1.26,MC13TeV_era${ERA}_QCDEM_120to170:1.26,MC13TeV_era${ERA}_QCDEM_170to300:1.26,MC13TeV_era${ERA}_QCDEM_300toInf:1.26,MC13TeV_era${ERA}_GJets_HT40to100:1.26,MC13TeV_era${ERA}_GJets_HT100to200:1.26,MC13TeV_era${ERA}_GJets_HT200to400:1.26,MC13TeV_era${ERA}_GJets_HT600toInf:1.26"

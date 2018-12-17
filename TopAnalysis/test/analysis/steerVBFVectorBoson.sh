@@ -1,20 +1,11 @@
 #!/bin/bash
 
-while getopts "o:e:q:y:" opt; do
-    case "$opt" in
-        o) WHAT=$OPTARG
-            ;;
-        e) EXTRA=$OPTARG
-            ;;
-        q) QCD=$OPTARG
-            ;;
-        y) ERA=$OPTARG
-            ;;
-    esac
-done
+WHAT=$1; 
+EXTRA=$2
+QCD=""
 
-if [ -z "$WHAT" ]; then 
-    echo "steerVBFVectorBoson.sh -o <SEL/MERGE/...> [-e extra -q QCD -y 2016/7]";
+if [ "$#" -lt 1 ]; then 
+    echo "steerVBFVectorBoson.sh <SEL/MERGE/PLOT/WWW> [extra]";
     echo "        SEL          - launches selection jobs to the batch, output will contain summary trees and control plots"; 
     echo "        MERGE        - merge output (if given \"extra\" is appended to the directory)"
     echo "        PLOT         - make plots (if given \"extra\" is appended to the directory)"
@@ -24,25 +15,22 @@ if [ -z "$WHAT" ]; then
     echo "        WWW          - move plots to web-based (if given \"extra\" is appended to the directory)"
     exit 1; 
 fi
-githash=3129835
-eosdir=/store/cmst3/group/top/RunIIReReco/${githash}
-fulllumi=41367
-vbflumi=7661
-lumiUnc=0.025
-if [[ ${ERA} == "2016" ]]; then
-    githash=0c522df
-    eosdir=/store/cmst3/group/top/RunIIReReco/2016/${githash}
-    fulllumi=35.500
-    vbflumi=28000
+
+if [ "$#" -gt 2 ]; then 
+    QCD=$3
 fi
-
-echo "Selection adapted to YEAR=${ERA}"
-
 #to run locally use local as queue + can add "--njobs 8" to use 8 parallel jobs
 queue=workday
-outdir=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/VBFVectorBoson
-wwwdir=~/www/VBFVectorBoson
-
+#githash=3129835
+#eosdir=/store/cmst3/group/top/RunIIReReco/${githash}
+githash=0c522df
+eosdir=/store/cmst3/group/top/RunIIReReco/2016/${githash}
+fulllumi=35967
+vbflumi=28200
+lumiUnc=0.025
+outdir=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/VBFVectorBoson2016
+wwwdir=~/www/VBFVectorBoson2016
+era="2017"
 
 RED='\e[31m'
 NC='\e[0m'
@@ -50,18 +38,17 @@ case $WHAT in
 
     TESTSEL )
                
-        json=data/era${ERA}/vbf_samples.json
-        tag=MC13TeV_2017_EWKAJJ
-        if [[ ${ERA} == "2016" ]]; then
-            tag=MC13TeV_2016_GJets_HT200to400
-        fi
+        json=data/era${era}/vbf_samples.json
+        #tag=MC13TeV_2016_EWKAJJ
+	tag=MC13TeV_2016_GJets_HT200to400
+        #tag=Data13TeV_2017B_DoubleEG
         input=${eosdir}/${tag}/Chunk_0_ext0.root
         output=${tag}.root 
 
 	python scripts/runLocalAnalysis.py \
             -i ${input} -o ${output} --tag ${tag} --only ${json} --mvatree\
             --njobs 1 -q local --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --debug --mvatree;
+            --era era${era} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --debug --mvatree;
 
         #--debug --mvatree \
         ;;
@@ -72,24 +59,24 @@ case $WHAT in
         ### --CR     : gives a control region to evaluate fake rates in the photon data samples
         ### --SRfake : gives the distributions of fakes, normalised based on fake rates
 
-        json=data/era${ERA}/vbf_signal_samples.json,data/era${ERA}/vbf_syst_samples.json
+        json=data/era${era}/vbf_samples.json,data/era2017/vbf_syst_samples.json
 	if [[ -z ${EXTRA} ]]; then
 	    echo "Making trees ... "
 	    extraOpts=" --mvatree"
-	    json=data/era${ERA}/vbf_trees.json
+	    json=data/era${era}/vbf_trees.json
 	    EXTRA="MVATrees"
         fi
 	python scripts/runLocalAnalysis.py \
-	    -i ${eosdir} --only ${json}\
+	    -i ${eosdir} --only _2017F_ ${json}\
             -o ${outdir}/${githash}/${EXTRA} \
             --farmappendix ${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --skip DR04 ${extraOpts};
+            --era era${era} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --skip DR04 ${extraOpts};
 	;;
 
 
     SELJETHT )
-	json=data/era${ERA}/JetHT.json;
+	json=data/era2017/JetHT.json;
 	extraOpts=" --CR"
 	echo ${QCD} 
 	if [[ ${QCD} == "QCDTemp" ]]; then
@@ -105,20 +92,21 @@ case $WHAT in
             -o ${outdir}/${githash}/${EXTRA}${QCD} \
             --farmappendix ${githash}${EXTRA}${QCD} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts ${extraOpts} --skipexisting;
+            --era era2017 -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts ${extraOpts} --skipexisting;
 	;;
 
 
     MERGE )
-	./scripts/mergeOutputs.py ${outdir}/${githash}/${EXTRA};
+        gh=${githash}
+	./scripts/mergeOutputs.py ${outdir}/${gh}/${EXTRA};
 	;;
 
     PLOT )
 	
-        json=data/era${ERA}/vbf_signal_samples.json;
-	syst_json=data/${ERA}/vbf_syst_samples.json;
+        json=data/era${era}/vbf_samples.json;
+	syst_json=data/era2017/vbf_syst_samples.json;
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
-        kFactors="--procSF MC13TeV_era${ERA}_QCDEM_15to20:1.26,MC13TeV_era${ERA}_QCDEM_20to30:1.26,MC13TeV_era${ERA}_QCDEM_30to50:1.26,MC13TeV_era${ERA}_QCDEM_50to80:1.26,MC13TeV_era${ERA}_QCDEM_80to120:1.26,MC13TeV_era${ERA}_QCDEM_120to170:1.26,MC13TeV_era${ERA}_QCDEM_170to300:1.26,MC13TeV_era${ERA}_QCDEM_300toInf:1.26,MC13TeV_era${ERA}_GJets_HT40to100:1.26,MC13TeV_era${ERA}_GJets_HT100to200:1.26,MC13TeV_era${ERA}_GJets_HT200to400:1.26,MC13TeV_era${ERA}_GJets_HT600toInf:1.26"
+        kFactors="--procSF MC13TeV_era${era}_QCDEM_15to20:1.26,MC13TeV_era${era}_QCDEM_20to30:1.26,MC13TeV_era${era}_QCDEM_30to50:1.26,MC13TeV_era${era}_QCDEM_50to80:1.26,MC13TeV_era${era}_QCDEM_80to120:1.26,MC13TeV_era${era}_QCDEM_120to170:1.26,MC13TeV_era${era}_QCDEM_170to300:1.26,MC13TeV_era${era}_QCDEM_300toInf:1.26,MC13TeV_era${era}_GJets_HT40to100:1.26,MC13TeV_era${era}_GJets_HT100to200:1.26,MC13TeV_era${era}_GJets_HT200to400:1.26,MC13TeV_era${era}_GJets_HT600toInf:1.26"
 	commonOpts="-i ${outdir}/${githash}/${EXTRA} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi}"
 	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors}
         python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root

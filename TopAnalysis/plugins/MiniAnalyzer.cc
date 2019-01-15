@@ -999,9 +999,15 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
       ev_.j_gaptd[ev_.nj]    = calcGA(0,2,&(*j),true,0.9);
       ev_.j_gawidth[ev_.nj]  = calcGA(1,1,&(*j),true,0.9);
       ev_.j_gathrust[ev_.nj] = calcGA(2,1,&(*j),true,0.9);
-      ev_.j_tau32[ev_.nj]    = getTau(3,2,&(*j),true,0.9);
-      ev_.j_tau21[ev_.nj]    = getTau(2,1,&(*j),true,0.9);
-
+      //this function throws an exception in rare events
+      try{
+        ev_.j_tau32[ev_.nj]    = getTau(3,2,&(*j),true,0.9);
+        ev_.j_tau21[ev_.nj]    = getTau(2,1,&(*j),true,0.9);
+      }
+      catch(...){
+        ev_.j_tau32[ev_.nj]=-99;
+        ev_.j_tau21[ev_.nj]=-99;
+      }
       if( j->hasTagInfo("pfInclusiveSecondaryVertexFinder") )
 	{
 	  const reco::CandSecondaryVertexTagInfo *candSVTagInfo = j->tagInfoCandSecondaryVertex("pfInclusiveSecondaryVertexFinder");

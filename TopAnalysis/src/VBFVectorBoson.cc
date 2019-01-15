@@ -856,12 +856,23 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("circularity",   new TH1F("circularity",      ";Circularity;;Events",               20,0,1.0));
   //additional variables from https://link.springer.com/content/pdf/10.1140/epjc/s10052-017-5315-6.pdf
   ht_->addHist("jjetas",        new TH1F("jjetas",           ";#eta_{j1}#eta_{j2};Events",50,-25,15));  
-  ht_->addHist("centjy",	new TH1F("centjy",           ";Central jet rapidity;Jets",25,0,3));  
-  ht_->addHist("ncentj",        new TH1F("ncentjj",          ";Number of central jets;Events",10,-0.5,9.5));  
-  ht_->addHist("dphivj0",       new TH1F("dphivj0",          ";#Delta#phi(V,j0);Jets",20,0,TMath::Pi()));  
-  ht_->addHist("dphivj1",       new TH1F("dphivj1",          ";#Delta#phi(V,j1);Jets",20,0,TMath::Pi()));  
-  ht_->addHist("dphivj2",       new TH1F("dphivj2",          ";#Delta#phi(V,j2);Jets",20,0,TMath::Pi()));  
-  ht_->addHist("dphivj3",       new TH1F("dphivj3",          ";#Delta#phi(V,j3);Jets",20,0,TMath::Pi()));
+  ht_->addHist("centjy",	new TH1F("centjy",           ";Central jet rapidity;Jets",25,0,5));  
+  ht_->addHist("ncentj",        new TH1F("ncentjj",          ";Number of central jets;Events",5,0,5));
+  ht_->addHist("dphivj0",       new TH1F("dphivj0",          ";#Delta#phi(V,lead jet);Jets",20,0,TMath::Pi()));  
+  ht_->addHist("dphivj1",       new TH1F("dphivj1",          ";#Delta#phi(V,sublead jet);Jets",20,0,TMath::Pi()));  
+  ht_->addHist("dphivj2",       new TH1F("dphivj2",          ";#Delta#phi(V,extra jet);Jets",20,0,TMath::Pi()));  
+  ht_->addHist("dphivj3",       new TH1F("dphivj3",          ";#Delta#phi(V,next extra jet);Jets",20,0,TMath::Pi()));
+
+
+  ht_->addHist("cosqj1",       new TH1F("cosqj1",          ";|cos#theta^{*}(V,lead jet)|;Events",20,0,1) );
+  ht_->addHist("cosqjj",       new TH1F("cosqjj",          ";|cos#theta^{*}(V,dijet)|;Events",20,0,1) );
+  ht_->addHist("betavj2",      new TH1F("betavj2",         ";#beta(V,sublead jet) [rad];Events",20,0,TMath::Pi()) );
+  ht_->addHist("betaj1j2",     new TH1F("betaj1j2",        ";#beta(lead jet,sublead jet) [rad];Events",20,0,TMath::Pi()) );
+  ht_->addHist("betavj3",      new TH1F("betavj3",         ";#beta(V,extra jet) [rad];Events",20,0,TMath::Pi()) );
+  ht_->addHist("betaclosejj3", new TH1F("betaclosejj3",    ";#beta(closest tag jet,extra jet) [rad];Events",20,0,TMath::Pi()) );
+
+
+
   //final analyses distributions
   ht_->addHist("evcount",         new TH1F("evcount",        ";Pass;Events",2,0,2));  
   ht_->getPlots()["evcount"]->GetXaxis()->SetBinLabel(1,"Inclusive");
@@ -1129,11 +1140,21 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   //central jet activity
   ht_->fill("ncentj", vbfVars_.ncentj, cplotwgts, c);
   if(vbfVars_.ncentj>0){
-    ht_->fill("dphivj2", vbfVars_.dphivcentj[0] ,  cplotwgts,c);
+    ht_->fill("dphivj2", fabs(vbfVars_.dphivcentj[0]) ,  cplotwgts,c);
     if(vbfVars_.ncentj>1) 
-      ht_->fill("dphivj3", vbfVars_.dphivcentj[1] ,  cplotwgts,c);    
+      ht_->fill("dphivj3", fabs(vbfVars_.dphivcentj[1]) ,  cplotwgts,c);    
   }
-	
+
+  //additional colour flow and production
+  ht_->fill("cosqj1",   fabs(vbfVars_.cosqj1),     cplotwgts, c);
+  ht_->fill("cosqjj",   fabs(vbfVars_.cosqjj),     cplotwgts, c);
+  ht_->fill("betavj2",  fabs(vbfVars_.beta_v_j2),  cplotwgts, c);
+  ht_->fill("betaj1j2", fabs(vbfVars_.beta_j1_j2), cplotwgts, c);
+  if(vbfVars_.ncentj>0){
+    ht_->fill("betavj3",      fabs(vbfVars_.beta_v_j3),      cplotwgts, c);
+    ht_->fill("betaclosejj3", fabs(vbfVars_.beta_closej_j3), cplotwgts, c);
+  }
+
   //visible system histos
   ht_->fill("relbpt",       vbfVars_.relbpt,      cplotwgts,c);
   ht_->fill("dphibjj",      vbfVars_.dphibjj,     cplotwgts,c);

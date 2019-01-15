@@ -16,19 +16,38 @@ std::vector< WeightSysts_t > getWeightSysts(TFile *f,TString sample){
     if(label.Length()==0) continue;
 
     if(sample=="EWKAJJ2017") {
-      if(label.Contains("mur=0.5 muf=1")   )   systsOfInterest.push_back( WeightSysts_t("muRdn",    xbin-1) );
-      if(label.Contains("mur=2 muf=1")     )   systsOfInterest.push_back( WeightSysts_t("muRup",    xbin-1) );
-      if(label.Contains("mur=1 muf=0.5")   )   systsOfInterest.push_back( WeightSysts_t("muFdn",    xbin-1) );
-      if(label.Contains("mur=1 muf=2")     )   systsOfInterest.push_back( WeightSysts_t("muFup",    xbin-1) );
-      if(label.Contains("mur=0.5 muf=0.5") )   systsOfInterest.push_back( WeightSysts_t("muRmuFdn", xbin-1) );
-      if(label.Contains("mur=2 muf=2")     )   systsOfInterest.push_back( WeightSysts_t("muRmuFup", xbin-1) );
+      if(label.Contains("mur=0.5 muf=1")   || (label.Contains("muR=0.50") && label.Contains("muF=0.10")) || (label.Contains("muR=0.5 muF=1")   && label.Contains("hdamp=mt")) )   systsOfInterest.push_back( WeightSysts_t("muRdn",    xbin-1) );
+      if(label.Contains("mur=2 muf=1")     || (label.Contains("muR=0.20") && label.Contains("muF=0.10")) || (label.Contains("muR=2 muF=1")     && label.Contains("hdamp=mt")) )   systsOfInterest.push_back( WeightSysts_t("muRup",    xbin-1) );
+      if(label.Contains("mur=1 muf=0.5")   || (label.Contains("muR=0.10") && label.Contains("muF=0.50")) || (label.Contains("muR=1 muF=0.5")   && label.Contains("hdamp=mt")) )   systsOfInterest.push_back( WeightSysts_t("muFdn",    xbin-1) );
+      if(label.Contains("mur=1 muf=2")     || (label.Contains("muR=0.10") && label.Contains("muF=0.20")) || (label.Contains("muR=1 muF=2")     && label.Contains("hdamp=mt")) )   systsOfInterest.push_back( WeightSysts_t("muFup",    xbin-1) );
+      if(label.Contains("mur=0.5 muf=0.5") || (label.Contains("muR=0.50") && label.Contains("muF=0.50")) || (label.Contains("muR=0.5 muF=0.5") && label.Contains("hdamp=mt")) )   systsOfInterest.push_back( WeightSysts_t("muRmuFdn", xbin-1) );
+      if(label.Contains("mur=2 muf=2")     || (label.Contains("muR=0.20") && label.Contains("muF=0.20")) || (label.Contains("muR=2 muF=2")     && label.Contains("hdamp=mt")) )   systsOfInterest.push_back( WeightSysts_t("muRmuFup", xbin-1) );
       if(label.Contains("NNPDF31_nnlo_hessian_pdfas")) {
         Int_t start=label.Index("Member ")+7;
         TString id=label(start,3);
         if(id.EndsWith(" ")) id=label(start,2);
         if(id.EndsWith("o")) id=label(start,1);
         systsOfInterest.push_back( WeightSysts_t("PDF"+id,xbin-1) );
+      } else if(label.Contains("pdfset")) {
+	Int_t initNumber = 292200;
+        Int_t start=label.Index("pdfset=")+7;
+        TString id=label(start,6);
+	id = Form("%d",abs(((Int_t)std::atof(id)) - initNumber));
+        systsOfInterest.push_back( WeightSysts_t("PDF"+id,xbin-1) );
+      } else if(label.Contains("PDF set")) {
+	if(label.Contains("PDF set = 260")) {
+	  Int_t start=label.Index("PDF set = 260")+13;
+	  TString id=label(start,3);
+	  start = std::atof(id);
+	  id = Form("%d",start);
+	  systsOfInterest.push_back( WeightSysts_t("PDF"+id,xbin-1) );
+	}
+	if(label.Contains("PDF set = 265000")) systsOfInterest.push_back( WeightSysts_t("PDF101",xbin-1) );
+	if(label.Contains("PDF set = 266000")) systsOfInterest.push_back( WeightSysts_t("PDF102",xbin-1) );
       }
+      cout <<"Label is "<<label<<endl;
+      cout << "we have "<< systsOfInterest.size() << " systematics"<<endl; 
+      if(systsOfInterest.size() > 0) cout << "The last one is "<< systsOfInterest[systsOfInterest.size()-1].first <<endl;
     }
     
     if(sample=="TTJets2016") {
@@ -142,14 +161,14 @@ float weightBW(TF1 *bwigner,std::vector<float> &obsm,float g,float m,float gini,
   float n=bwigner->Integral(max(m-50*g,float(0.)),m+50*g);
 
   float wgt(1.0);
-  for(auto m : obsm){
+  for(auto obsm_i : obsm){
     bwigner->FixParameter(1,mini);
     bwigner->FixParameter(2,gini);
-    float vini=bwigner->Eval(m);
+    float vini=bwigner->Eval(obsm_i);
 
     bwigner->FixParameter(1,m);
     bwigner->FixParameter(2,g);
-    float v=bwigner->Eval(m);
+    float v=bwigner->Eval(obsm_i);
 
     wgt *= (v/n) / (vini/nini);
   }

@@ -36,7 +36,7 @@ void EfficiencyScaleFactorsWrapper::init(TString era)
        << "\tDon't forget to fix these and update these items!" << endl;
 
   //PHOTONS
-  TString gid("MVAwp80");
+  TString gid(era_==2016? "MVAWP80" : "MVAwp80");
   if(cfgMap_.find("g_id")!=cfgMap_.end()) gid=cfgMap_["g_id"]; 
   TString url(era+"/2017_Photons"+gid+".root");
   if(era_==2016) url=era+"/2016LegacyReReco_Photon"+gid+".root";
@@ -140,6 +140,43 @@ void EfficiencyScaleFactorsWrapper::init(TString era)
   fIn->Close();
   
 }
+
+//
+EffCorrection_t EfficiencyScaleFactorsWrapper::getDileptonTriggerCorrection(std::vector<Particle> &leptons){
+
+  int dilCode=abs(leptons[0].id()*leptons[1].id());
+  EffCorrection_t corr(1.0,0.0);
+  if(era_==2016) {
+    //values from AN 2016/392 (v3) 
+    //as scale factors are approximately constant as function of number of jets take:
+    //   - central value from events with 2 jets
+    //   - uncertainty as 2 jets unc. + max. difference wrt to other jet mult
+    //the offline ids to use must be tight ones
+    float leta(fabs(leptons[0].Eta()));
+    if(dilCode==11*13) {
+      if(leta<0.09)      { corr.first=0.995; corr.second=TMath::Sqrt(0.002*0.002+0.005*0.005); }
+      else if (leta<1.2) { corr.first=0.996; corr.second=TMath::Sqrt(0.003*0.003+0.011*0.011); }
+      else if (leta<2.1) { corr.first=0.994; corr.second=TMath::Sqrt(0.003*0.003+0.019*0.019); }
+      else               { corr.first=0.992; corr.second=TMath::Sqrt(0.011*0.011+0.016*0.016); } //0 jets has too large error
+    }
+    if(dilCode==11*11) {
+      if(leta<0.09)      { corr.first=0.991; corr.second=TMath::Sqrt(0.002*0.002+0.027*0.027); }
+      else if (leta<1.2) { corr.first=0.994; corr.second=TMath::Sqrt(0.004*0.004+0.018*0.018); }
+      else if (leta<2.1) { corr.first=0.992; corr.second=TMath::Sqrt(0.004*0.004+0.025*0.025); }
+      else               { corr.first=0.982; corr.second=TMath::Sqrt(0.014*0.014+0.029*0.029); }
+    }
+    if(dilCode==13*13) {
+      if(leta<0.09)      { corr.first=0.994; corr.second=TMath::Sqrt(0.002*0.003+0.015*0.015); }
+      else if (leta<1.2) { corr.first=0.994; corr.second=TMath::Sqrt(0.003*0.003+0.021*0.021); }
+      else if (leta<2.1) { corr.first=0.989; corr.second=TMath::Sqrt(0.002*0.002+0.015*0.015); }
+      else               { corr.first=0.977; corr.second=TMath::Sqrt(0.009*0.009+0.014*0.014); } //0 jets has too large error
+    }
+    
+  }
+
+  return corr;
+}
+
 
 
 //

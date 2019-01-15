@@ -50,7 +50,7 @@ def main():
         jsonFile = open(jsonPath,'r')
         samplesList += json.load(jsonFile, encoding='utf-8', object_pairs_hook=OrderedDict).items()
         jsonFile.close()
-    
+
     #read lists of syst samples
     systSamplesList=[]
     if opt.systJson:
@@ -101,7 +101,8 @@ def main():
     report=''
     for slist,isSignal,isSyst in [ (samplesList,False,False),(signalSamplesList,True,False),(systSamplesList,False,True) ]:
         if slist is None: continue
-        for tag,sample in slist: 
+        for tag,sample in slist:
+            print "tag: %s, sample: %s" %(tag,sample)
             if isSyst and not 't#bar{t}' in sample[3] : continue
             if tag in skipList:
               print("SKIPPED "+tag)
@@ -115,7 +116,7 @@ def main():
                 for flav in [(1,sample[3]+'+l'),(4,sample[3]+'+c'),(5,sample[3]+'+b',sample[4])]:
                     subProcs.append(('%d_%s'%(flav[0],tag),flav[1],sample[4]+3*len(subProcs)))
             for sp in subProcs:
-
+                print '%s/%s.root' % ( opt.inDir, sp[0]) 
                 fIn=ROOT.TFile.Open('%s/%s.root' % ( opt.inDir, sp[0]) )
                 if not fIn : continue
 
@@ -193,7 +194,6 @@ def main():
                                     break
                                 if not opt.rawYields:
                                     hist.Scale(xsec*lumi*puNormSF*sfVal)                    
-                            
                             #rebin if needed
                             if opt.rebin>1:  hist.Rebin(opt.rebin)
 

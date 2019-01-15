@@ -1,3 +1,4 @@
+
 #ifndef VBFFITREGION_H
 #define VBFFITREGION_H
 
@@ -112,12 +113,13 @@ class systematics{
     return ret;
   }
   void setShapeSystematicsB(){
-
-    shapeSystBkg = this->getShapeSystematics(bkg);
+    if(bkg != NULL)
+      shapeSystBkg = this->getShapeSystematics(bkg);
   }
   void setShapeSystematicsS(){
     cout <<"Signal >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" <<endl;
-    shapeSystSig = this->getShapeSystematics(sig);
+    if(sig != NULL)
+      shapeSystSig = this->getShapeSystematics(sig);
   }
   
   void setSystematicsMap(){
@@ -140,12 +142,14 @@ class systematics{
 	  cout << b.first<<" "<< shapeSystMap[b.first].first << " " <<shapeSystMap[b.first].second<<endl;      
     }
   }
-  void setBkg(TString chan, TString boson, TString hist, int nBin){     
-     TDirectory * dir = (TDirectory*)((TFile::Open("plotter_"+chan+".root"))->Get(chan+boson+"_"+hist+"_"+name)); 
+  void setBkg(TString chan, TString boson, TString hist, int nBin, TString year){     
+     TDirectory * dir = (TDirectory*)((TFile::Open("plotter_"+chan+year+".root"))->Get(chan+boson+"_"+hist+"_"+name)); 
      dir->ls();
      int initBkg = ((boson == "A" )? 1 : 0);
    
      bkg = (TH2F*)dir->Get(chan+boson+"_"+hist+"_"+name+"_"+bkgs[initBkg]); 
+     // Temporary fix for 2016 ============
+     if(bkg == NULL) return;
      bkg->SetNameTitle("Background_"+chan+boson+"_syst_"+name,"Background "+name+" syst. in "+chan+boson); 
      bkg->SetLineColor(kBlack);
      bkg->SetMarkerColor(kBlack);
@@ -169,11 +173,11 @@ class systematics{
        }
      }
   }
-  void setSig(TString chan, TString boson, TString hist, int nBin){ 
+  void setSig(TString chan, TString boson, TString hist, int nBin, TString year){ 
     TString signal = "EWK #gammajj"; 
     if(boson == "MM") 
       signal = "EWK Zjj"; 
-    TDirectory * dir = (TDirectory*)((TFile::Open("plotter_"+chan+".root"))->Get(chan+boson+"_"+hist+"_"+name)); 
+    TDirectory * dir = (TDirectory*)((TFile::Open("plotter_"+chan+year+".root"))->Get(chan+boson+"_"+hist+"_"+name)); 
     sig = (TH2F*)dir->Get(chan+boson+"_"+hist+"_"+name+"_"+signal); 
     sig->SetNameTitle("Signal_"+chan+boson+"_syst_"+name,"Signal "+name+" syst. in "+chan+boson); 
     int nRebin =(int)((double)sig->GetXaxis()->GetNbins()/(double)nBin); 
@@ -201,7 +205,7 @@ class systematics{
 
 class VbfFitRegion{
  public:
- VbfFitRegion(TString channel, TString v, TString Hist, int bin, bool SR):chan(channel),boson(v),hist(Hist),nBin(bin),isSR(SR){
+ VbfFitRegion(TString channel, TString v, TString Hist, TString year_, int bin, bool SR):chan(channel),boson(v),hist(Hist),year(year_),nBin(bin),isSR(SR){
     Exp = new systematics("exp");
     Theo = new systematics("th");
     this->setHistograms();
@@ -223,10 +227,10 @@ class VbfFitRegion{
    } 
    
    void setSystematics(){
-     Exp->setBkg(chan, boson, hist, nBin);
-     Theo->setBkg(chan, boson, hist, nBin);
-     Exp->setSig(chan, boson, hist, nBin);
-     Theo->setSig(chan, boson, hist, nBin);
+     Exp->setBkg(chan, boson, hist, nBin, year);
+     Theo->setBkg(chan, boson, hist, nBin, year);
+     Exp->setSig(chan, boson, hist, nBin, year);
+     Theo->setSig(chan, boson, hist, nBin, year);
      Exp->setShapeSystematicsB();
      Exp->setShapeSystematicsS();
      Exp->setSystematicsMap();
@@ -243,7 +247,7 @@ class VbfFitRegion{
    }
 
    void setBkg(){ 
-     TDirectory * dir = (TDirectory*)((TFile::Open("plotter_"+chan+".root"))->Get(chan+boson+"_"+hist)); 
+     TDirectory * dir = (TDirectory*)((TFile::Open("plotter_"+chan+year+".root"))->Get(chan+boson+"_"+hist)); 
      dir->ls();
      hBkg = (TH1F*)dir->Get(chan+boson+"_"+hist+"_"+bkgs[0]); 
      hBkg->SetNameTitle("Background_"+chan+boson,"Background in "+chan+boson); 
@@ -282,7 +286,7 @@ class VbfFitRegion{
      TString signal = "EWK #gammajj"; 
      if(boson == "MM") 
        signal = "EWK Zjj"; 
-     TDirectory * dir = (TDirectory*)((TFile::Open("plotter_"+chan+".root"))->Get(chan+boson+"_"+hist)); 
+     TDirectory * dir = (TDirectory*)((TFile::Open("plotter_"+chan+year+".root"))->Get(chan+boson+"_"+hist)); 
      hSig = (TH1F*)dir->Get(chan+boson+"_"+hist+"_"+signal); 
      hSig->SetNameTitle("Signal_"+chan+boson,"Signal in "+chan+boson); 
      int nRebin =(int)((double)hSig->GetXaxis()->GetNbins()/(double)nBin); 
@@ -294,7 +298,7 @@ class VbfFitRegion{
    } 
 
    void setData(TString boson = "A"){ 
-     TDirectory * dir = (TDirectory*)((TFile::Open("plotter_"+chan+".root"))->Get(chan+boson+"_"+hist)); 
+     TDirectory * dir = (TDirectory*)((TFile::Open("plotter_"+chan+year+".root"))->Get(chan+boson+"_"+hist)); 
      hData = (TH1F*)dir->Get(chan+boson+"_"+hist); 
      hData->SetNameTitle("Data_"+chan+boson,"Data in "+chan+boson); 
      int nRebin =(int)((double)hData->GetXaxis()->GetNbins()/(double)nBin); 
@@ -306,7 +310,7 @@ class VbfFitRegion{
      this->setSig(); 
      this->setData(); 
      this->setSystematics();
-     TFile* fBkg = new TFile("Background_"+chan+boson+".root","recreate"); 
+     TFile* fBkg = new TFile("Background_"+chan+boson+year+".root","recreate"); 
      fBkg->cd(); 
      hBkg->Write();     
      hBkgCorr->Write();
@@ -314,21 +318,21 @@ class VbfFitRegion{
      for(unsigned int i = 0; i < (Exp->shapeSystBkg).size(); i++) Exp->shapeSystBkg[i]->Write();
      fBkg->Close(); 
 
-     TFile* fSig = new TFile("Signal_"+chan+boson+".root","recreate"); 
+     TFile* fSig = new TFile("Signal_"+chan+boson+year+".root","recreate"); 
      fSig->cd(); 
      hSig->Write(); 
      for(unsigned int i = 0; i < (Theo->shapeSystSig).size(); i++) Theo->shapeSystSig[i]->Write();
      for(unsigned int i = 0; i < (Exp->shapeSystSig).size(); i++) Exp->shapeSystSig[i]->Write();
      fSig->Close(); 
 
-    TFile* fData = new TFile("Data_"+chan+boson+".root","recreate");
+    TFile* fData = new TFile("Data_"+chan+boson+year+".root","recreate");
     fData->cd();
     hData->Write();
     fData->Close();
   }
 
   TH1F * correctBackground(TH1F * hin){
-    TFile * f = TFile::Open("tf_plotter.root");
+    TFile * f = TFile::Open("tf_plotter_"+year+".root");
     TH1F * tf = (TH1F*) f->Get(chan+"MM_"+hist+"/"+chan+"_"+hist+"_nlo2lo"); 
     TH1F * hout = (TH1F*)hin->Clone(hin->GetName()+TString("_NLOcorr"));
     for(int i = 0; i< hin->GetXaxis()->GetNbins(); i++){
@@ -405,7 +409,7 @@ class VbfFitRegion{
     if(id == 1) bkgPH_norm = a;
   }
 
-  TString chan, boson, hist;
+  TString chan, boson, hist, year;
   int nBin;
   bool isSR;
   TH1F * hSig, * hBkg, * hBkgCorr, * hData;
@@ -505,7 +509,7 @@ class TF{
 	err = fabs(err/sigTF->GetBinContent(i));
       sigETF->SetBinError(i,err);
     }
-    TFile* fTF = new TFile("TransferFactors_"+sr->chan+".root","recreate");
+    TFile* fTF = new TFile("TransferFactors_"+sr->chan+"_"+sr->year+".root","recreate");
     fTF->cd();
     sigTF->Write();
     sigETF->Write();

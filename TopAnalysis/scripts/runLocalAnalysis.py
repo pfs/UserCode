@@ -90,7 +90,7 @@ def main():
                 try:
                     myfile = open(t, 'r') # or "a+", whatever you need
                 except IOError:
-                    print "Could not open file! Please close Excel!"
+                    print "Could not open json file",t
                 jsonFile = open(t,'r')
                 samplesList = json.load(jsonFile, encoding='utf-8', object_pairs_hook=OrderedDict).items()
                 for s,desc in samplesList: 
@@ -132,11 +132,12 @@ def main():
     #prepare output if a directory
     if not '.root' in opt.output :
         print opt.output
-        if not '/store/' in opt.output:
-            os.system('mkdir -p %s/Chunks'%opt.output)
-        else:
+        if '/store/' in opt.output:
             os.system('eos mkdir %s'%opt.output)
-            os.system('eos mkdir %s/Chunks'%opt.output)
+            os.system('eos mkdir %s/Chunks'%opt.output)            
+        else:
+            os.system('mkdir -p %s/Chunks'%opt.output)
+
     #correct location of corrections to be used using cmsswBase, if needed
     cmsswBase=os.environ['CMSSW_BASE']
     if not cmsswBase in opt.era : opt.era=cmsswBase+'/src/TopLJets2015/TopAnalysis/data/'+opt.era
@@ -252,7 +253,7 @@ def main():
                     if SRfake :  runOpts += ' --SRfake'
                     cfg.write('python %s/src/TopLJets2015/TopAnalysis/scripts/runLocalAnalysis.py %s\n'%(cmsswBase,runOpts))
                     if '/store' in outF:
-                        cfg.write('xrdcp --force ${WORKDIR}/%s root://eoscms//eos/cms/%s\n'%(localOutF,outF))
+                        cfg.write('xrdcp --force ${WORKDIR}/%s root://eoscms//%s\n'%(localOutF,outF))
                         cfg.write('rm ${WORKDIR}/%s'%localOutF)
                     elif outF!=localOutF:
                         cfg.write('  mv -v ${WORKDIR}/%s %s\n'%(localOutF,outF))

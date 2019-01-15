@@ -71,6 +71,7 @@ private:
   void bookHistograms();
   void fillControlHistograms(TopWidthEvent &twe,float &wgt);
   void applyMC2MC(std::vector<Jet> &jetColl);
+  float getJERSFBreakdown(TString key,float abseta);
 
   //class variables
   TString filename_, outname_;
@@ -95,6 +96,7 @@ private:
   std::map<TString, TGraph*> fragWeights_;
   std::map<TString, std::map<int, float> > semilepBRwgts_;
   std::map<TString, TGraphErrors *> mc2mcCorr_;
+  std::map<TString, TH1 *> jerSFBreakdown_;
 
   //mass,width and relativistic breit-wigner parameterization
   float targetGt_, origGt_;

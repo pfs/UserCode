@@ -4,7 +4,7 @@ using namespace std;
 
 int main( int argc, char** argv )
 {
-  TString channel, histname, boson;
+  TString channel, histname, boson, year;
   YieldsErr YE;
   double sigEff =1;
   double bkgEff =1;
@@ -43,12 +43,16 @@ int main( int argc, char** argv )
     } else if (input=="--doSignalPH"){
       doSignalPH = true;
       continue;
+    } else if (input=="--year"){
+      i++;
+      year = TString(argv[i]);
+      continue;
     }
   }
 
 
-  VbfFitRegion * SR = new VbfFitRegion(channel, TString("A"), histname, nBin, true);
-  VbfFitRegion * CR = new VbfFitRegion(channel, TString("MM"), histname, nBin, false);
+  VbfFitRegion * SR = new VbfFitRegion(channel, TString("A"), histname, year, nBin, true);
+  VbfFitRegion * CR = new VbfFitRegion(channel, TString("MM"), histname, year,nBin, false);
   
   WorkspaceProvider wsp(histname,SR, CR);
   wsp.import(doSignalPH);

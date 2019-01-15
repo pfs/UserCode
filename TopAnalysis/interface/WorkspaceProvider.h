@@ -239,7 +239,7 @@ class WorkspaceProvider{
 
     TString opt = "SigPH";
     if(!doSignalPH) opt = "NoSigPH";
-    TFile * fOut = new TFile("Channel_"+CR->chan+opt+".root","recreate");
+    TFile * fOut = new TFile("Channel_"+CR->chan+opt+CR->year+".root","recreate");
     fOut->cd();
     ws->Write();
     fOut->Save();
@@ -285,7 +285,7 @@ class WorkspaceProvider{
       wsNoTF->import(*exD);
       wsNoTF->import(*exPdf);
     }
-    TFile * fOut2 = new TFile("Channel_"+CR->chan+"_BkgNLO.root","recreate");
+    TFile * fOut2 = new TFile("Channel_"+CR->chan+"_BkgNLO_"+CR->year+".root","recreate");
     fOut2->cd();
     wsNoTF->Write();
     fOut2->Save();
@@ -305,9 +305,9 @@ class WorkspaceProvider{
     myfile << "kmax *  number of nuisance parameters (sources of systematical uncertainties)" << endl;
 
     myfile << "\n------------" << endl;
-    myfile << "shapes\tSignal\t" <<binName <<"\tSignal_"    <<chan<<boson<<".root\t"    <<SR->hSig->GetName()    <<  "\t$PROCESS_$SYSTEMATIC"<< endl; 
-    myfile << "shapes\tBkg\t"    <<binName <<"\tBackground_"<<chan<<boson<<".root\t"    <<SR->hBkgCorr->GetName()<<  "\t$PROCESS_$SYSTEMATIC"<< endl; 
-    myfile << "shapes\tdata_obs\t"<<binName<<"\tData_"<<chan<<boson<<".root\t"          <<SR->hData->GetName()   <<  "\t$PROCESS_$SYSTEMATIC"<< endl;
+    myfile << "shapes\tSignal\t" <<binName <<"\tSignal_"    <<chan<<boson<<SR->year<<".root\t"    <<SR->hSig->GetName()    <<  "\t$PROCESS_$SYSTEMATIC"<< endl; 
+    myfile << "shapes\tBkg\t"    <<binName <<"\tBackground_"<<chan<<boson<<SR->year<<".root\t"    <<SR->hBkgCorr->GetName()<<  "\t$PROCESS_$SYSTEMATIC"<< endl; 
+    myfile << "shapes\tdata_obs\t"<<binName<<"\tData_"<<chan<<boson<<SR->year<<".root\t"          <<SR->hData->GetName()   <<  "\t$PROCESS_$SYSTEMATIC"<< endl;
     myfile << "------------" << endl;
     myfile << "bin\t"<<binName << endl;
     myfile << "observation\t-1.0" << endl;
@@ -389,18 +389,18 @@ class WorkspaceProvider{
     myfile << "\n------------" << endl;
     if(boson == TString("A")){
       if(doSignalPH)
-	myfile << "shapes\tSignal"<<boson<<"\t"  <<binName<<"\tChannel_"<<chan<<opt<<".root ws"<<chan<<":"<<SR->sigPH->GetName()   << endl; 
+	myfile << "shapes\tSignal"<<boson<<"\t"  <<binName<<"\tChannel_"<<chan<<opt<<SR->year<<".root ws"<<chan<<":"<<SR->sigPH->GetName()   << endl; 
       else
-	myfile << "shapes\tSignal"<<boson<<"\t"  <<binName<<"\tChannel_"<<chan<<opt<<".root ws"<<chan<<":"<<SR->getSigDH(var)->GetName() << endl; 
-      myfile << "shapes\tBkg"<<boson<<"\t"     <<binName<<"\tChannel_"<<chan<<opt<<".root ws"<<chan<<":"<<SR->bkgPH->GetName()   << endl;
+	myfile << "shapes\tSignal"<<boson<<"\t"  <<binName<<"\tChannel_"<<chan<<opt<<SR->year<<".root ws"<<chan<<":"<<SR->getSigDH(var)->GetName() << endl; 
+      myfile << "shapes\tBkg"<<boson<<"\t"     <<binName<<"\tChannel_"<<chan<<opt<<SR->year<<".root ws"<<chan<<":"<<SR->bkgPH->GetName()   << endl;
     } else if (boson == TString("MM")){
       if(doSignalPH)
-	myfile << "shapes\tSignal"<<boson<<"\t"  <<binName<<"\tChannel_"<<chan<<opt<<".root ws"<<chan<<":"<<CR->sigPH->GetName()   << endl; 
+	myfile << "shapes\tSignal"<<boson<<"\t"  <<binName<<"\tChannel_"<<chan<<opt<<CR->year<<".root ws"<<chan<<":"<<CR->sigPH->GetName()   << endl; 
       else
-	myfile << "shapes\tSignal"<<boson<<"\t"  <<binName<<"\tChannel_"<<chan<<opt<<".root ws"<<chan<<":"<<CR->getSigDH(var)->GetName()   << endl; 
-      myfile << "shapes\tBkg"<<boson<<"\t"     <<binName<<"\tChannel_"<<chan<<opt<<".root ws"<<chan<<":"<<CR->bkgPH->GetName()   << endl;
+	myfile << "shapes\tSignal"<<boson<<"\t"  <<binName<<"\tChannel_"<<chan<<opt<<CR->year<<".root ws"<<chan<<":"<<CR->getSigDH(var)->GetName()   << endl; 
+      myfile << "shapes\tBkg"<<boson<<"\t"     <<binName<<"\tChannel_"<<chan<<opt<<CR->year<<".root ws"<<chan<<":"<<CR->bkgPH->GetName()   << endl;
     }
-    myfile << "shapes\tdata_obs\t"<<binName<<"\tChannel_"<<chan<<opt<<".root ws"<<chan<<":"<<"Data"<<chan<<boson << endl;
+    myfile << "shapes\tdata_obs\t"<<binName<<"\tChannel_"<<chan<<opt<<SR->year<<".root ws"<<chan<<":"<<"Data"<<chan<<boson << endl;
     myfile << "------------" << endl;
     myfile << "bin\t"<<binName << endl;
     myfile << "observation\t-1.0" << endl;

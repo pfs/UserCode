@@ -18,6 +18,11 @@ namespace vbf{
     float isotropy,circularity,sphericity,aplanarity,C,D;
     float scalarht,mht;
     float ncentj;
+
+    //addition production and colour flow
+    float cosqj1, cosqjj;
+    float beta_v_j2,  beta_j1_j2, beta_v_j3, beta_closej_j3;
+
     std::vector<float> dphivcentj,centjy;
     
     //CTOR
@@ -27,8 +32,12 @@ namespace vbf{
       centraleta(-99),forwardeta(-99),
       mjj(0),detajj(-99),dphijj(-99),jjpt(0),jjetas(-99),ystar(-99),balance(-99),relbpt(-99),dphibjj(-99),dphivj0(-99),dphivj1(-99),dphivj2(-99),dphivj3(-99),
       isotropy(-99),circularity(-99),sphericity(-99),aplanarity(-99),C(-99),D(-99),scalarht(0),mht(0),
-      ncentj(0), dphivcentj(10,-99.), centjy(10,-99.){
-    }
+      ncentj(0),
+      cosqj1(-99),  cosqjj(-99),
+      beta_v_j2(-99),  beta_j1_j2(-99), beta_v_j3(-99), beta_closej_j3(-99),
+      dphivcentj(10,-99.), centjy(10,-99.)
+      {
+      }
 
     //copy constructor
   DiscriminatorInputs(const DiscriminatorInputs &o): 
@@ -38,14 +47,17 @@ namespace vbf{
       mjj(o.mjj),detajj(o.detajj),dphijj(o.dphijj),jjpt(o.jjpt),jjetas(o.jjetas),ystar(o.ystar),balance(o.balance),relbpt(o.relbpt),dphibjj(o.dphibjj),dphivj0(o.dphivj0),dphivj1(o.dphivj1),dphivj2(o.dphivj2),dphivj3(o.dphivj3),
       isotropy(o.isotropy),circularity(o.circularity),sphericity(o.sphericity),aplanarity(o.aplanarity),C(o.C),D(o.D),
       scalarht(o.scalarht), mht(o.mht),
-      ncentj(o.ncentj) {
-      dphivcentj.resize(o.dphivcentj.size());
-      centjy.resize(o.centjy.size());
-      for(size_t ij=0; ij<dphivcentj.size(); ij++){
-        dphivcentj[ij] = o.dphivcentj[ij];
-        centjy[ij]      = o.centjy[ij];
+      ncentj(o.ncentj),
+      cosqj1(o.cosqj1),  cosqjj(o.cosqjj), 
+      beta_v_j2(o.beta_v_j2),  beta_j1_j2(o.beta_j1_j2), beta_v_j3(o.beta_v_j3), beta_closej_j3(o.beta_closej_j3)      
+      {
+        dphivcentj.resize(o.dphivcentj.size());
+        centjy.resize(o.centjy.size());
+        for(size_t ij=0; ij<dphivcentj.size(); ij++){
+          dphivcentj[ij] = o.dphivcentj[ij];
+          centjy[ij]      = o.centjy[ij];
+        }
       }
-    }
 
     //assignment operator
     void assignValuesFrom(const DiscriminatorInputs& o)
@@ -82,6 +94,12 @@ namespace vbf{
         scalarht         = o.scalarht; 
         mht              = o.mht;
         ncentj           = o.ncentj;
+        cosqj1           = o.cosqj1;
+        cosqjj           = o.cosqjj;        
+        beta_v_j2        = o.beta_v_j2;
+        beta_j1_j2       = o.beta_j1_j2;
+        beta_v_j3        = o.beta_v_j3;
+        beta_closej_j3   = o.beta_closej_j3;      
         for(size_t ij=0; ij<dphivcentj.size(); ij++){
           dphivcentj[ij] = o.dphivcentj[ij];
           centjy[ij]      = o.centjy[ij];
@@ -122,6 +140,10 @@ namespace vbf{
         balance = (boson+jj).Pt();
         relbpt  = (jets[0].Pt()+jets[1].Pt())/boson.Pt();
         dphibjj = boson.DeltaPhi( jets[0]+jets[1] );    
+        cosqj1      = TMath::TanH( 0.5*(boson.Rapidity()-jets[0].Rapidity()) );
+        cosqjj      = TMath::TanH( 0.5*(boson.Rapidity()-jj.Rapidity()) );
+        beta_v_j2   = fabs(boson.DeltaPhi(jets[1]))/((boson.Eta()<0 ? -1 : 1)*(jets[1].Eta()-boson.Eta()+1e-6));
+        beta_j1_j2  = fabs(jets[0].DeltaPhi(jets[1]))/((jets[0].Eta()<0 ? -1 : 1)*(jets[1].Eta()-jets[0].Eta()+1e-6));
       }
 
 
@@ -142,6 +164,13 @@ namespace vbf{
         dphivcentj[ij-2]=fabs(jets[ij].DeltaPhi(boson));
         centjy[ij-2]=jets[ij].Rapidity();
         ncentj++;
+
+        if(ncentj>1) continue;
+        
+        beta_v_j3       = fabs(boson.DeltaPhi(jets[ij]))/((boson.Eta()<0 ? -1 : 1)*(jets[ij].Eta()-boson.Eta()+1e-6));        
+        int closeJ( jets[0].DeltaR(jets[ij])<jets[1].DeltaR(jets[ij]) ? 0 : 1 );
+        beta_closej_j3  = fabs(jets[closeJ].DeltaPhi(jets[ij]))/((jets[closeJ].Eta()<0 ? -1 : 1)*(jets[ij].Eta()-jets[closeJ].Eta()+1e-6));
+        
       }
       mht = mhtP4.Pt();
 

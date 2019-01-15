@@ -29,7 +29,12 @@ def getRatio(num,den,name):
     r.Sort()
     return r
 
-PROCLIST=['MC13TeV_2016_TTJets','MC13TeV_2016_TTJets_fsrdn','MC13TeV_2016_TTJets_fsrup']
+PROCLIST=['MC13TeV_2016_TTJets',
+          'MC13TeV_2016_TTJets_fsrdn',   'MC13TeV_2016_TTJets_fsrup',
+          'MC13TeV_2016_TTJets_hdampup', 'MC13TeV_2016_TTJets_hdampdn',
+          'MC13TeV_2016_TTJets_uedn',
+          'MC13TeV_2016_TTJets_erdon'
+          ]
 PROCNOM=PROCLIST[0]
 relResponses={}
 for proc in PROCLIST:

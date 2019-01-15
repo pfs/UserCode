@@ -83,12 +83,9 @@ def main():
         if sel in ['3j','4j']  :
             extraSel='0t'
             if 'enoniso' in opt.noniso: extraSel='1t'
-<<<<<<< HEAD
-=======
 
         postfix='_%s%s'%(sel,extraSel)
         if sel=='' : postfix=''
->>>>>>> 9058e3898a0b728430a2f63a9c409bf903ecdb62
 
         dataNonIso,      sumMCNonIso, _  = getTemplates(fIn=fNonIso, dist='metpt%s'%postfix, tag='noniso')
         dataNonIsoAlt, sumMCNonIsoAlt, _ = getTemplates(fIn=fNonIso, dist='mt%s'%postfix,    tag='nonisoalt')

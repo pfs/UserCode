@@ -4,7 +4,10 @@
 "MC13TeV_2016_GJets_HT200to400"      : [2305,    0,  "/GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", "#7fc97f", false, false, 1],
 "MC13TeV_2016_GJets_HT400to600"      : [274.4,   0,  "/GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", "#7fc97f", false, false, 1],
 "MC13TeV_2016_GJets_HT600toInf"      : [93.46,   0,  "/GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", "#7fc97f", false, false, 1],
+<<<<<<< HEAD
 
+=======
+>>>>>>> b3181bebdee1a7d375d0642ddb8b537a4ab168ee
 "MC13TeV_2016_QCDEM_15to20"          : [2302200, 0,  "", "QCD", 41, false, false, 1],
 "MC13TeV_2016_QCDEM_20to30"          : [5352960, 0,  "/QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "QCD", "#DCDCDC", false, false, 1],
 "MC13TeV_2016_QCDEM_30to50"          : [9928000, 0,  "/QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "QCD", "#DCDCDC", false, false, 1],
@@ -24,7 +27,7 @@
 "MC13TeV_2016_WJets_mlm"             : [61526.7, 0,   "/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v2/MINIAODSIM", "W,Top,VV", "#386cb0",false,false,1],
 "MC13TeV_2016_DY10to50"              : [18610, 0,  "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "DY", "#fdc086", false, false, 1],
 "MC13TeV_2016_DY50toInf_fxfx"        : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v1/MINIAODSIM", "DY", "#fdc086", false, false, 1],
-"MC13TeV_2016_EWKZJJ"                : [4.32,    0,  "/EWK_LLJJ_MLL-50_MJJ-120_13TeV-madgraph-herwigpp/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM", "EWK ZJJ", "#f0027f", false, false, 1],
+"MC13TeV_2016_EWKZJJ"                : [4.32,    0,  "/EWK_LLJJ_MLL-50_MJJ-120_13TeV-madgraph-herwigpp/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM", "EWK Zjj", "#f0027f", false, false, 1],
 "MC13TeV_2016_EWKAJJ"                : [4.74,    0,  "", "EWK #gammajj", 633, false, false, 1],
 "MC13TeV_2016_IntZJJ"                : [4.32,    0,  "", "EWK ZJJ", "#f0027f", false, false, 1],
 "MC13TeV_2016_IntAJJ"                : [0.7,     0,  "", "EWK #gammajj", 633, false, false, 1],

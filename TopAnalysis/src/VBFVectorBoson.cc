@@ -317,7 +317,7 @@ void VBFVectorBoson::runAnalysis()
         if(ev_.isData && !selector_->isPhotonPD() && !selector_->isJetHTPD() ) continue;
         
         //select photons
-        photons_              = selector_->selPhotons(allPhotons, SelectionTool::TIGHT, leptons);   
+        photons_              = selector_->selPhotons(allPhotons,SelectionTool::TIGHT, leptons);   
         relaxedTightPhotons_  = selector_->selPhotons(allPhotons,SelectionTool::QCDTEMP, leptons);
         tmpPhotons_           = selector_->selPhotons(allPhotons,SelectionTool::RELAXEDTIGHT, leptons);     
 	inclusivePhotons_     = selector_->selPhotons(allPhotons,SelectionTool::CONTROL, leptons);
@@ -397,10 +397,19 @@ void VBFVectorBoson::runAnalysis()
       //jet selection
       std::vector<Jet> alljets = selector_->getGoodJets(ev_,30.,4.7,leptons,photons_);
       std::vector<Jet> jets;
+      // bool is_Loose=0;
+      // bool is_Mid=0;
+      // bool is_tight=0;
       for(auto j : alljets) {
         int idx=j.getJetIndex();
-        if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
+	// if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
         int jid=ev_.j_id[idx];
+        //for(jid=0; jid<2 & jid==2; jid++)
+	//	{
+	//is_Loose= (jid=2);
+	//is_Mid =(jid=1);
+	//is_tight=(jid=0);
+	//}
         bool passPu((jid>>jetPuId_)&0x1);
         bool passLoosePu((jid>>2)&0x1);
 
@@ -632,7 +641,7 @@ void VBFVectorBoson::runAnalysis()
           for(auto j : alljets) {
 
             int idx=j.getJetIndex();
-            if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
+	    // if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
 
             //shift jet energy
             float scaleVar(1.0);
@@ -1066,6 +1075,8 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   ht_->fill("mht",          vbfVars_.mht,         cplotwgts,c);
 
   for(size_t ij=0; ij<min(size_t(2),jets.size());ij++) {
+    	//	for(jid=0, jid<2 & jid==2; jid++)
+	//	{bool Loose 
     TString jtype(ij==0?"lead":"sublead");
     ht_->fill(jtype+"pt",       jets[ij].Pt(),        cplotwgts,c);          
     ht_->fill(jtype+"eta",      fabs(jets[ij].Eta()), cplotwgts,c);          
@@ -1090,7 +1101,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
     ht_->fill("jet_qg"   ,ev_.j_qg[jets[ij].getJetIndex()]    , cplotwgts,c);
     ht_->fill2D("etaphi",  jets[ij].Eta(),jets[ij].Phi() ,   cplotwgts,c);
     
-
+    //if(is_Loose) 
     TString postfix("centj");
     if(fabs(fabs(jets[ij].Eta())-vbfVars_.forwardeta)<0.05) {
       postfix = "fwdj";

@@ -33,7 +33,7 @@ lumiUnc=0.025
 if [[ ${ERA} == "2016" ]]; then
     githash=0c522df
     eosdir=/store/cmst3/group/top/RunIIReReco/2016/${githash}
-    fulllumi=37000
+    fulllumi=359000
     vbflumi=28000
 fi
 
@@ -73,7 +73,7 @@ case $WHAT in
         ### --CR     : gives a control region to evaluate fake rates in the photon data samples
         ### --SRfake : gives the distributions of fakes, normalised based on fake rates
 
-        json=data/era${ERA}/vbf_samples.json  #,data/era2017/vbf_syst_samples.json
+        json=data/era${ERA}/vbf_samples.json,data/era${ERA}/vbf_syst_samples.json
 	if [[ -z ${EXTRA} ]]; then
 	    echo "Making trees ... "
 	    extraOpts=" --mvatree"
@@ -81,13 +81,13 @@ case $WHAT in
 	    EXTRA="MVATrees"
         fi
 	python scripts/runLocalAnalysis.py \
-	    -i ${eosdir} --only ${json}\
-            -o ${outdir}/${githash}/${EXTRA} \
-            --farmappendix ${githash} \
-            -q ${queue} --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --skip DR04 ${extraOpts};
+	     -i ${eosdir} --only Data \
+             -o ${outdir}/${githash}/${EXTRA} \
+             --farmappendix ${githash} \
+             -q ${queue} --genWeights genweights_${githash}.root \
+             --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --skip DR04 ${extraOpts};
 	;;
-
+    
 
     SELJETHT )
 	json=data/era${ERA}/JetHT.json;
@@ -113,6 +113,8 @@ case $WHAT in
     MERGE )
 	./scripts/mergeOutputs.py ${outdir}/${githash}/${EXTRA};
 	;;
+
+    
 
     PLOT )
 	

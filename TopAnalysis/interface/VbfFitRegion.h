@@ -84,17 +84,17 @@ class systematics{
     std::vector<TH1F*> ret;
     TString hName = h->GetName();
     TString process( hName.Contains("Background_")? "Bkg":"Signal");
+    if(process == "Signal") rateSystSig.clear();
+    else rateSystBkg.clear();
     std::pair<int,int> hasSyst(0,0);
     int iPDF = 0;
     stringstream pdfName;
     for(int iSyst = 0; iSyst < h->GetYaxis()->GetNbins(); iSyst++){
       TString label = h->GetYaxis()->GetBinLabel(iSyst+1);
-      if(name.Contains("exp") && !label.Contains("JEC") && !label.Contains("JER") && !label.Contains("prefire")) continue;
       pdfName.str("");
-      pdfName << "PDF" << iPDF;      
+      pdfName << "PDF" << iPDF; 
       TString syst = ((label.EndsWith("dn") || label.EndsWith("up")) ? TString(label(0,label.Sizeof()-3)) : TString(pdfName.str().c_str()));
       TString postfix(label.EndsWith("dn")? "Down" : "Up");
-      cout << syst <<endl;
       if(syst.Contains("PDF")) {
 	postfix = "Up" ;
 	iPDF++;
@@ -103,7 +103,11 @@ class systematics{
       TH1D * H = h->ProjectionX(process+"_"+syst+postfix,iSyst+1,iSyst+1);
       TH1F * tmpH = new TH1F();
       H->Copy(*tmpH);
-      ret.push_back(tmpH);
+      if(name.Contains("exp") && !label.Contains("JEC") && !label.Contains("JER") && !label.Contains("prefire")){
+	if(process == "Signal") rateSystSig.push_back(tmpH);
+	if(process == "Bkg")    rateSystBkg.push_back(tmpH);
+	continue;
+      } else ret.push_back(tmpH);
       if(syst.Contains("PDF")){
 	postfix = "Down";
 	ret.push_back((TH1F*)tmpH->Clone(process+"_"+syst+postfix));
@@ -192,6 +196,7 @@ class systematics{
   TString name;
   TH2F * sig, * bkg;
   std::vector<TH1F*> shapeSystSig, shapeSystBkg;
+  std::vector<TH1F*> rateSystSig, rateSystBkg;
   YieldsErr yieldSystSig, yieldSystBkg;
   std::map<TString, std::pair<int, int> > shapeSystMap;
 };

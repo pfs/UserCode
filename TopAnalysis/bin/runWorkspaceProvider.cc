@@ -59,5 +59,6 @@ int main( int argc, char** argv )
   wsp.makeCard(YE, TString("A"), doSignalPH, sigEff, bkgEff);
   wsp.makeCard(YE, TString("MM"), doSignalPH, sigEff, bkgEff);
   wsp.makeCardNLO(YE, TString("A"));
+  wsp.plotSystSig();
   return 0;
 }

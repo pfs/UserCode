@@ -9,6 +9,7 @@
 #define WSPROVIDER_H
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
 #ifndef __CINT__
 #include "RooGlobalFunc.h"
 #endif
@@ -39,6 +40,7 @@
 #include "TH1.h"
 #include "TString.h"
 #include "TCanvas.h"
+#include "TPad.h"
 #include "TColor.h"
 #include "TColorWheel.h"
 #include "TColorGradient.h"
@@ -61,6 +63,7 @@
 #include "TPaveText.h"
 #include "TLatex.h"
 #include "TH1D.h"
+#include "TH1F.h"
 #include "TProfile.h"
 #include "TCanvas.h"
 #include "TString.h"
@@ -293,7 +296,7 @@ class WorkspaceProvider{
   }
 
   void makeCardNLO(YieldsErr YieldErrors, TString boson){
-    TString outname = chan+"_"+boson+"_NLO.txt";
+    TString outname = chan+"_"+boson+"_NLO"+SR->year+".txt";
     TString binName = "signal";
     ofstream myfile;
     myfile.setf(ios_base::fixed);
@@ -371,7 +374,7 @@ class WorkspaceProvider{
     TString opt = "SigPH";
     if(!doSignalPH) opt= "NoSigPH";
 
-    TString outname = chan+"_"+boson+"_"+opt+".txt";
+    TString outname = chan+"_"+boson+"_"+opt+SR->year+".txt";
     ofstream myfile;
     myfile.setf(ios_base::fixed);
     myfile.precision(4);
@@ -436,6 +439,127 @@ class WorkspaceProvider{
 	myfile << "StatTF_"<<chan<<"Signal\tparam\t0\t1"<<endl;
     }
     myfile.close();
+  }
+
+  void plotSystSig(){
+    plotSysts(SR);
+  }
+  void plotter(TH1F* nom, std::vector<TH1F*> hists, TString process, TDirectory * sigD, TString dName){
+    for(unsigned int iSyst = 0; iSyst < hists.size(); iSyst++){
+      sigD->cd();
+      TString hName = hists[iSyst]->GetName();
+      if(hName.Contains("Down")) continue;
+      TString systName = hName(process.Length()+1,hName.Length()-(process.Length()+3));
+      for(unsigned int iSyst2 = 0; iSyst2 < hists.size(); iSyst2++){
+	if(TString(hists[iSyst2]->GetName()).Contains("Up")) continue;
+	if(!TString(hists[iSyst2]->GetName()).Contains(systName)) continue;
+	TCanvas * c = new TCanvas(process+"_"+systName, systName, 448,99,500,500);
+	c->SetHighLightColor(2);
+	c->Range(0,0,1,1);
+	c->SetFillColor(0);
+	c->SetBorderMode(0);
+	c->SetBorderSize(2);
+	c->SetTickx(1);
+	c->SetTicky(1);
+	c->SetLeftMargin(0.16);
+	c->SetRightMargin(0.03);
+	c->SetTopMargin(0.05);
+	c->SetBottomMargin(0.13);
+	c->SetFrameFillStyle(0);
+	c->SetFrameBorderMode(0);
+	TPad *pad1 = new TPad(TString("pad_")+c->GetName(), "",0,0.20,1,1);
+	pad1->Draw();
+	pad1->cd();
+	pad1->Range(-140.4878,-1.348856,737.561,4.924722);
+	pad1->SetFillColor(0);
+	pad1->SetBorderMode(0);
+	pad1->SetBorderSize(2);
+	pad1->SetTickx(1);
+	pad1->SetTicky(1);
+	pad1->SetLeftMargin(0.16);
+	pad1->SetRightMargin(0.03);
+	pad1->SetTopMargin(0.05);
+	pad1->SetBottomMargin(0.13);
+	pad1->SetFrameFillStyle(0);
+	pad1->SetFrameBorderMode(0);
+	pad1->SetFrameFillStyle(0);
+	pad1->SetFrameBorderMode(0);
+	nom->SetLineColor(kBlack);
+	nom->SetFillColor(0);
+	nom->SetStats(0);
+	nom->SetMarkerColor(kBlack);
+	nom->SetMarkerStyle(20);
+	nom->SetTitle("Nominal");
+	nom->Draw();
+	hists[iSyst]->SetLineColor(kRed);
+	hists[iSyst]->SetFillColor(0);
+	hists[iSyst]->SetMarkerColor(kRed);
+	hists[iSyst]->SetMarkerStyle(20);
+	hists[iSyst]->SetStats(0);
+	hists[iSyst]->SetTitle(systName+" up");
+	hists[iSyst]->Draw("sames");
+	hists[iSyst2]->SetLineColor(kBlue);
+	hists[iSyst2]->SetFillColor(0);
+	hists[iSyst2]->SetStats(0);
+	hists[iSyst2]->SetMarkerColor(kBlue);
+	hists[iSyst2]->SetMarkerStyle(20);
+	hists[iSyst2]->SetTitle(systName + " down");
+	hists[iSyst2]->Draw("sames");
+	pad1->BuildLegend();
+	c->cd();
+	TPad *   pad2 = new TPad(TString("pad2_")+c->GetName(), "",0,0,1,0.2);
+	pad2->Draw();
+	pad2->cd();
+	pad2->Range(-195.1219,-61.64157,1024.39,129.679);
+	pad2->SetFillColor(0);
+	pad2->SetBorderMode(0);
+	pad2->SetBorderSize(2);
+	pad2->SetGridy();
+	pad2->SetTicky(1);
+	pad2->SetLeftMargin(0.16);
+	pad2->SetRightMargin(0.03);
+	pad2->SetTopMargin(0.05);
+	pad2->SetBottomMargin(0.13);
+	pad2->SetFrameFillStyle(0);
+	pad2->SetFrameBorderMode(0);
+	pad2->SetFrameFillStyle(0);
+	pad2->SetFrameBorderMode(0);
+	TH1F * tmpU = (TH1F*)hists[iSyst]->Clone();
+	tmpU->Divide(nom);
+	tmpU->GetYaxis()->SetRangeUser(0.8,1.2);
+	tmpU->SetTitle("");
+	tmpU->GetYaxis()->SetNdivisions(504,kFALSE);
+	tmpU->GetYaxis()->SetLabelSize(0.12);
+	tmpU->Draw();
+	TH1F * tmpD = (TH1F*)hists[iSyst2]->Clone();
+	tmpD->Divide(nom);	
+	tmpD->Draw("sames");
+	c->cd();
+	sigD->cd();
+	c->Write();
+	c->SaveAs("plots/"+dName+"_"+process+"_"+systName+".pdf");
+	c->SaveAs("plots/"+dName+"_"+process+"_"+systName+".png");
+      }
+    }
+  }
+  void plotSysts(VbfFitRegion * r){
+    TString dName = r->chan+r->boson+r->year;
+    const int dir_err = system("mkdir -p plots/"+r->chan+r->boson+r->year);
+    TFile * f = new TFile("plots/"+r->chan+r->boson+r->year+".root","recreate");    
+
+    TDirectory * sigD = f->mkdir("Signal"); 
+    plotter(r->hSig, r->Exp->shapeSystSig,"Signal",sigD, dName);
+    plotter(r->hSig, r->Exp->rateSystSig,"Signal",sigD, dName);
+    plotter(r->hSig, r->Theo->shapeSystSig,"Signal",sigD, dName);
+    f->cd();
+
+    TDirectory * bkgD = f->mkdir("Background"); 
+    plotter(r->hBkg, r->Exp->shapeSystBkg,"Bkg",bkgD, dName);
+    plotter(r->hBkg, r->Exp->rateSystBkg,"Bkg",bkgD, dName);
+    plotter(r->hBkg, r->Theo->shapeSystBkg,"Bkg",bkgD, dName);
+    f->cd();
+
+    f->Close();    
   }
  private:
   TString hist,chan;

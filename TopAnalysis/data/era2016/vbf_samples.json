@@ -4,10 +4,7 @@
 "MC13TeV_2016_GJets_HT200to400"      : [2305,    0,  "/GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", "#7fc97f", false, false, 1],
 "MC13TeV_2016_GJets_HT400to600"      : [274.4,   0,  "/GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", "#7fc97f", false, false, 1],
 "MC13TeV_2016_GJets_HT600toInf"      : [93.46,   0,  "/GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", "#7fc97f", false, false, 1],
-<<<<<<< HEAD
 
-=======
->>>>>>> b3181bebdee1a7d375d0642ddb8b537a4ab168ee
 "MC13TeV_2016_QCDEM_15to20"          : [2302200, 0,  "", "QCD", 41, false, false, 1],
 "MC13TeV_2016_QCDEM_20to30"          : [5352960, 0,  "/QCD_Pt-20to30_EMEnriched_TuneCUETP8M1_13TeV_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "QCD", "#DCDCDC", false, false, 1],
 "MC13TeV_2016_QCDEM_30to50"          : [9928000, 0,  "/QCD_Pt-30to50_EMEnriched_TuneCUETP8M1_13TeV_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "QCD", "#DCDCDC", false, false, 1],

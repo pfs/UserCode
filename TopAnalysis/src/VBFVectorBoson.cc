@@ -1,4 +1,4 @@
- #include <TFile.h>
+#include <TFile.h>
 #include <TROOT.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -270,12 +270,14 @@ void VBFVectorBoson::runAnalysis()
           if(ev_.isData && !selector_->isSingleMuonPD() ) continue;
 	  if (era_.Contains("2016"))
 	    {
+	      //Lowest unprescaled paths from
+	      //https://twiki.cern.ch/twiki/bin/view/CMS/TopTriggerYear2016
+	      //Run B:    HLT_Iso(Tk)Mu20_v 
+	      //Run C--D: HLT_Iso(Tk)Mu22_v
+	      //Run E--H: HLT_Iso(Tk)Mu24_v 
 	      bool passTrigger=(selector_->hasTriggerBit("HLT_IsoMu24_v",     ev_.triggerBits) ||
-				selector_->hasTriggerBit("HLT_IsoMu24_eta2p1_v", ev_.triggerBits) ||
-                            selector_->hasTriggerBit("HLT_IsoTkMu24_v",     ev_.triggerBits) );     
-	      if(filename_.Contains("2016E") || filename_.Contains("2016F")){
-		passTrigger=selector_->hasTriggerBit("HLT_IsoTkMu24_eta2p1_v",ev_.triggerBits);
-	      }
+				selector_->hasTriggerBit("HLT_IsoTkMu24_v",     ev_.triggerBits)
+			       );     
 	      if(!passTrigger) continue;
 	      chTag="MM";
 	      isBosonTrigSafe=true;
@@ -283,14 +285,13 @@ void VBFVectorBoson::runAnalysis()
 	  
 	  else 
 	    {
-	      
-	      bool passTrigger=(selector_->hasTriggerBit("HLT_IsoMu24_v",     ev_.triggerBits) ||
-				selector_->hasTriggerBit("HLT_IsoMu24_eta2p1_v", ev_.triggerBits) ||
-				selector_->hasTriggerBit("HLT_IsoTkMu24_v",     ev_.triggerBits) );     
-	      if(filename_.Contains("2017E") || filename_.Contains("2017F")){
-		passTrigger=selector_->hasTriggerBit("HLT_IsoTkMu24_eta2p1_v",ev_.triggerBits);
-	      }
-	      if(!passTrigger) continue;
+	      //Lowest unprescaled paths from                                                                                                                                                              
+              //https://twiki.cern.ch/twiki/bin/view/CMS/TopTriggerYear2017
+	      //Run B:    HLT_Iso(Tk)Mu24_v, HLT_IsoMu24_2p1_v, HLT_IsoMu27_v
+	      //Run C--D: HLT_IsoMu24_2p1_v, HLT_IsoMu27_v
+	      //Run E--F: HLT_IsoMu27_v
+	      bool passTrigger=selector_->hasTriggerBit("HLT_IsoMu27_v",ev_.triggerBits);
+	      if(!passTrigger) cout<<"trigger failed"<<endl;//continue;
 	      chTag="MM";
 	      isBosonTrigSafe=true;
 	    }
@@ -402,7 +403,7 @@ void VBFVectorBoson::runAnalysis()
       // bool is_tight=0;
       for(auto j : alljets) {
         int idx=j.getJetIndex();
-	// if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
+        if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
         int jid=ev_.j_id[idx];
        
         bool passPu((jid>>jetPuId_)&0x1);
@@ -636,7 +637,7 @@ void VBFVectorBoson::runAnalysis()
           for(auto j : alljets) {
 
             int idx=j.getJetIndex();
-	    // if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
+	    if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
 
             //shift jet energy
             float scaleVar(1.0);

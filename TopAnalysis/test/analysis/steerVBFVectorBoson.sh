@@ -52,11 +52,11 @@ case $WHAT in
     TESTSEL )
                
         json=data/era${ERA}/vbf_samples.json
-        tag=MC13TeV_2017_EWKAJJ
+        tag=Data13TeV_2017C_SingleMuon
         if [[ ${ERA} == "2016" ]]; then
             tag=MC13TeV_2016_TTJets
         fi
-        input=${eosdir}/${tag}/Chunk_0_ext0.root
+        input=${eosdir}/${tag}/Chunk_23_ext0.root
         output=${tag}.root 
 
 	python scripts/runLocalAnalysis.py \
@@ -73,7 +73,7 @@ case $WHAT in
         ### --CR     : gives a control region to evaluate fake rates in the photon data samples
         ### --SRfake : gives the distributions of fakes, normalised based on fake rates
 
-        json=data/era${ERA}/vbf_samples.json,data/era${ERA}/vbf_syst_samples.json
+        json=data/era${ERA}/vbf_samples.json #,data/era${ERA}/vbf_syst_samples.json
 	if [[ -z ${EXTRA} ]]; then
 	    echo "Making trees ... "
 	    extraOpts=" --mvatree"
@@ -81,13 +81,13 @@ case $WHAT in
 	    EXTRA="MVATrees"
         fi
 	python scripts/runLocalAnalysis.py \
-	     -i ${eosdir} --only Data \
-             -o ${outdir}/${githash}/${EXTRA} \
-             --farmappendix ${githash} \
-             -q ${queue} --genWeights genweights_${githash}.root \
-             --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --skip DR04 ${extraOpts};
-
+	    -i ${eosdir} --only Data\
+            -o ${outdir}/${githash}/${EXTRA} \
+            --farmappendix ${githash} \
+            -q ${queue} --genWeights genweights_${githash}.root \
+            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts  --skipexisting ${extraOpts};
 	;;
+
     
 
     SELJETHT )
@@ -124,9 +124,11 @@ case $WHAT in
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
         kFactors="--procSF MC13TeV_era${ERA}_QCDEM_15to20:1.26,MC13TeV_era${ERA}_QCDEM_20to30:1.26,MC13TeV_era${ERA}_QCDEM_30to50:1.26,MC13TeV_era${ERA}_QCDEM_50to80:1.26,MC13TeV_era${ERA}_QCDEM_80to120:1.26,MC13TeV_era${ERA}_QCDEM_120to170:1.26,MC13TeV_era${ERA}_QCDEM_170to300:1.26,MC13TeV_era${ERA}_QCDEM_300toInf:1.26,MC13TeV_era${ERA}_GJets_HT40to100:1.26,MC13TeV_era${ERA}_GJets_HT100to200:1.26,MC13TeV_era${ERA}_GJets_HT200to400:1.26,MC13TeV_era${ERA}_GJets_HT400to600:1.26,MC13TeV_era${ERA}_GJets_HT600toInf:1.26"
 	commonOpts="-i ${outdir}/${githash}/${EXTRA} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi}"
-#	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors}
-	python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
-#	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
+	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors}
+
+       python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
+
+	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
         ;;
     
     NLOTFACTORS )

@@ -252,7 +252,7 @@ void VBFVectorBoson::runAnalysis()
 	      isBosonTrigSafe=true;
 	    }
 	  
-	  //..........2016
+	  //..........2017
 	  else 
 	    {
 
@@ -404,12 +404,7 @@ void VBFVectorBoson::runAnalysis()
         int idx=j.getJetIndex();
 	// if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
         int jid=ev_.j_id[idx];
-        //for(jid=0; jid<2 & jid==2; jid++)
-	//	{
-	//is_Loose= (jid=2);
-	//is_Mid =(jid=1);
-	//is_tight=(jid=0);
-	//}
+       
         bool passPu((jid>>jetPuId_)&0x1);
         bool passLoosePu((jid>>2)&0x1);
 

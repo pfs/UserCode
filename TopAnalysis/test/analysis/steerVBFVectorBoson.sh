@@ -33,11 +33,7 @@ lumiUnc=0.025
 if [[ ${ERA} == "2016" ]]; then
     githash=0c522df
     eosdir=/store/cmst3/group/top/RunIIReReco/2016/${githash}
-<<<<<<< HEAD
-    fulllumi=359000
-=======
     fulllumi=35900
->>>>>>> b3181bebdee1a7d375d0642ddb8b537a4ab168ee
     vbflumi=28000
 fi
 
@@ -85,19 +81,12 @@ case $WHAT in
 	    EXTRA="MVATrees"
         fi
 	python scripts/runLocalAnalysis.py \
-<<<<<<< HEAD
 	     -i ${eosdir} --only Data \
              -o ${outdir}/${githash}/${EXTRA} \
              --farmappendix ${githash} \
              -q ${queue} --genWeights genweights_${githash}.root \
              --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --skip DR04 ${extraOpts};
-=======
-	    -i ${eosdir} --only ${json}\
-            -o ${outdir}/${githash}/${EXTRA} \
-            --farmappendix ${githash} \
-            -q ${queue} --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --skipexisting --skip DR04 ${extraOpts};
->>>>>>> b3181bebdee1a7d375d0642ddb8b537a4ab168ee
+
 	;;
     
 
@@ -135,8 +124,8 @@ case $WHAT in
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
         kFactors="--procSF MC13TeV_era${ERA}_QCDEM_15to20:1.26,MC13TeV_era${ERA}_QCDEM_20to30:1.26,MC13TeV_era${ERA}_QCDEM_30to50:1.26,MC13TeV_era${ERA}_QCDEM_50to80:1.26,MC13TeV_era${ERA}_QCDEM_80to120:1.26,MC13TeV_era${ERA}_QCDEM_120to170:1.26,MC13TeV_era${ERA}_QCDEM_170to300:1.26,MC13TeV_era${ERA}_QCDEM_300toInf:1.26,MC13TeV_era${ERA}_GJets_HT40to100:1.26,MC13TeV_era${ERA}_GJets_HT100to200:1.26,MC13TeV_era${ERA}_GJets_HT200to400:1.26,MC13TeV_era${ERA}_GJets_HT400to600:1.26,MC13TeV_era${ERA}_GJets_HT600toInf:1.26"
 	commonOpts="-i ${outdir}/${githash}/${EXTRA} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi}"
-	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors}
-#       python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
+#	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors}
+	python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
 #	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
         ;;
     

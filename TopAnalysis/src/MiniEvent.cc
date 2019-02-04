@@ -214,6 +214,16 @@ void createMiniEventTree(TTree *t,MiniEvent_t &ev,Int_t njecUncs)
   t->Branch("fwdtrk_x_unc",  ev.fwdtrk_x_unc,  "fwdtrk_x_unc[nfwdtrk]/F");
   t->Branch("fwdtrk_y",      ev.fwdtrk_y,      "fwdtrk_y[nfwdtrk]/F");
   t->Branch("fwdtrk_y_unc",  ev.fwdtrk_y_unc,  "fwdtrk_y_unc[nfwdtrk]/F");
+
+
+  t->Branch("nrawmu", &ev.nrawmu, "nrawmu/I");
+  t->Branch("rawmu_pt", ev.rawmu_pt, "rawmu_pt[nrawmu]/S");
+  t->Branch("rawmu_eta", ev.rawmu_eta, "rawmu_eta[nrawmu]/S");
+  t->Branch("rawmu_phi", ev.rawmu_phi, "rawmu_phi[nrawmu]/S");
+  t->Branch("rawmu_pid", ev.rawmu_pid, "rawmu_pid[nrawmu]/I");
+  t->Branch("vtxHt", ev.vtxHt, "vtxHt[nvtx]/F");
+  t->Branch("vtxPt", ev.vtxPt, "vtxPt[nvtx]/F");
+  t->Branch("vtxMult", ev.vtxMult, "vtxMult[nvtx]/I");
 }
 
 //
@@ -436,4 +446,12 @@ void attachToMiniEventTree(TTree *t,MiniEvent_t &ev,bool full)
   t->SetBranchAddress("fwdtrk_x_unc",  ev.fwdtrk_x_unc);
   t->SetBranchAddress("fwdtrk_y",      ev.fwdtrk_y);
   t->SetBranchAddress("fwdtrk_y_unc",  ev.fwdtrk_y_unc);
+  t->SetBranchAddress("nrawmu",   &ev.nrawmu);
+  t->SetBranchAddress("rawmu_pt",  ev.rawmu_pt);
+  t->SetBranchAddress("rawmu_eta", ev.rawmu_eta);
+  t->SetBranchAddress("rawmu_phi", ev.rawmu_phi);
+  t->SetBranchAddress("rawmu_pid", ev.rawmu_pid);
+  t->SetBranchAddress("vtxHt",     ev.vtxHt);
+  t->SetBranchAddress("vtxPt",     ev.vtxPt);
+  t->SetBranchAddress("vtxMult",   ev.vtxMult);
 }

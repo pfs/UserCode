@@ -172,6 +172,25 @@ case $WHAT in
 
         ;;
 
+    TESTFIT )
+
+        testCat=em
+        testDist=${testCat}_mlb
+        python test/analysis/top17010/prepareDataCard.py -d ${testDist} \
+            -t ${outdir}/${githash}/templates \
+            dataDef=sig,${outdir}/${githash}/plots/plotter.root,${testDist}/${testDist}_t#bar{t} \
+            -s nom,${outdir}/${githash}/MC13TeV_${ERA}_TTJets.root \
+            -o ${outdir}/${githash}/datacards_jerinc \
+            --systs test/analysis/top17010/systs_dict_incjer.json
+        
+        args="${outdir}/${githash}/datacards_jerinc/${testCat}/nom/tbart.datacard.dat"
+        python test/analysis/top17010/createFit.py -o ${outdir}/${githash}/fits_jerinc/${testCat}/nom -a -t 50 -c ${COMBINE} --tag tbart ${args}
+
+        sh ${outdir}/${githash}/fits_jerinc/${testCat}/nom/runFit_tbart.sh 
+
+        ;;
+
+
     DATACARD )
 
         python test/analysis/top17010/submitPrepareDataCard.py --dists ${dists} \
@@ -179,8 +198,8 @@ case $WHAT in
             --templ ${outdir}/${githash}/templates \
             --nom MC13TeV_${ERA}_TTJets.root \
             -o ${outdir}/${githash}/datacards
-
         ;;
+
 
     FIT )
         

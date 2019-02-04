@@ -32,7 +32,7 @@ def getTheoryPrediction(x=np.arange(169,176,0.1)):
 
 
 
-def getScanPoint(inDir):
+def getScanPoint(inDir,fitTag):
 
     """read the fit result and return the likelihood value together with the corresponding mtop,width values"""
 
@@ -48,7 +48,7 @@ def getScanPoint(inDir):
     #read nll from fit
     nll=None
     try:
-        url=os.path.join(inDir,'fitresults.root')
+        url=os.path.join(inDir,'fitresults%s.root'%fitTag)
         if os.path.isfile(url):
             inF=ROOT.TFile.Open(url)
             tree=inF.Get('fitresults')
@@ -129,18 +129,24 @@ def main():
                       help='output directory [%default]',  
                       default='store/TOP17010/fit_results/em_inc',
                       type='string')
+    parser.add_option('-t', '--tag',          
+                      dest='fitTag',
+                      help='fit tag [%default]',  
+                      default='_tbart',
+                      type='string')
     (opt, args) = parser.parse_args()
 
 
     #build nll scan
     fitres=[]
     for f in os.listdir(opt.input):
-        scanRes=getScanPoint(inDir=os.path.join(opt.input,f))
+        scanRes=getScanPoint(inDir=os.path.join(opt.input,f),fitTag=opt.fitTag)
         if not scanRes[-1]: continue
         fitres.append( scanRes )
     fitres=np.array(fitres)
 
     #plot the contour interpolating the available points
+    os.system('mkdir -p %s'%opt.outdir)
     doContour(fitres,outdir=opt.outdir)
     
 

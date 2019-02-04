@@ -10,7 +10,8 @@
 "MC13TeV_2017_ChH1000ToWZ"        : [1, 0,  "/ChargedHiggsToWZTo3LNu_M1000_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "H^{#pm}(1000)#rightarrowWZ",  1, false, false, 1],
 "MC13TeV_2017_ChH2000ToWZ"        : [1, 0,  "/ChargedHiggsToWZTo3LNu_M2000_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "H^{#pm}(2000)#rightarrowWZ",  1, false, false, 1],
 "MC13TeV_2017_MuStar1250ToMuZ"    : [1, 0,  "/ExcitedLepton_MuMuZ-1250_TuneCP5_13TeV-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "#mu^{*}(1250)#rightarrow#muZ",  1, false, false, 1],
-"MC13TeV_2017_MuStar2000ToMuZ"    : [1, 0,  "/ExcitedLepton_MuMuZ-2000_TuneCP5_13TeV-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "#mu^{*}(2000)#rightarrow#muZ",  1, false, false, 1]
+"MC13TeV_2017_MuStar2000ToMuZ"    : [1, 0,  "/ExcitedLepton_MuMuZ-2000_TuneCP5_13TeV-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "#mu^{*}(2000)#rightarrow#muZ",  1, false, false, 1],
+"MC13TeV_2017_GGToEE_lpair"       : [0.01718, 0,  "/GGToEE_Pt-50_Elastic_13TeV-lpair/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "#gamma#gamma#rightarrowll", 1, false, false, 1]
 }
 
 

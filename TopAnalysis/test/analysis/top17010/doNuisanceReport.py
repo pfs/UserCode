@@ -7,12 +7,12 @@ import numpy as np
 
 COLORS=[1, ROOT.kOrange,  ROOT.kRed+1, ROOT.kMagenta-9, ROOT.kBlue-7]
 
-def doNuisanceReport(args,outdir):
+def doNuisanceReport(args,outdir,onlyList,skipList):
 
     """compare postfit nuisances"""
 
     blackList=['seed','itoy','status','errstatus','scanidx','edmval','nllval','nllvalfull','dnllval','chisq','chisqpartial','ndof','ndofpartial']
-
+    
     results=[]
     varsMaxConstr={}
     for i in xrange(0,len(args)):
@@ -38,6 +38,20 @@ def doNuisanceReport(args,outdir):
             if '_gen' in bname : continue
             if '_minos' in bname : continue
             if '_err' in bname : continue
+            if onlyList:
+                accept=False
+                for tag in onlyList:
+                    if not tag in bname: continue
+                    accept=True
+                    break
+                if not accept: continue                
+            if skipList:
+                accept=True
+                for tag in skipList:
+                    if not tag in bname: continue
+                    accept=False
+                    break
+                if not accept: continue
             varVals[bname]=[]
             
         ntoys=fitres.GetEntriesFast()
@@ -205,10 +219,15 @@ def main():
         epilog="Summarizes the post-fit results"
         )
     parser.add_option("-o",    type="string",       dest="outdir",  default='nuisances',  help="name of the output directory")
+    parser.add_option("--only",    type="string",   dest="only",    default=None,  help="only nuisances matching these tags (CSV list)")
+    parser.add_option("--skip",    type="string",   dest="skip",    default=None,  help="skip these nuisances")
     (opt, args) = parser.parse_args()
 
     os.system('mkdir -p %s'%opt.outdir)
-    doNuisanceReport(args,opt.outdir)
+    doNuisanceReport(args=args,
+                     outdir=opt.outdir,
+                     onlyList=opt.only.split(',') if opt.only else None,
+                     skipList=opt.skip.split(',') if opt.skip else None)
 
 
 if __name__ == "__main__":

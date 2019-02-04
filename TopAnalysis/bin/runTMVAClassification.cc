@@ -11,6 +11,7 @@ int main( int argc, char** argv )
   TString methodList,ext,category;
   TString signalFile = "";
   TString bkgFile = "";
+  TString card = "";
   for (int i=1; i<argc; i++) {
     TString regMethod(argv[i]);
     cout<<regMethod<<endl;
@@ -66,7 +67,12 @@ int main( int argc, char** argv )
       }
       continue;
     }
+    if( regMethod=="--card"){
+      i++;
+      card = std::string (*(argv + i)).c_str();
+      continue;
+    }
   }
   
-  return TMVAClassification(methodList , ext , bdt_options, signalFile, bkgFile, category);
+  return TMVAClassification(methodList , ext , bdt_options, signalFile, bkgFile, category, card);
 }

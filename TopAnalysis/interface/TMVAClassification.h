@@ -109,8 +109,35 @@ public:
 
 class DataLoaderWrapper: public TMVA::DataLoader{
 public:
-  DataLoaderWrapper(TString name= "defaultName"):DataLoader(name){};
+ DataLoaderWrapper(TString name= "defaultName"):DataLoader(name){};
   ~DataLoaderWrapper(){};
+
+  void readInputs(TString fname){
+    inputVars.clear();
+    ifstream f(fname);
+    string line;
+    int iLine = 0;
+    if (f.is_open()) {
+      while (getline(f, line)) {
+	iLine++;
+	TString linestr(line.c_str());
+	int nameIndex = linestr.Index(",");
+	TString variable = linestr(0,nameIndex);
+	TString sub      = linestr(nameIndex+1, linestr.Length() - nameIndex);
+	int qId = -1;
+	for(int i = 0; i < sub.Length(); i++){if(! TString(sub(i,1)).IsWhitespace()) {qId = i; break;}}
+	TString varName  = sub(qId, sub.Length() - qId);
+	inputVars.push_back(make_pair(variable,varName));
+      }
+      f.close();
+    }
+  }
+
+  void setVariables(){
+    for(unsigned int i = 0; i < inputVars.size(); i++){
+      TMVA::DataLoader::AddVariable( inputVars[i].first, inputVars[i].second, "", 'F');
+    }
+  }
   void setCutOptVars(){
      TMVA::DataLoader::AddVariable( "mjj", "mjj", "", 'F' ) ;
      TMVA::DataLoader::AddVariable( "j_pt[1]", "SubLeadJetPt", "", 'F' ) ;
@@ -167,11 +194,11 @@ public:
     TMVA::DataLoader::AddVariable( "dphibjj",          "dphibjj", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "balance",          "balance", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "subleadj_gawidth", "subleadj_gawidth", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "j_c2_00[0]",       "jet_c2_001",       "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "j_c2_00[1]",       "jet_c2_002",       "", 'F' ) ;
+    /* TMVA::DataLoader::AddVariable( "j_c2_00[0]",       "jet_c2_001",       "", 'F' ) ; */
+    /* TMVA::DataLoader::AddVariable( "j_c2_00[1]",       "jet_c2_002",       "", 'F' ) ; */
     TMVA::DataLoader::AddVariable( "j_qg[0]",          "leadjet_qg", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "dphivj0",          "dphivj0", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "dphivj2",          "dphivj2", "", 'F' ) ;
+    //    TMVA::DataLoader::AddVariable( "dphivj2",          "dphivj2", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "mht",              "mht", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "ht",               "ht", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "aplanarity",       "aplanarity", "", 'F' ) ;
@@ -182,22 +209,20 @@ public:
 
   void setHighVPtHighMJJVariables(){
     TMVA::DataLoader::AddVariable( "mjj",              "mjj", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "detajj",           "detajj", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "dphijj",           "dphijj", "", 'F' ) ;
+    TMVA::DataLoader::AddVariable( "jjpt",             "jjpt", "", 'F' ) ;
+    //    TMVA::DataLoader::AddVariable( "dphijj",           "dphijj", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "ystar",            "ystar", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "dphibjj",          "dphibjj", "", 'F' ) ;
+    //    TMVA::DataLoader::AddVariable( "dphibjj",          "dphibjj", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "balance",          "balance", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "j_c2_00[0]",       "jet_c2_001",       "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "j_c2_00[1]",       "jet_c2_002",       "", 'F' ) ;
+    TMVA::DataLoader::AddVariable( "subleadj_gawidth", "subleadj_gawidth", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "j_qg[0]",          "leadjet_qg", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "j_qg[1]",          "subleadjet_qg", "", 'F' ) ;
+    //    TMVA::DataLoader::AddVariable( "j_qg[1]",          "subleadjet_qg", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "dphivj0",          "dphivj0", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "dphivj1",          "dphivj1", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "dphivj2",          "dphivj2", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "dphivj3",          "dphivj3", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "mht",              "mht", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "C",                "C", "", 'F' ) ; 
+    TMVA::DataLoader::AddVariable( "ht",               "ht", "", 'F' ) ;
+    TMVA::DataLoader::AddVariable( "sphericity",       "sphericity", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "D",                "D", "", 'F' ) ; 
+    TMVA::DataLoader::AddVariable( "circularity",      "circularity", "", 'F' ) ;
   }
   void setHighVPtLowMJJVariables(){
 
@@ -208,13 +233,13 @@ public:
     TMVA::DataLoader::AddVariable( "ystar",            "ystar", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "dphibjj",          "dphibjj", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "balance",          "balance", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "j_c2_00[0]",       "jet_c2_001",       "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "j_c2_00[1]",       "jet_c2_002",       "", 'F' ) ;
+    /* TMVA::DataLoader::AddVariable( "j_c2_00[0]",       "jet_c2_001",       "", 'F' ) ; */
+    /* TMVA::DataLoader::AddVariable( "j_c2_00[1]",       "jet_c2_002",       "", 'F' ) ; */
     TMVA::DataLoader::AddVariable( "j_qg[1]",          "subleadjet_qg", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "dphivj0",          "dphivj0", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "dphivj1",          "dphivj1", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "dphivj2",          "dphivj2", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "dphivj3",          "dphivj3", "", 'F' ) ;
+    /* TMVA::DataLoader::AddVariable( "dphivj2",          "dphivj2", "", 'F' ) ; */
+    /* TMVA::DataLoader::AddVariable( "dphivj3",          "dphivj3", "", 'F' ) ; */
     TMVA::DataLoader::AddVariable( "mht",              "mht", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "sphericity",       "sphericity", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "D",                "D", "", 'F' ) ;     
@@ -244,7 +269,6 @@ public:
 
   void setAllVariables(bool excludeCuts = false){
 
-    //    TMVA::DataLoader::AddVariable( "centralEta",       "centralEta", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "forwardeta",       "forwardeta", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "leadj_pt",         "leadj_pt", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "subleadj_pt",      "subleadj_pt", "", 'F' ) ;
@@ -258,17 +282,10 @@ public:
     TMVA::DataLoader::AddVariable( "balance",          "balance", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "leadj_gawidth",    "leadj_gawidth", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "subleadj_gawidth", "subleadj_gawidth", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "j_c2_00[0]",       "jet_c2_001",       "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "j_c2_00[1]",       "jet_c2_002",       "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "j_qg[0]",          "leadjet_qg", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "j_qg[1]",          "subleadjet_qg", "", 'F' ) ;
-    //    TMVA::DataLoader::AddVariable( "jjetas",           "jjetas", "", 'F' ) ;
-    //    TMVA::DataLoader::AddVariable( "centjy",           "centjy", "", 'F' ) ; 
-    //    TMVA::DataLoader::AddVariable( "ncentjj",          "ncentjj", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "dphivj0",          "dphivj0", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "dphivj1",          "dphivj1", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "dphivj2",          "dphivj2", "", 'F' ) ;
-    TMVA::DataLoader::AddVariable( "dphivj3",          "dphivj3", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "mht",              "mht", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "ht",               "ht", "", 'F' ) ;
     TMVA::DataLoader::AddVariable( "isotropy",         "isotropy", "", 'F' ) ;
@@ -278,9 +295,10 @@ public:
     TMVA::DataLoader::AddVariable( "D",                "D", "", 'F' ) ; 
     TMVA::DataLoader::AddVariable( "circularity",      "circularity", "", 'F' ) ;
   };
+  std::vector<std::pair<TString, TString> > inputVars; 
 };
 
-int TMVAClassification( TString myMethodList , TString extention, BDTOptimizer* bdt_options, TString sig, TString bkg, TString category );
+int TMVAClassification( TString myMethodList , TString extention, BDTOptimizer* bdt_options, TString sig, TString bkg, TString category, TString card );
 std::vector<std::string> split(const std::string &s, char delim);
 
 

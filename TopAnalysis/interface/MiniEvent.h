@@ -35,7 +35,7 @@ struct MiniEvent_t
   //reco level event
   Int_t nvtx;
   Int_t triggerBits;
-  //FIXME use this for new ntuples: ULong64_t triggerBits;
+  //ULong64_t triggerBits;
   Float_t rho;
 
   //leptons
@@ -83,6 +83,13 @@ struct MiniEvent_t
   Int_t nfwdtrk,fwdtrk_arm[50],fwdtrk_station[50],fwdtrk_pot[50];
   Float_t fwdtrk_x[50],fwdtrk_x_unc[50];
   Float_t fwdtrk_y[50],fwdtrk_y_unc[50];
+
+  Int_t nrawmu;
+  Short_t rawmu_pt[200],rawmu_eta[200],rawmu_phi[200];
+  Int_t rawmu_pid[200];
+  Float_t vtxHt[200],vtxPt[200];
+  Int_t vtxMult[200];
+
 };
 
 void createMiniEventTree(TTree *t,MiniEvent_t &ev,Int_t njecUncs=0);

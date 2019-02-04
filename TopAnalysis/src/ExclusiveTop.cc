@@ -44,6 +44,7 @@ void RunExclusiveTop(TString filename,
   // CTPPS reconstruction part
   ctpps::XiReconstructor proton_reco;
   proton_reco.feedDispersions(Form("%s/src/TopLJets2015/CTPPSAnalysisTools/data/2017/dispersions.txt", CMSSW_BASE));
+  proton_reco.interpolateCrossingAngle( 150., 0.046 );
 
   ctpps::AlignmentsFactory ctpps_aligns;
   ctpps_aligns.feedAlignments(Form("%s/src/TopLJets2015/CTPPSAnalysisTools/data/2017/alignments_21aug2018.txt", CMSSW_BASE));
@@ -128,9 +129,9 @@ void RunExclusiveTop(TString filename,
   //LEPTON EFFICIENCIES
   std::map<TString,TString> cfgMap;
   cfgMap["g_id"]="MVAwp90";
-  cfgMap["m_id"]="LooseID";
-  cfgMap["m_iso"]="LooseRelIso";
-  cfgMap["m_id4iso"]="LooseID";
+  cfgMap["m_id"]="TightID";
+  cfgMap["m_iso"]="TightRelIso";
+  cfgMap["m_id4iso"]="TightIDandIPCut";
   cfgMap["e_id"]="MVA90";
   EfficiencyScaleFactorsWrapper lepEffH(filename.Contains("Data13TeV"),era,cfgMap);
 
@@ -196,31 +197,32 @@ void RunExclusiveTop(TString filename,
       //particle level dilepton or photon
       std::vector<double> trivialwgts(1,1.0);
       float gen_pt(-1),gen_m(-1),gen_dr(-1);
-      TString gen_cat("");
+      std::vector<TString> gen_cats;
       if(!ev.isData){
-        std::vector<Particle> genLeptons=selector.getGenLeptons(ev,20.,2.5);
+        std::vector<Particle> genLeptons=selector.getGenLeptons(ev,20.,2.4);
         std::vector<Particle> genPhotons=selector.getGenPhotons(ev,50.,2.5);
         
-        if(genLeptons.size()>=2) {
+        if(genLeptons.size()>=2 && genLeptons[0].Pt()>30 && fabs(genLeptons[0].Eta())<2.1) {
           gen_pt=(genLeptons[0]+genLeptons[1]).Pt();
           gen_m=(genLeptons[0]+genLeptons[1]).M();
+          bool isZ(fabs(gen_m-91)<10);
           gen_dr=genLeptons[0].DeltaR(genLeptons[1]);
           int gen_dilcode=abs(genLeptons[0].id()*genLeptons[1].id());
-          if(gen_dilcode==11*11) gen_cat="genee";
-          if(gen_dilcode==11*13) gen_cat="genem";
-          if(gen_dilcode==13*13) gen_cat="genmm";
+          if(gen_dilcode==11*11) { gen_cats.push_back("genee"); if(isZ) gen_cats.push_back("geneez"); };
+          if(gen_dilcode==11*13) { gen_cats.push_back("genem"); }
+          if(gen_dilcode==13*13) { gen_cats.push_back("genmm"); if(isZ) gen_cats.push_back("genmmz"); };
         }
         else if(genPhotons.size()>=1){
           gen_pt=genPhotons[0].Pt();
           gen_m=0;
           gen_dr=0;
-          gen_cat="gena";
+          gen_cats.push_back("gena");
         }
 
-        if(gen_cat!=""){
-          ht.fill("ptboson", gen_pt, trivialwgts, gen_cat);
-          ht.fill("mll",  gen_m,  trivialwgts, gen_cat);
-          ht.fill("drll", gen_dr,  trivialwgts, gen_cat);
+        if(gen_cats.size()>0){
+          ht.fill("ptboson", gen_pt, trivialwgts, gen_cats);
+          ht.fill("mll",  gen_m,  trivialwgts, gen_cats);
+          ht.fill("drll", gen_dr,  trivialwgts, gen_cats);
         }
       }
 
@@ -278,21 +280,23 @@ void RunExclusiveTop(TString filename,
       hasMTrigger=(hasHighPtMTrigger || hasStdMTrigger);
 
       //trigger efficiency
-      if( (gen_cat=="gena" && hasATrigger) || 
-          (gen_cat=="genee" && (hasEETrigger || hasETrigger)) ||
-          (gen_cat=="genmm" && (hasMMTrigger || hasMTrigger)) ||
-          (gen_cat=="genem" && (hasEMTrigger || hasETrigger || hasMTrigger)) ) { 
-        ht.fill("ptboson", gen_pt, trivialwgts, gen_cat+"trig");
-        ht.fill("mll",  gen_m,  trivialwgts, gen_cat+"trig");
-        ht.fill("drll", gen_dr, trivialwgts, gen_cat+"trig");
-      }
-      if( (gen_cat=="gena" && hasATrigger) || 
-          (gen_cat=="genee" && hasETrigger) ||
-          (gen_cat=="genmm" && hasStdMTrigger) ||
-          (gen_cat=="genem" && (hasETrigger || hasStdMTrigger)) ) { 
-        ht.fill("ptboson", gen_pt, trivialwgts, gen_cat+"singletrig");
-        ht.fill("mll",  gen_m,  trivialwgts, gen_cat+"singletrig");
-        ht.fill("drll", gen_dr, trivialwgts, gen_cat+"singletrig");
+      for(auto gen_cat : gen_cats) {
+        if( (gen_cat.Contains("gena") && hasATrigger) || 
+            (gen_cat.Contains("genee") && (hasEETrigger || hasETrigger)) ||
+            (gen_cat.Contains("genmm") && (hasMMTrigger || hasMTrigger)) ||
+            (gen_cat.Contains("genem") && (hasEMTrigger || hasETrigger || hasMTrigger)) ) { 
+          ht.fill("ptboson", gen_pt, trivialwgts, gen_cat+"trig");
+          ht.fill("mll",  gen_m,  trivialwgts, gen_cat+"trig");
+          ht.fill("drll", gen_dr, trivialwgts, gen_cat+"trig");
+        }
+        if( (gen_cat.Contains("gena") && hasATrigger) || 
+            (gen_cat.Contains("genee") && hasETrigger) ||
+            (gen_cat.Contains("genmm") && hasStdMTrigger) ||
+            (gen_cat.Contains("genem") && (hasETrigger || hasStdMTrigger)) ) { 
+          ht.fill("ptboson", gen_pt, trivialwgts, gen_cat+"singletrig");
+          ht.fill("mll",  gen_m,  trivialwgts, gen_cat+"singletrig");
+          ht.fill("drll", gen_dr, trivialwgts, gen_cat+"singletrig");
+        }
       }
       
       //identify the offline final state from the leading leptons or the photon
@@ -323,10 +327,15 @@ void RunExclusiveTop(TString filename,
                                 (leptons[1].id()==13 && leptons[1].hasQualityFlag(SelectionTool::TIGHT)) );
         passTightSel = (isTrigSafe && isLeadingTight && isSubLeadingTight);
         
+        //bool isLeadingMedium( (leptons[0].id()==11 && leptons[0].hasQualityFlag(SelectionTool::MVA90)) ||
+        //                      (leptons[0].id()==13 && leptons[0].hasQualityFlag(SelectionTool::LOOSE)) );        
+        //bool isSubLeadingMedium( (leptons[1].id()==11 && leptons[1].hasQualityFlag(SelectionTool::MVA90)) ||
+        //                         (leptons[1].id()==13 && leptons[1].hasQualityFlag(SelectionTool::LOOSE)) );
         bool isLeadingMedium( (leptons[0].id()==11 && leptons[0].hasQualityFlag(SelectionTool::MVA90)) ||
-                              (leptons[0].id()==13 && leptons[0].hasQualityFlag(SelectionTool::LOOSE)) );        
+                              (leptons[0].id()==13 && leptons[0].hasQualityFlag(SelectionTool::TIGHT)) );        
         bool isSubLeadingMedium( (leptons[1].id()==11 && leptons[1].hasQualityFlag(SelectionTool::MVA90)) ||
-                                 (leptons[1].id()==13 && leptons[1].hasQualityFlag(SelectionTool::LOOSE)) );
+                                 (leptons[1].id()==13 && leptons[1].hasQualityFlag(SelectionTool::TIGHT)) );
+
         passMediumSel = (isTrigSafe && isLeadingMedium && isSubLeadingMedium);        
       }
       else if(photons.size()>0){
@@ -459,14 +468,16 @@ void RunExclusiveTop(TString filename,
       if(boson.Pt()>50) cats.push_back(selCat+"highpt");
         
       //selection efficiency                   
-      ht.fill("mll",  gen_m,  trivialwgts,gen_cat+"rec");
-      if(passTightSel) ht.fill("mll",  gen_m,  trivialwgts,gen_cat+"2trec");
-      if(isZ || isA) {
-        ht.fill("ptboson", gen_pt, trivialwgts,gen_cat+"rec");
-        ht.fill("drll", gen_dr,  trivialwgts, gen_cat+"rec");
-        if(passTightSel) {
-          ht.fill("ptboson", gen_pt, trivialwgts,gen_cat+"2trec");
-          ht.fill("drll", gen_dr,  trivialwgts, gen_cat+"2trec");
+      for(auto gen_cat : gen_cats) {
+        ht.fill("mll",  gen_m,  trivialwgts,gen_cat+"rec");
+        if(passTightSel) ht.fill("mll",  gen_m,  trivialwgts,gen_cat+"2trec");
+        if(isZ || isA) {
+          ht.fill("ptboson", gen_pt, trivialwgts,gen_cat+"rec");
+          ht.fill("drll", gen_dr,  trivialwgts, gen_cat+"rec");
+          if(passTightSel) {
+            ht.fill("ptboson", gen_pt, trivialwgts,gen_cat+"2trec");
+            ht.fill("drll", gen_dr,  trivialwgts, gen_cat+"2trec");
+          }
         }
       }
         
@@ -609,7 +620,8 @@ void RunExclusiveTop(TString filename,
           ht.fill("beamXangle", beamXangle, plotwgts, selCat);
           
           //only dispersions for these angles are available (@ CTPPSAnalysisTools/data/2017/dispersions.txt)
-          if(beamXangle==120 || beamXangle==130 || beamXangle==140) {
+          //150 is interpolated
+          if(beamXangle==120 || beamXangle==130 || beamXangle==140 || beamXangle==150) {
             
             std::vector< std::pair<int,float> > nearCsis;
             std::map<int,int> ntks;

@@ -143,8 +143,9 @@ def showEfficiencyPlot(grColl,xtit,ytit,logx,logy,yran,legPos,outName):
     tex.DrawLatex(0.12,0.96,'#bf{CMS} #it{simulation preliminary}')
     c.Modified()
     c.Update()   
-    c.RedrawAxis() 
+    c.RedrawAxis()
     c.SaveAs('{0}.png'.format(outName))
+    c.SaveAs('{0}.pdf'.format(outName))
 
 def showSimpleDistribution(hColl,doLogx,doDivideByBinWidth,outName):
 
@@ -183,6 +184,7 @@ def showSimpleDistribution(hColl,doLogx,doDivideByBinWidth,outName):
     c.Update()
     c.RedrawAxis()
     c.SaveAs('%s.png'%outName)
+    c.SaveAs('%s.pdf'%outName)
 
 def runSelectionEfficiencyFor(ch,d):
 
@@ -192,11 +194,11 @@ def runSelectionEfficiencyFor(ch,d):
     procList  =[('DY','#000000',1001,20,bkgROOT),
                 ("ZH#rightarrowllbb",'#666666',0,20,zxROOT),
                 ("qqH(900)#rightarrowZZ#rightarrow2l2#nu",'#8c510a',0,21,zxROOT),
-                ("ggH(900)#rightarrowZZ#rightarrow2l2#nu",'#8c510a',0,25,zxROOT),
+                #("ggH(900)#rightarrowZZ#rightarrow2l2#nu",'#8c510a',0,25,zxROOT),
                 #("qqH(1500)#rightarrowZZ#rightarrow2l2#nu",'#f0027f',0,22,zxROOT),
                 #("ggH(1500)#rightarrowZZ#rightarrow2l2#nu",'#f0027f',0,26,zxROOT),
-                #("qqH(2000)#rightarrowZZ#rightarrow2l2#nu",'#358CEF',0,23,zxROOT),
-                #("ggH(2000)#rightarrowZZ#rightarrow2l2#nu",'#358CEF',0,27,zxROOT)
+                ("qqH(2000)#rightarrowZZ#rightarrow2l2#nu",'#358CEF',0,23,zxROOT),
+                #("ggH(2000)#rightarrowZZ#rightarrow2l2#nu",'#358CEF',0,27,zxROOT),
                 ]
 
 
@@ -244,10 +246,15 @@ def runSelectionEfficiencyFor(ch,d):
     #distribution plots
     showSimpleDistribution(genSummary['rec'],doLogx=False,doDivideByBinWidth=doDivideByBinWidth,outName='gen_%s_%s'%(ch,d))
 
+    #save results 
+    fOut=ROOT.TFile.Open('effsummary_%s_%s.root'%(ch,d),'RECREATE')
+    for gr in effSummary['2trec']: gr.Write()
+    fOut.Close()
+
     #efficiency plots
-    for tag,xtit,ytit,logx,logy,yran,legPos in [('trig',      genSummary['rec'][0].GetXaxis().GetTitle(),'Trigger acceptance x #varepsilon',  doLogx,False,(0.8,1),  'bl'),
+    for tag,xtit,ytit,logx,logy,yran,legPos in [('trig',      genSummary['rec'][0].GetXaxis().GetTitle(),'Trigger #varepsilon',  doLogx,False,(0.8,1),  'bl'),
                                                 ('trig_gain', genSummary['rec'][0].GetXaxis().GetTitle(),'Ratio to single triggers',          doLogx,False,(0.95,1.15),'tr'),
-                                                ('rec',       genSummary['rec'][0].GetXaxis().GetTitle(),'Selection acceptance x #varepsilon',doLogx,False,(0.,1),   'tl' if d=='ptll' else 'tr'),
+                                                ('rec',       genSummary['rec'][0].GetXaxis().GetTitle(),'Selection #varepsilon',doLogx,False,(0.,1),   'tl' if d=='ptll' else 'tr'),
                                                 ('rec_gain',  genSummary['rec'][0].GetXaxis().GetTitle(),'Ratio to tight selection',          doLogx,False,(0.7,2.2),'tr'),
                                                 ('cut',       genSummary['rec'][0].GetXaxis().GetTitle(),'Cut efficiency',                    doLogx,True, (1e-3,1), 'bl'),
                                                 ]:
@@ -263,12 +270,13 @@ def runSelectionEfficiencyFor(ch,d):
                            outName='%s_%s_%s'%(tag,ch,d))
 
 
+
 ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetOptTitle(0)
 ROOT.gROOT.SetBatch(True)
 
 for d in ['ptboson','mll','drll']:
-    for ch in ['ee','mm','a']:
+    for ch in ['ee','mm','eez','mmz']:
         if ch=='a' and not 'boson' in d: continue
         runSelectionEfficiencyFor(ch,d)
 

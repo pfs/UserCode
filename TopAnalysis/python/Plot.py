@@ -69,6 +69,20 @@ class Plot(object):
         self.frameMax=1.45
         self.mcUnc=0
 
+    def normToData(self):
+        if not self.dataH : return
+        total_data=self.dataH.Integral()
+
+        total_exp=0.
+        for h in self.mc:
+            total_exp+=self.mc[h].Integral()
+        if total_exp==0: return
+
+        sf=total_data/total_exp
+        for h in self.mc:
+            self.mc[h].Scale(sf)
+
+
     def add(self, h, title, color, isData, spImpose, isSyst, doDivideByBinWidth=False):
 
         if 'ratevsrun' in self.name and not isData: return

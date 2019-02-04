@@ -583,9 +583,18 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
   //MUON SELECTION: cf. https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2
   edm::Handle<pat::MuonCollection> muons;
   iEvent.getByToken(muonToken_, muons);
+  ev_.nrawmu=0;
   std::vector<Double_t> muStatUncReplicas(100,0);
   for (const pat::Muon &mu : *muons) 
     { 
+
+      //raw muon info
+      ev_.rawmu_pt[ev_.nrawmu]=(Short_t)mu.pt();
+      ev_.rawmu_eta[ev_.nrawmu]=(Short_t)10*mu.eta();
+      ev_.rawmu_phi[ev_.nrawmu]=(Short_t)10*mu.phi();
+      ev_.rawmu_pid[ev_.nrawmu]= mu.selectors();
+      ev_.nrawmu++;
+
 
       //apply correction
       float pt  = mu.pt();
@@ -1086,8 +1095,23 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
   LorentzVector chSum(0,0,0,0),puppiSum(0,0,0,0);
   float ch_ht(0), puppi_ht(0), chWgtSum(0), puppiWgtSum(0), ch_hz(0), puppi_hz(0);
   float closestDZnonAssoc(99999.);
+  std::map<int,LorentzVector> vtxPts;
+  std::map<int,float> vtxHTs;
+  std::map<int,int> vtxCts;
   for(auto pf = pfcands->begin();  pf != pfcands->end(); ++pf)
     {
+
+      if(pf->charge()!=0){
+        int vid=pf->vertexRef().key();
+        if(vtxPts.find(vid)==vtxPts.end()) {
+          vtxPts[vid]=LorentzVector(0,0,0,0);
+          vtxHTs[vid]=0;
+          vtxCts[vid]=0;
+        }
+        vtxPts[vid]+=pf->p4();
+        vtxHTs[vid]+=pf->pt();
+        vtxCts[vid]++;
+      }
 
       bool passChargeSel(pf->charge()!=0 && pf->pt()>0.9 && fabs(pf->eta())<2.5);
       const pat::PackedCandidate::PVAssoc pvassoc=pf->fromPV();
@@ -1152,6 +1176,19 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
   ev_.pf_ch_ht=ch_ht;             ev_.pf_ch_hz=ch_hz;             ev_.pf_ch_wgtSum=chWgtSum;
   ev_.pf_puppi_px=puppiSum.px();  ev_.pf_puppi_py=puppiSum.py();  ev_.pf_puppi_pz=puppiSum.pz();
   ev_.pf_puppi_ht=ch_ht;          ev_.pf_puppi_hz=ch_hz;          ev_.pf_puppi_wgtSum=puppiWgtSum;
+
+  for(int i=0; i<ev_.nvtx; i++){
+    if(vtxPts.find(i)!=vtxPts.end()) {
+      ev_.vtxPt[i]=vtxPts[i].pt();
+      ev_.vtxHt[i]=vtxHTs[i];
+      ev_.vtxMult[i]=vtxCts[i];
+    }else{
+      ev_.vtxPt[i]=0;
+      ev_.vtxHt[i]=0;
+      ev_.vtxMult[i]=0;
+    }
+  }
+
 }
 
 //cf. https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2#Soft_Muon

@@ -26,6 +26,7 @@ def main():
     parser.add_option('-O', '--outDir',      dest='outDir' ,     help='output directory',                default=None,              type='string')
     parser.add_option('-o', '--outName',     dest='outName' ,    help='name of the output file',        default='plotter.root',    type='string')
     parser.add_option(      '--noStack',     dest='noStack',     help='don\'t stack distributions',     default=False,             action='store_true')
+    parser.add_option(      '--normToData',  dest='normToData',  help='normalize to data yields',       default=False,             action='store_true')
     parser.add_option(      '--binWid',      dest='binWid',      help='divide by bin width',            default=False,             action='store_true')
     parser.add_option(      '--saveLog',     dest='saveLog' ,    help='save log versions of the plots', default=False,             action='store_true')
     parser.add_option(      '--silent',      dest='silent' ,     help='only dump to ROOT file',         default=False,             action='store_true')
@@ -36,6 +37,7 @@ def main():
     parser.add_option('-l', '--lumi',        dest='lumi' ,       help='lumi to print out, if == 1 draw normalized',              default=12900,              type=float)
     parser.add_option(      '--lumiSpecs',   dest='lumiSpecs',   help='lumi specifications for some channels [tag:lumi,tag2:lumi2,...]', default=None,       type=str)
     parser.add_option(      '--only',        dest='only',        help='plot only these (csv)',          default='',                type='string')
+    parser.add_option(      '--strictOnly',  dest='strictOnly',  help='strict matching for only plots', default=False, action='store_true')
     parser.add_option(      '--skip',        dest='skip',        help='skip these samples (csv)',          default='MC13TeV_TTJets_cflip',                type='string')
     parser.add_option(      '--puNormSF',    dest='puNormSF',    help='Use this histogram to correct pu weight normalization', default=None, type='string')
     parser.add_option(      '--procSF',      dest='procSF',      help='Use this to scale a given process component e.g. "W":.wjetscalefactors.pck,"DY":dyscalefactors.pck', default=None, type='string')
@@ -144,10 +146,11 @@ def main():
 
                         #filter plots using a selection list
                         keep=False if len(onlyList)>0 else True
-                        for pname in onlyList: 
-                            if pname in key: 
-                                keep=True
-                                break
+                        for pname in onlyList:
+                            if opt.strictOnly and pname!=key: continue
+                            if not opt.strictOnly and not pname in key: continue
+                            keep=True
+                            break
                         if not keep: continue
                         histos = []
                         obj=fIn.Get(key)
@@ -236,6 +239,7 @@ def main():
             break
 
         #continue
+        if opt.normToData: plots[p].normToData()
         if not skipPlot: plots[p].show(outDir=outDir,lumi=lumi,noStack=opt.noStack,saveTeX=opt.saveTeX)
         plots[p].appendTo('%s/%s'%(outDir,opt.outName))
         plots[p].reset()

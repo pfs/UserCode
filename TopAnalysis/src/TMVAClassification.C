@@ -19,7 +19,7 @@ void TMVAGlob::NormalizeHists( TH1* sig, TH1* bkg )
    }
 }
 
-int TMVAClassification( TString myMethodList , TString extention, BDTOptimizer* bdt_options, TString sigName, TString bkgName, TString category )
+int TMVAClassification( TString myMethodList , TString extention, BDTOptimizer* bdt_options, TString sigName, TString bkgName, TString category, TString card )
 {
 
   TMVA::MethodBDT* method;
@@ -125,20 +125,16 @@ int TMVAClassification( TString myMethodList , TString extention, BDTOptimizer* 
    TCut mycuts = TCut(cut);
    TCut mycutb = TCut(cut) || dyCut;
    cout << "Cut is : " <<cut<<endl;
-
+   dataloader->readInputs(card);
    if (Use["VBF"]) {
      if (isLowVptHighMJJ)
-       dataloader->setLowVPtHighMJJVariables(); 
-     //dataloader->setAllVariables();
+       dataloader->setVariables();
      else if (isHighVpt && !isHighVptHighMJJ && !isHighVptLowMJJ)
-       dataloader->setHighVPtVariables();
-     //dataloader->setAllVariables(); 
+       dataloader->setAllVariables(); 
      else if(isHighVptHighMJJ)
-       dataloader->setHighVPtHighMJJVariables();
-       //       dataloader->setAllVariables();
+       dataloader->setVariables();
      else if(isHighVptLowMJJ)
-       dataloader->setHighVPtLowMJJVariables();
-     //       dataloader->setAllVariables();
+       dataloader->setVariables();
    }
    else if (Use["Cuts"] || Use["CutsD"]) dataloader->setCutOptVars();
    else if (Use["Fisher"] || Use["BoostedFisher"]) dataloader->setBestVars(isLowVptHighMJJ, false);

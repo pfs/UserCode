@@ -9,8 +9,7 @@ methodList=[('TMVA_HighMJJ.root', 'vbf/TrainTree', 'BDT_VBF0HighMJJ'),
             ('TMVA_LowMJJ.root',  'vbf/TrainTree', 'BDT_VBF0LowMJJ'),
             ('TMVA_HighVPtLowMJJ.root',   'vbf/TrainTree', 'BDT_VBF0HighVPtLowMJJ'),
             ('TMVA_HighVPtHighMJJ.root',  'vbf/TrainTree', 'BDT_VBF0HighVPtHighMJJ'),
-            ('TMVA_LowVPtHighMJJ.root',   'vbf/TrainTree', 'BDT_VBF0LowVPtHighMJJ'),
-            ('TMVA_HighPt.root',          'vbf/TrainTree', 'BDT_VBF0HighPt')
+            ('TMVA_LowVPtHighMJJ.root',   'vbf/TrainTree', 'BDT_VBF0LowVPtHighMJJ')
             ]
 
 fOutName='inverse_cdfs.root'
@@ -47,14 +46,16 @@ for f,t,m in methodList:
             origmva[m]['B'].Fill(mvaVal,wgt)
 
     #compute quantiles
-    p=np.percentile(mva, range(1,99) )
-    
+#    p=np.percentile(mva, range(1,99) )
+	qArray = np.arange(5, 100, 5)
+    p=np.percentile(mva, qArray )
     cdfInv.append(ROOT.TGraph())
     cdfInv[-1].SetName(m+'_cdfinv')
     cdfInv[-1].SetMarkerStyle(20)
     cdfInv[-1].SetPoint(0,-1,0)
     for i in xrange(0,len(p)):
-        cdfInv[-1].SetPoint(i+1,p[i],(i+1.)/100.)
+#        cdfInv[-1].SetPoint(i+1,p[i],(i+1.)/100.)
+        cdfInv[-1].SetPoint(i+1,p[i],(i+1.)/len(p))
     cdfInv[-1].SetPoint(len(p)+1,1,1)
 
 

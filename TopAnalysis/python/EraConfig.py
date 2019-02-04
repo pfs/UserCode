@@ -6,11 +6,11 @@ def getEraConfiguration(era,isData):
 
     globalTags = {
         'era2016':('94X_mcRun2_asymptotic_v3', '94X_dataRun2_v10'),
-        'era2017':('94X_mc2017_realistic_v14', '94X_dataRun2_v6')
+        'era2017':('94X_mc2017_realistic_v17', '94X_dataRun2_v11')
         }
     jecFiles    = {
-        'era2016':('Summer16_07Aug2017_V11_MC',  'Summer16_07Aug2017All_V11_DATA', 'Summer16_07Aug2017_V11_MC_UncertaintySources_AK4PFchs'),
-        'era2017':('Fall17_17Nov2017_V6_MC',     'Fall17_17Nov2017BCDEF_V6_DATA',  'Fall17_17Nov2017_V8_MC_UncertaintySources_AK4PFchs')
+        'era2016':('Summer16_07Aug2017_V11_MC',   'Summer16_07Aug2017All_V11_DATA', 'Summer16_07Aug2017_V11_MC_UncertaintySources_AK4PFchs'),
+        'era2017':('Fall17_17Nov2017_V32_94X_MC', 'Fall17_17Nov2017_V32_94X_DATA',  'Fall17_17Nov2017_V32_MC_UncertaintySources_AK4PFchs')
         }
     jerFiles    = {
         'era2016':('Summer16_25nsV1_MC',         'Summer16_25nsV1_DATA'),

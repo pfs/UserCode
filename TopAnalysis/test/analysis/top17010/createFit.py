@@ -40,8 +40,7 @@ def main():
         parser.print_help()
         sys.exit(-1)
 
-    os.system('mkdir -p %s'%opt.outdir)
-    script=open(os.path.join(opt.outdir,'runFit.sh' if not opt.tag else 'runFit_%s.sh'%opt.tag),'w')
+    script=open('runFit.sh','w')
     script.write('#!/bin/bash\n')
 
     script.write('\n')
@@ -69,14 +68,19 @@ def main():
     script.write('\n')
     script.write('#convert to HDF5 and run TF-based fits\n')
     script.write('text2hdf5.py datacard.dat\n')
-    fitresultsName=os.path.join(opt.outdir,'fitresults' if not opt.tag else 'fitresults_%s'%opt.tag)
+    fitresultsName='fitresults' if not opt.tag else 'fitresults_%s'%opt.tag
     script.write('combinetf.py datacard.dat.hdf5 -o %s.root\n'%fitresultsName)
     if opt.asimov:
         script.write('combinetf.py datacard.dat.hdf5 -t -1 -o %s_asimov.root\n'%fitresultsName)
     if opt.toys>0:
         script.write('combinetf.py datacard.dat.hdf5 -t %d -o %s_toys.root\n'%(opt.toys,fitresultsName))
+    script.write('cp -v fitresults*root %s\n'%opt.outdir)
 
     script.close()
+
+    #mv script to output
+    os.system('mkdir -p %s'%opt.outdir)
+    os.system('mv -v runFit.sh %s'%os.path.join(opt.outdir,'runFit.sh' if not opt.tag else 'runFit_%s.sh'%opt.tag))
     
 
 if __name__ == "__main__":

@@ -1,0 +1,8 @@
+{
+"MC13TeV_2017_PPZX_140urad_1000"  : [0.0143,       0,  "",  "pp#rightarrowZX(1000)", "#762a83", false, false, 1],
+"MC13TeV_2017_PPZX_140urad_1400"  : [0.0143,       0,  "",  "pp#rightarrowZX(1400)", "#c2a5cf", false, false, 1],
+"MC13TeV_2017_ZH"                 : [0.07523, 0,  "/ZH_HToBB_ZToLL_M125_13TeV_powheg_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM",                             "ZH#rightarrowllbb", "#65e9fd", false, false, 1]
+}
+
+
+

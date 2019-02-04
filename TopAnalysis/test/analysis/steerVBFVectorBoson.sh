@@ -73,7 +73,7 @@ case $WHAT in
         ### --CR     : gives a control region to evaluate fake rates in the photon data samples
         ### --SRfake : gives the distributions of fakes, normalised based on fake rates
 
-        json=data/era${ERA}/vbf_samples.json #,data/era${ERA}/vbf_syst_samples.json
+        json=data/era${ERA}/vbf_samples.json,data/era${ERA}/vbf_syst_samples.json
 	if [[ -z ${EXTRA} ]]; then
 	    echo "Making trees ... "
 	    extraOpts=" --mvatree"
@@ -85,7 +85,7 @@ case $WHAT in
             -o ${outdir}/${githash}/${EXTRA} \
             --farmappendix ${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts  --skipexisting ${extraOpts};
+            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts  --skip DR04  ${extraOpts};
 	;;
 
     

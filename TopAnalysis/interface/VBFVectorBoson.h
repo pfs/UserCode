@@ -181,7 +181,7 @@ private:
   float xsec_;
 
   //selection configuration
-  float leadJetPt_, subLeadJetPt_,leadeta,subleadeta,leadPt, subleadPt;
+  float leadJetPt_, subLeadJetPt_,leadEta,subleadEta,leadPt, subleadPt;
   int jetPuId_;
   bool cleanEENoise_;
   float zMassWindow_;

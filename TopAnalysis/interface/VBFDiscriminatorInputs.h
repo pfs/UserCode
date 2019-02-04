@@ -11,8 +11,8 @@ namespace vbf{
   public:
     
     //variables to be used in a small tree/MVA
-    float leadj_pt,leadj_gawidth,leadj_c2_02,leadj_qg;
-    float subleadj_pt,subleadj_gawidth,subleadj_c2_02,subleadj_qg;
+    float leadj_pt,leadj_eta,leadj_gawidth,leadj_c2_02,leadj_qg;
+    float subleadj_pt,subleadj_eta,subleadj_gawidth,subleadj_c2_02,subleadj_qg;
     float centraleta,forwardeta;
     float mjj,detajj,dphijj,jjpt,jjetas,ystar,balance,relbpt,dphibjj,dphivj0,dphivj1,dphivj2,dphivj3;
     float isotropy,circularity,sphericity,aplanarity,C,D;
@@ -111,6 +111,7 @@ namespace vbf{
 
       if(jets.size()>0){
         leadj_pt      = jets[0].Pt();
+	leadj_eta      = fabs(jets[0].Eta());
         leadj_gawidth = ev.j_gawidth[jets[0].getJetIndex()];
         leadj_c2_02   = ev.j_c2_02[jets[0].getJetIndex()];
         leadj_qg      = ev.j_qg[jets[0].getJetIndex()];
@@ -121,6 +122,7 @@ namespace vbf{
     
       if(jets.size()>=2){
         subleadj_pt      = jets[1].Pt();
+	subleadj_eta = fabs(jets[1].Eta());
         subleadj_gawidth = ev.j_gawidth[jets[1].getJetIndex()];
         subleadj_c2_02   = ev.j_c2_02[jets[1].getJetIndex()];
         subleadj_qg      = ev.j_qg[jets[1].getJetIndex()];

@@ -27,8 +27,8 @@ namespace vbf{
     
     //CTOR
   DiscriminatorInputs(): 
-    leadj_pt(0),leadj_gawidth(-99),leadj_c2_02(-99),leadj_qg(-99),
-      subleadj_pt(0),subleadj_gawidth(-99),subleadj_c2_02(-99),subleadj_qg(-99),
+    leadj_pt(0),leadj_eta(0),leadj_gawidth(-99),leadj_c2_02(-99),leadj_qg(-99),
+      subleadj_pt(0),subleadj_eta(0),subleadj_gawidth(-99),subleadj_c2_02(-99),subleadj_qg(-99),
       centraleta(-99),forwardeta(-99),
       mjj(0),detajj(-99),dphijj(-99),jjpt(0),jjetas(-99),ystar(-99),balance(-99),relbpt(-99),dphibjj(-99),dphivj0(-99),dphivj1(-99),dphivj2(-99),dphivj3(-99),
       isotropy(-99),circularity(-99),sphericity(-99),aplanarity(-99),C(-99),D(-99),scalarht(0),mht(0),

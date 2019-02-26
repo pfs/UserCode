@@ -60,6 +60,42 @@ def getScanPoint(inDir,fitTag):
     return mt,gt,nll
         
 
+def profilePOI(data,outdir,axis=0):
+
+    """ profiles in x and y the POI """
+
+    #raw values
+    x=data[:,axis]
+    xtit='$m_{t}$ [GeV]' if axis==1 else '$\Gamma_{t}$ [GeV]'
+    ytit='$m_{t}$ [GeV]' if axis==0 else '$\Gamma_{t}$ [GeV]'
+
+    ictr=0
+    for xi in np.unique(x):
+        rdata=data[data[:,axis]==xi]
+        y=rdata[:,0 if axis==1 else 1]
+        z=rdata[:,2]
+        pcoeff=np.polyfit(y,z,4)
+        p=np.poly1d(pcoeff)
+
+
+        bounds = [min(y),max(y)]
+        crit_points = [px for px in p.deriv().r if px.imag == 0 and bounds[0] < px.real < bounds[1]]
+        print xi,crit_points
+
+        plt.clf()
+        fig, ax = plt.subplots()
+        yp = np.linspace(bounds[0],bounds[1], 100)
+        plt.plot(y, z, '.',label='scan points')
+        plt.plot(yp, p(yp), '-', label='interpolation')
+        plt.xlabel(xtit)
+        #plt.ylim(0.,20.0)
+        ax.text(0,1.02,'CMS preliminary', transform=ax.transAxes, fontsize=16)
+        ax.text(1.0,1.02,r'%s=%3.2f 34.5 fb$^{-1}$ (13 TeV)'%(ytit,xi), transform=ax.transAxes,horizontalalignment='right',fontsize=14)
+        ax.legend(framealpha=0.0, fontsize=14, loc='upper left', numpoints=1)        
+        plt.savefig(os.path.join(outdir,'nllprofile_%d_%d.png'%(axis,ictr)))
+        ictr+=1
+
+
 
 def doContour(data,outdir,              
               method='linear',
@@ -122,12 +158,12 @@ def main():
     parser.add_option('-i', '--in',          
                       dest='input',       
                       help='input directory [%default]',  
-                      default='store/TOP17010/fit_results/em_inc',
+                      default='/eos/cms/store/cmst3/group/top/TOP17010/0c522df/fits/em_inc',
                       type='string')
     parser.add_option('-o', '--out',          
                       dest='outdir',
                       help='output directory [%default]',  
-                      default='store/TOP17010/fit_results/em_inc',
+                      default='fit_results/em_inc',
                       type='string')
     parser.add_option('-t', '--tag',          
                       dest='fitTag',
@@ -147,8 +183,9 @@ def main():
 
     #plot the contour interpolating the available points
     os.system('mkdir -p %s'%opt.outdir)
-    doContour(fitres,outdir=opt.outdir)
-    
+    #doContour(fitres,outdir=opt.outdir)
+    profilePOI(fitres,outdir=opt.outdir,axis=0)
+    #profilePOI(fitres,outdir=opt.outdir,axis=1)
 
 if __name__ == "__main__":
     sys.exit(main())

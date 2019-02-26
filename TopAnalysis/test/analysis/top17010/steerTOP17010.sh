@@ -20,7 +20,7 @@ while getopts "o:y:s:f:c:" opt; do
 done
 
 if [ -z "$WHAT" ]; then 
-    echo "steerTopWidth.sh -o <SEL/MERGE/...> [-y 2016/7] [-c higgs_combine] [-f fit_type]";
+    echo "steerTopWidth.sh -o <SEL/MERGE/...> [-y 2016/7] [-c higgs_combine] [-f fit_type] [-s storage directory]";
     echo "        PREPARE      - prepare analysis: resolution study + MC2MC corrections"
     echo "        TESTSEL      - test selection locally"
     echo "        SEL          - launches selection jobs to the batch, output will contain summary trees and control plots"; 

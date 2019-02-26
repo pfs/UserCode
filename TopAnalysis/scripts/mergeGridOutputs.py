@@ -14,6 +14,7 @@ def main():
     parser.add_option('-s', '--chunkSize',  dest='chunkSize',   help='size of the output chunk (Gb) [%default]', default=2, type=float)
     parser.add_option(      '--only',       dest='only',        help='only this tag',               default=None    ,   type='string')
     parser.add_option(      '--farm',       dest='farm',        help='farm tag',                    default=None    ,   type='string')
+    parser.add_option(      '--localProd',  dest='localProd',   help='local production',            default=False, action='store_true')
     parser.add_option('-q', '--queue',      dest='queue',       help='batch queue [%default]',      default='workday',  type='string')
     parser.add_option(      '--dry',        dest='dry',         help='do not submit/create output directory [%default]',
                             default=False, action='store_true')
@@ -30,8 +31,6 @@ def main():
     print 'Submissions scripts @ ',FARMDIR
 
     onlyList=opt.only.split(',') if opt.only else []
-
-    dset_list=getEOSlslist(directory=opt.inDir,prepend='')
 
     with open('%s/custom_merge.sh'%FARMDIR,'w') as shell:
         shell.write('#!/bin/bash\n')
@@ -60,17 +59,63 @@ def main():
     condor.write('log    = %s/job_$(ProcId).log\n'%FARMDIR)
     condor.write('+JobFlavour ="%s"\n'%opt.queue)
 
-    for dset in dset_list:
-        dsetname=dset.split('/')[-1]
+    if not opt.localProd:
+        dset_list=getEOSlslist(directory=opt.inDir,prepend='')
+        for dset in dset_list:
+            dsetname=dset.split('/')[-1]
 
-        pub_list=getEOSlslist(directory=dset,prepend='')
-        for pubDir in pub_list:
+            pub_list=getEOSlslist(directory=dset,prepend='')
+            for pubDir in pub_list:
 
-            if not 'crab' in pubDir:
-                print 'Ambiguity found @ <publication-name> for <primary-dataset>=%s , bailing out'%dsetname
-                continue
-            pub=pubDir.split('/crab_')[-1]
+                if not 'crab' in pubDir:
+                    print 'Ambiguity found @ <publication-name> for <primary-dataset>=%s , bailing out'%dsetname
+                    continue
+                pub=pubDir.split('/crab_')[-1]
 
+                if len(onlyList)>0:
+                    found=False
+                    for tag in onlyList:
+                        if not tag in pub: continue
+                        found=True
+                        break
+                    if not found : 
+                        print 'Skipping %s, not in process only list'%pub
+                        continue
+
+                #check if it's an extension
+                pubExt=None
+                try:
+                    extSplit=pub.split('_ext')
+                    pubExt='ext%d'%(len(extSplit)-1)
+                    pub=extSplit[0]
+                    print 'Extension will be postfixed with ',pubExt
+                except:
+                    print 'Core sample (no extension)'
+                
+                time_list=getEOSlslist(directory=pubDir,prepend='')
+                if len(time_list)!=1:
+                    print 'Ambiguity found @ <time-stamp> for <primary-dataset>=%s , bailing out'%dsetname
+                    continue
+                time_stamp=time_list[0].split('/')[-1]
+
+                out_list=[]
+                count_list=getEOSlslist(directory=time_list[0],prepend='')
+
+                chunkList=getChunksInSizeOf(chunkSize=opt.chunkSize,directoryList=count_list,prepend='/eos/cms/')
+                print pub,'will be hadded in',len(chunkList),'chunks of approx %fGb'%opt.chunkSize
+                for ichunk in xrange(0,len(chunkList)):
+                    outFile='/eos/cms/{0}/{1}/Chunk_{2}_{3}.root'.format(opt.outDir,pub,ichunk,pubExt)
+                    condor.write('arguments = %s %s\n'%(outFile,' '.join(chunkList[ichunk])))
+                    condor.write('queue 1\n')
+
+                #prepare output directory
+                if not opt.dry: os.system('mkdir -p /eos/cms/{0}/{1}'.format(opt.outDir,pub))
+
+    else:
+        print 'Local production'
+        dset_list=getEOSlslist(directory=opt.inDir,prepend='')
+        for dset in dset_list:
+            pub=os.path.basename(dset)
             if len(onlyList)>0:
                 found=False
                 for tag in onlyList:
@@ -81,33 +126,13 @@ def main():
                     print 'Skipping %s, not in process only list'%pub
                     continue
 
-            #check if it's an extension
-            pubExt=None
-            try:
-                extSplit=pub.split('_ext')
-                pubExt='ext%d'%(len(extSplit)-1)
-                pub=extSplit[0]
-                print 'Extension will be postfixed with ',pubExt
-            except:
-                print 'Core sample (no extension)'
-                
-            time_list=getEOSlslist(directory=pubDir,prepend='')
-            if len(time_list)!=1:
-                print 'Ambiguity found @ <time-stamp> for <primary-dataset>=%s , bailing out'%dsetname
-                continue
-            time_stamp=time_list[0].split('/')[-1]
-
-            out_list=[]
-            count_list=getEOSlslist(directory=time_list[0],prepend='')
-
-            chunkList=getChunksInSizeOf(chunkSize=opt.chunkSize,directoryList=count_list,prepend='/eos/cms/')
-            print pub,'will be hadded in',len(chunkList),'chunks of approx 2Gb'
+            chunkList=getChunksInSizeOf(chunkSize=opt.chunkSize,directoryList=[dset],prepend='/eos/cms/')
+            print pub,'will be hadded in',len(chunkList),'chunks of approx %fGb'%opt.chunkSize
             for ichunk in xrange(0,len(chunkList)):
-                outFile='/eos/cms/{0}/{1}/Chunk_{2}_{3}.root'.format(opt.outDir,pub,ichunk,pubExt)
+                outFile='/eos/cms/{0}/{1}/Chunk_{2}_ext0.root'.format(opt.outDir,pub,ichunk)
                 condor.write('arguments = %s %s\n'%(outFile,' '.join(chunkList[ichunk])))
-                condor.write('queue 1\n')
+                condor.write('queue 1\n')                
 
-            #prepare output directory
             if not opt.dry: os.system('mkdir -p /eos/cms/{0}/{1}'.format(opt.outDir,pub))
 
     condor.close()

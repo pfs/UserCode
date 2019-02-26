@@ -14,13 +14,16 @@ HistTool::HistTool(unsigned int nsyst) :
 void HistTool::addHist(TString title, TH1* hist) {
   if(hist->InheritsFrom("TH2")) {
     all2dPlots_[title]=(TH2 *)hist;
+    all2dPlots_[title]->SetDirectory(0);
   }
   else {
     allPlots_[title] = hist;
+    allPlots_[title]->SetDirectory(0);
     if (nsyst_ > 0) {
       all2dPlots_[title+"_syst"] = new TH2F(title+"_syst", hist->GetTitle(), hist->GetNbinsX(), hist->GetXaxis()->GetXmin(), hist->GetXaxis()->GetXmax(), nsyst_+1, -0.5, nsyst_+0.5);
       all2dPlots_[title+"_syst"]->SetXTitle(hist->GetXaxis()->GetTitle());
       all2dPlots_[title+"_syst"]->SetYTitle("Variation (0=default)");
+      all2dPlots_[title+"_syst"]->SetDirectory(0);
     }
   }
 }

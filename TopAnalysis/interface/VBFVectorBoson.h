@@ -88,12 +88,12 @@ class VBFVectorBoson{
   {
     zMassWindow_  = 15.;
 
-    leadJetPt_    = 50.;
+    leadJetPt_    = 75.;
     subLeadJetPt_ = 50.;
     jetPuId_      = 2;
     cleanEENoise_ = true;
 
-    lowVPtCut_        = 75.;
+    lowVPtCut_        = 50.;
     lowVPtDetaJJCut_  = 3.0;
     lowVPtMaxRapCut_  = 1.4442;
     if (era_.Contains("2017")) lowVPtPhotonTrigs_.push_back("HLT_Photon75_R9Id90_HE10_IsoM_EBOnly_PFJetsMJJ300DEta3_v");
@@ -171,7 +171,7 @@ private:
 
   //Variables to be added to the MVA Tree and additional variables
   vbf::DiscriminatorInputs vbfVars_;
-  float vbfmva_, vbfmvaHighVPt_;
+  float vbfmva_,flat_vbfmva_, vbfmvaHighVPt_ ,vbfmva1_,flat1_vbfmva_, vbfmvaHighVPt1_, vbfmva2_,flat2_vbfmva_, vbfmvaHighVPt2_  ;
   float evtWeight_;
   float sihih_,chiso_,r9_,hoe_,mindrl_,mindrj_;
   int training_;

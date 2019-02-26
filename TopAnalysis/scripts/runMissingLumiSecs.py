@@ -5,7 +5,7 @@ import sys
 import os
 import json
 
-WORKAREA='grid_2016'
+WORKAREA='grid'
 
 def getListOfFiles(inputPD,runSel):
       das_query_string = 'das_client.py --query="file dataset=%s  run in [%s] | grep file.name" --limit=0' % (inputPD,runSel)

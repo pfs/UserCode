@@ -8,8 +8,8 @@ Notice: if you are not creating the ntuples, you can skip the part of the instru
 marked with the `##OPTIONAL/##END OPTIONAL` markers
 
 ```
-cmsrel CMSSW_9_4_10
-cd CMSSW_9_4_10/src
+cmsrel CMSSW_9_4_11
+cd CMSSW_9_4_11/src
 cmsenv
 
 ##OPTIONAL (USE IF CREATING NTUPLES FROM SCRATCH)
@@ -22,6 +22,14 @@ git cms-merge-topic cms-egamma:EgammaPostRecoTools_940
 #re-do MET to mitigate EE noise
 git cms-merge-topic cms-met:METFixEE2017_949_v2
 scram b -j 8
+
+#proton reconstruction
+#see https://twiki.cern.ch/twiki/bin/viewauth/CMS/CTPPSStandardProtonReconstruction
+git remote add ctpps git@github.com:CTPPS/cmssw.git
+git fetch ctpps
+git checkout -b test ctpps/ctpps_initial_proton_reconstruction_CMSSW_9_4_11
+
+git cms-addpkg CondFormats/CTPPSOpticsObjects DataFormats/ProtonReco IOMC/EventVertexGenerators IOMC/ParticleGuns RecoCTPPS/ProtonReconstruction RecoCTPPS/TotemRPLocal SimCTPPS/OpticsParameterisation Validation/CTPPS CondFormats/RunInfo CondFormats/DataRecord
 
 ##END OPTIONAL
 

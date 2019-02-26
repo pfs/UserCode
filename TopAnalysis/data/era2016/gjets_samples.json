@@ -1,0 +1,8 @@
+{
+"MC13TeV_2016_GJets_unlops"          : [14676.0,  0,  "", "#gamma+jets (unlops)", 2, false, false, 1],
+"MC13TeV_2016_GJets_HT40to100"       : [20790 ,  0,  "/GJets_HT-40To100_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", 1, false, false, 1],
+"MC13TeV_2016_GJets_HT100to200"      : [9238,    0,  "/GJets_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", 1, false, false, 1],
+"MC13TeV_2016_GJets_HT200to400"      : [2305,    0,  "/GJets_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", 1, false, false, 1],
+"MC13TeV_2016_GJets_HT400to600"      : [274.4,   0,  "/GJets_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", 1, false, false, 1],
+"MC13TeV_2016_GJets_HT600toInf"      : [93.46,   0,  "/GJets_HT-600ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "#gamma+jets", 1, false, false, 1]
+}

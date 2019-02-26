@@ -1,5 +1,4 @@
 {
-
 "MC13TeV_2017_GJets_HT40to100"       : [20790 ,  0,  "/GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_1core_94X_mc2017_realistic_v14_ext1-v1/MINIAODSIM", "#gamma+jets", "#7fc97f", false, false, 1],
 "MC13TeV_2017_GJets_HT100to200"      : [9238,    0,  "/GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "#gamma+jets", "#7fc97f", false, false, 1],
 "MC13TeV_2017_GJets_HT200to400"      : [2305,    0,  "/GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "#gamma+jets", "#7fc97f", false, false, 1],
@@ -25,8 +24,8 @@
 "MC13TeV_2017_WJets_mlm"             : [61526.7, 0,  "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM", "W,Top,VV", "#386cb0",false,false,1],
 "MC13TeV_2017_DY10to50_mlm"          : [18610, 0,    "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "DY", "#fdc086", false, false, 1],
 "MC13TeV_2017_DY50toInf_fxfx"        : [5765.4, 0,   "/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "DY", "#fdc086", false, false, 1],
-"MC13TeV_2017_EWKZJJ"                : [4.32,    0,  "/EWKZ2Jets_ZToLL_M-50_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "EWK Zjj", "#f0027f", false, false, 1],
-"MC13TeV_2017_IntZJJ"                : [1,       0,  "", "EWK Zjj", "#f0027f", false, false, 1],
+"MC13TeV_2017_EWKZJJ"                : [1.629,    0,  "/EWKZ2Jets_ZToLL_M-50_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "EWK Zjj", "#f0027f", false, false, 1],
+"MC13TeV_2017_IntZJJ"                : [0.1276,       0,  "", "EWK Zjj", "#f0027f", false, false, 1],
 "MC13TeV_2017_EWKAJJ"                : [4.74,    0,  "/GJets_Mjj-500_SM_5f_TuneCP5_EWK_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "EWK #gammajj", 633, false, false, 1],
 "MC13TeV_2017_IntAJJ"                : [0.7,     0,  "/GJets_Mjj-500_SM_5f_TuneCP5_INTERFERENCE_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "EWK #gammajj", 633, false, false, 1],
 "Data13TeV_2017B_SinglePhoton"       : [1,       1, "/SinglePhoton/Run2017B-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],

@@ -67,6 +67,16 @@ void RunExclusiveTop(TString filename,
   outT->Branch("nvtx",&ev.nvtx,"nvtx/I");
   outT->Branch("metfilters",&ev.met_filterBits,"metfilters/I");  
 
+  //variables of doom
+  outT->Branch("nrawmu", &ev.nrawmu, "nrawmu/I");
+  outT->Branch("rawmu_pt", ev.rawmu_pt, "rawmu_pt[nrawmu]/S");
+  outT->Branch("rawmu_eta", ev.rawmu_eta, "rawmu_eta[nrawmu]/S");
+  outT->Branch("rawmu_phi", ev.rawmu_phi, "rawmu_phi[nrawmu]/S");
+  outT->Branch("rawmu_pid", ev.rawmu_pid, "rawmu_pid[nrawmu]/I");
+  outT->Branch("vtxHt", ev.vtxHt, "vtxHt[nvtx]/F");
+  outT->Branch("vtxPt", ev.vtxPt, "vtxPt[nvtx]/F");
+  outT->Branch("vtxMult", ev.vtxMult, "vtxMult[nvtx]/I");
+
   bool hasETrigger,hasMTrigger,hasMMTrigger,hasEETrigger,hasEMTrigger,hasATrigger;
   outT->Branch("hasETrigger",&hasETrigger,"hasETrigger/O");
   outT->Branch("hasMTrigger",&hasMTrigger,"hasMTrigger/O");
@@ -93,7 +103,9 @@ void RunExclusiveTop(TString filename,
                    "bosonpt", "bosonptunc","bosoneta", "bosonphi", "mboson", "bosonht", "mtboson", 
                    "llacopl", "llcosthetaCS", "llphistar", "llMR", "llR", 
                    "llcsip", "llcsipUnc", "llcsim", "llcsimUnc",
-                   "nb", "nj", "nl","ng","ht", "htb", "htj"};
+                   "nb", "nj", "nl","ng","ht", "htb", "htj",
+                   "jsumposen","jsumnegen",
+                   "jsumposhfen","jsumneghfen"};
   std::map<TString,Float_t> outVars;
   for(size_t i=0; i<sizeof(fvars)/sizeof(TString); i++){
     outVars[fvars[i]]=0.;
@@ -117,7 +129,7 @@ void RunExclusiveTop(TString filename,
   TTree *t = (TTree*)f->Get("analysis/data");
   attachToMiniEventTree(t,ev,true);
   Int_t nentries(t->GetEntriesFast());
-  if (debug) nentries = 10000; //restrict number of entries for testing
+  //if (debug) nentries = 10000; //restrict number of entries for testing
   t->GetEntry(0);
 
   cout << "...producing " << outname << " from " << nentries << " events" << endl;
@@ -307,7 +319,7 @@ void RunExclusiveTop(TString filename,
       photons=selector.selPhotons(photons,SelectionTool::MVA90,leptons,200.,2.4);
 
       //jets
-      std::vector<Jet> allJets = selector.getGoodJets(ev,25.,2.5,leptons,photons);
+      std::vector<Jet> allJets = selector.getGoodJets(ev,15.,4.7,leptons,photons);
 
       //met
       TLorentzVector met(0,0,0,0);
@@ -445,19 +457,32 @@ void RunExclusiveTop(TString filename,
       int njets(0);
       std::vector<Jet> bJets,lightJets,jets;
       float scalarht(0.),scalarhtb(0.),scalarhtj(0.),mindphijmet(99999.);
+      float jsumposen(0.),jsumnegen(0.),jsumposhfen(0.),jsumneghfen(0.);
       for(size_t ij=0; ij<allJets.size(); ij++) 
         {
           int idx=allJets[ij].getJetIndex();
-          int jid=ev.j_id[idx];
-          bool passLoosePu((jid>>2)&0x1);
           bool passBtag(ev.j_btag[idx]>0);
-          if(!passLoosePu) continue;
+
+          //int jid=ev.j_id[idx];
+          //bool passLoosePu((jid>>2)&0x1);          
+          // if(!passLoosePu) continue;
+
           if(passBtag) { bJets.push_back(allJets[ij]);     scalarhtb+=allJets[ij].pt();  }
           else         { lightJets.push_back(allJets[ij]); scalarhtj+= allJets[ij].pt(); }
           njets++;
-          jets.push_back(allJets[ij]);
-          scalarht += jets[ij].pt();
+
+          bool isFwd(fabs(allJets[ij].eta())>2.5);
+          float jen(allJets[ij].E());
+          if(allJets[ij].eta()<0) {
+            jsumnegen+= jen; 
+            if(isFwd) jsumneghfen += jen;
+          } else {
+            jsumposen+= jen; 
+            if(isFwd) jsumposhfen += jen;
+          }
           
+          jets.push_back(allJets[ij]);
+          scalarht += jets[ij].pt();          
           float dphij2met=fabs(allJets[ij].DeltaPhi(met));
           if(dphij2met>mindphijmet) continue;
           mindphijmet=dphij2met;
@@ -601,7 +626,11 @@ void RunExclusiveTop(TString filename,
       outVars["ht"]=scalarht;
       outVars["htb"]=scalarhtb;
       outVars["htj"]=scalarhtj;
-  
+      outVars["jsumnegen"]=jsumnegen;
+      outVars["jsumneghfen"]=jsumneghfen;
+      outVars["jsumposen"]=jsumposen;
+      outVars["jsumposhfen"]=jsumposhfen;
+
       //fill data with roman pot information
       nRPtk=0;
       if (ev.isData) {

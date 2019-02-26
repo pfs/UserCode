@@ -37,30 +37,35 @@ def addPDFwithParameterUncertainties(w,paramList,pdfName,newPDFName,addParamTag=
     w.factory(cmd)
 
 
-def parametrizeSignal(w,args,url,cuts,debug):
+def parametrizeSignal(w,args,url,mu,sigmass,cuts,debug,outDir):
 
     """paraterizes the signal and adds to the workspace"""    
 
     #import signal events
     fIn=ROOT.TFile.Open(url)
     data=fIn.Get('data')
-    wgtds=ROOT.RooDataSet("wgtsig_data","wgtsig_data",data,args,cuts,'wgt')
-    sigExp=wgtds.sumEntries()*0.0143*37500
+    wgtds=ROOT.RooDataSet("wgtsig_data","wgtsig_data",data,args,cuts,'wgt')        
     ds=ROOT.RooDataSet("sig_data","sig_data",args,ROOT.RooFit.Import(data),ROOT.RooFit.Cut(cuts))
     fIn.Close()
 
     #fit signal shape
-    w.factory("RooCBShape::sig_core(mmiss, sig_mean_core[900,2500],sig_sigma_core[20,200],  sig_alpha_core[0,10], sig_n_core[0,10])")
+    w.factory("RooCBShape::sig_core(mmiss, sig_mean_core[%3.0f,%3.0f],sig_sigma_core[20,200],  sig_alpha_core[0,10], sig_n_core[0,10])"%(sigmass-100,sigmass+100))
     w.factory("RooCBShape:sig_turnon(mmiss,sig_mean_turnon[600,900],sig_sigma_turnon[100,300], sig_alpha_turnon[1,4],  sig_n_turnon[4,6])")
-    w.factory("SUM::sig_base(sig_core_frac[0.6,1.0]*sig_core,sig_turnon)")
+    w.factory("SUM::sig_base(sig_core_frac[0.7,1.0]*sig_core,sig_turnon)")
     w.pdf('sig_base').fitTo(ds)
 
-    addPDFwithParameterUncertainties(w,
-                                     ['sig_mean_core','sig_sigma_core','sig_alpha_core','sig_n_core',
-                                      'sig_mean_turnon','sig_sigma_turnon','sig_alpha_turnon','sig_n_turnon',
-                                      'sig_core_frac'],
-                                     'sig_base',
-                                     'sig')
+    sigExp={}
+    baseSigExp=wgtds.sumEntries()*0.0143*37500*mu
+    xangleFracs={120:1.85,130:1.83,140:1.0,150:1.67}
+    for xangle in [120,130,140,150]:
+        sigExp[xangle]=baseSigExp*xangleFracs[xangle]
+        addPDFwithParameterUncertainties(w,
+                                         ['sig_mean_core','sig_sigma_core','sig_alpha_core','sig_n_core',
+                                          'sig_mean_turnon','sig_sigma_turnon','sig_alpha_turnon','sig_n_turnon',
+                                          'sig_core_frac'],
+                                         'sig_base',
+                                         'sig%d'%xangle,
+                                         '_%d'%xangle)
 
     if not debug: return sigExp
 
@@ -72,8 +77,8 @@ def parametrizeSignal(w,args,url,cuts,debug):
     c.SetBottomMargin(0.1)
     frame=w.var('mmiss').frame()
     ds.plotOn(frame)
-    w.pdf('sig').plotOn(frame,ROOT.RooFit.LineColor(ROOT.kBlue))
-    w.pdf('sig').plotOn(frame,ROOT.RooFit.LineColor(ROOT.kGray),ROOT.RooFit.LineStyle(2),ROOT.RooFit.Components("*turnon*"))
+    w.pdf('sig_base').plotOn(frame,ROOT.RooFit.LineColor(ROOT.kBlue))
+    w.pdf('sig_base').plotOn(frame,ROOT.RooFit.LineColor(ROOT.kGray),ROOT.RooFit.LineStyle(2),ROOT.RooFit.Components("*turnon*"))
     frame.Draw()
     frame.GetXaxis().SetTitle('Missing mass [GeV]')
     tex=ROOT.TLatex()
@@ -81,16 +86,17 @@ def parametrizeSignal(w,args,url,cuts,debug):
     tex.SetTextSize(0.04)
     tex.SetNDC()
     tex.DrawLatex(0.12,0.96,'#bf{CMS} #it{simulation preliminary}')
+    tex.DrawLatex(0.17,0.9,'120,130,140,150 #murad')
     c.Modified()
     c.Update()   
     c.RedrawAxis()
     out_url=os.path.basename(url)
     for ext in ['png','pdf']:
-        c.SaveAs(out_url.replace('.root','.'+ext))
+        c.SaveAs(os.path.join(outDir,out_url.replace('.root','.'+ext)))
 
     return sigExp
 
-def parametrizeBackground(w,args,url,cuts,debug):
+def parametrizeBackground(w,args,url,cuts,debug,outDir):
 
     """paraterizes the signal and adds to the workspace"""    
 
@@ -100,15 +106,15 @@ def parametrizeBackground(w,args,url,cuts,debug):
         if 'Photon' in f : continue
         if 'MuonEG' in f : continue
         data.AddFile(f)
-    ds=ROOT.RooDataSet("bkg_data","bkg_data",args,ROOT.RooFit.Import(data),ROOT.RooFit.Cut(cuts))
+
+    ds=ROOT.RooDataSet("bkg_data","bkg_data",data,args,cuts)
 
     w.factory('RooCBShape::bkg_decay(mmiss,bkg_mean_decay[1000,2000],bkg_sigma_decay[100,2000],bkg_alpha_decay[0,100],bkg_n_decay[0,10])')
     w.factory('RooCBShape::bkg_turnon(mmiss,bkg_mean_turnon[600,1000],bkg_sigma_turnon[100,300],bkg_alpha_turnon[1,4],bkg_n_turnon[4,6])')
     w.factory("SUM::bkg_base(bkg_decay_frac[0.0,1.0]*bkg_decay,bkg_turnon)")
 
-
     totalBkg={}
-    for xangle in [140]: #[120,130,140,150]:
+    for xangle in [120,130,140,150]:
         xangleCut='xangle==%d'%xangle
         rds=ds.reduce(xangleCut)
         rds.SetName('data_obs%d'%xangle)
@@ -152,7 +158,7 @@ def parametrizeBackground(w,args,url,cuts,debug):
         c.Update()   
         c.RedrawAxis()
         for ext in ['png','pdf']:
-            c.SaveAs('bkgpdf_{0}.{1}'.format(xangle,ext))
+            c.SaveAs(os.path.join(outDir,'bkgpdf_{0}.{1}'.format(xangle,ext)))
             
     return totalBkg
 
@@ -164,16 +170,16 @@ def writeDataCard(w,outDir,sigExp,bkgExp):
     wsURL=os.path.join(outDir,'workspace.root')
     w.writeToFile(wsURL)
 
-    for xangle in [140]:
+    for xangle in [120,130,140,150]:
         cat='a%d'%xangle
-        with open('shapes-parametric-%dmurad.datacard.dat'%xangle,'w') as dc:
+        with open(os.path.join(outDir,'shapes-parametric-%dmurad.datacard.dat'%xangle),'w') as dc:
             dc.write('imax *\n')
             dc.write('jmax *\n')
             dc.write('kmax *\n')
             dc.write('-'*50+'\n')
-            dc.write('shapes sig      %10s %s w:$PROCESS\n'%(cat,wsURL))
-            dc.write('shapes bkg      %10s %s w:$PROCESS%d\n'%(cat,wsURL,xangle))
-            dc.write('shapes data_obs %10s %s w:data_obs%d\n'%(cat,wsURL,xangle))
+            dc.write('shapes sig      %10s workspace.root w:$PROCESS%d\n'%(cat,xangle))
+            dc.write('shapes bkg      %10s workspace.root w:$PROCESS%d\n'%(cat,xangle))
+            dc.write('shapes data_obs %10s workspace.root w:data_obs%d\n'%(cat,xangle))
             dc.write('-'*50+'\n')
             dc.write('bin %s\n'%cat)
             dc.write('observation -1\n')
@@ -181,7 +187,7 @@ def writeDataCard(w,outDir,sigExp,bkgExp):
             dc.write('%15s %15s %15s\n'%('bin',cat,cat))
             dc.write('%15s %15s %15s\n'%('process','sig','bkg'))
             dc.write('%15s %15s %15s\n'%('process','0', '1'))
-            dc.write('%15s %15s %15s\n'%('rate','%3.2f'%sigExp, '%3.2f'%bkgExp[xangle]))
+            dc.write('%15s %15s %15s\n'%('rate','%3.2f'%sigExp[xangle], '%3.2f'%bkgExp[xangle]))
             dc.write('-'*50+'\n')
             
             #float the background normalization as well as the signal
@@ -195,7 +201,7 @@ def writeDataCard(w,outDir,sigExp,bkgExp):
                     vname = obj.GetName()
                     if 'nuis' in vname:
                         addToDataCard=True
-                        if 'bkg' in vname and not str(xangle) in vname:
+                        if ('bkg' in vname or 'sig' in vname) and not str(xangle) in vname:
                             addToDataCard=False            
                         if addToDataCard:
                             dc.write('%40s param 0 1\n'%vname)                    
@@ -219,7 +225,7 @@ def main(args):
                         help='signal point')
     parser.add_argument('-c', '--cuts',
                         dest='cuts', 
-                        default='cat==121 && l1pt>30 && l2pt>20 && bosonpt>50',
+                        default='(cat==121 || cat==169) && l1pt>30 && l2pt>20 && bosonpt>50',
                         help='Output directory [default: %default]')
     parser.add_argument('-o', '--output',
                         dest='output', 
@@ -230,6 +236,11 @@ def main(args):
                         default=False,
                         action='store_true',
                         help='Save debug plots [default: %default]')
+    parser.add_argument('--mu',
+                        dest='mu',
+                        default=1.0,
+                        type=float,
+                        help='signal strength [default: %default]')
     opt=parser.parse_args(args)
 
     ROOT.gROOT.SetBatch(True)
@@ -247,24 +258,31 @@ def main(args):
     w.factory('bosonpt[20,6500]')
     w.factory('xangle[100,200]')
     w.factory('cat[100,200]')
-    w.factory('wgt[-1e9,1e9]')
+    w.factory('wgt[-1.0e9,1.0e9]')
     varSet=w.allVars()
 
     #parametrize the signal
+    print '[generateWorkspace] signal parametrization'
     sigExp=parametrizeSignal(w,
                              varSet,
                              os.path.join(opt.input,'MC13TeV_2017_PPZX_140urad_%d.root'%opt.sig),
+                             opt.mu,
+                             float(opt.sig),
                              opt.cuts,
-                             opt.debug)
-    
+                             opt.debug,                             
+                             opt.output)
+
     #parametrize the background
+    print '[generateWorkspace] background parametrization'
     bkgExp=parametrizeBackground(w,
                                  varSet,
                                  opt.input,
                                  opt.cuts,
-                                 opt.debug)
+                                 opt.debug,
+                                 opt.output)
 
     #write summary in datacards
+    print '[generateWorkspace] writing datacard'
     writeDataCard(w,opt.output,sigExp,bkgExp)
                           
 if __name__ == "__main__":

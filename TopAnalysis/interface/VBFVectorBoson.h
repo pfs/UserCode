@@ -28,6 +28,7 @@
 #include "TRandom3.h"
 #include "TMath.h"
 
+
 class VBFVectorBoson{
  public:
 
@@ -171,7 +172,7 @@ private:
 
   //Variables to be added to the MVA Tree and additional variables
   vbf::DiscriminatorInputs vbfVars_;
-  float vbfmva_,flat_vbfmva_, vbfmvaHighVPt_ ,vbfmva1_,flat1_vbfmva_, vbfmvaHighVPt1_, vbfmva2_,flat2_vbfmva_, vbfmvaHighVPt2_  ;
+  float vbfmva_,flat_vbfmva_, vbfmvaHighVPt_ ,vbfmva0_,flat0_vbfmva_, vbfmvaHighVPt0_ ,vbfmva1_,flat1_vbfmva_, vbfmvaHighVPt1_, vbfmva2_,flat2_vbfmva_, vbfmvaHighVPt2_  ;
   float evtWeight_;
   float sihih_,chiso_,r9_,hoe_,mindrl_,mindrj_;
   int training_;

@@ -1,3 +1,4 @@
+
 #include <TFile.h>
 #include <TROOT.h>
 #include <TH1.h>
@@ -137,10 +138,12 @@ void VBFVectorBoson::runAnalysis()
   for(std::map<TString,TMVA::Reader *>::iterator it=readers.begin(); it!=readers.end(); it++) {
     TString key=it->first;
     mvaCDFinv[key]=(TGraph *)fcdf->Get(key+"_cdfinv");
+     TString key0=it->first;
+    mvaCDFinv[key0]=(TGraph *)fcdf->Get(key+"_cdfinv");
     TString key1=it->first;
     mvaCDFinv[key1]=(TGraph *)fcdf->Get(key1+"_cdfinv");
     TString key2=it->first;
-    mvaCDFinv[key1]=(TGraph *)fcdf->Get(key2+"_cdfinv");
+    mvaCDFinv[key2]=(TGraph *)fcdf->Get(key2+"_cdfinv");
   }
 
 
@@ -411,14 +414,22 @@ void VBFVectorBoson::runAnalysis()
           chTags.clear();
       }
       if(chTags.size()==0) continue;
+      //...................CR
+       if(!CR_)
+	if( chTag=="MM")
+	  if( vbfVars_.leadj_pt >75 && vbfVars_.mjj >200 )
+	  chTags.push_back("newcat");
+
+      
 
       TString baseCategory(chTags[chTags.size()-1]);
 
       //evaluate discriminator MVA for categories of interest
       //FIXME: this probably needs to be modified for the new training
-      vbfmva_ = -1000;
-      flat_vbfmva_=-1000;
-      vbfmvaHighVPt_ = -1000;
+      
+      vbfmva_ = vbfmva0_ = vbfmva1_= vbfmva2_ = -1000;
+      flat_vbfmva_= flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_ =-1000;
+      vbfmvaHighVPt_= vbfmvaHighVPt0_= vbfmvaHighVPt1_= vbfmvaHighVPt2_ = -1000;
       if (cat[5] || cat[6]) {
         TString key(cat[3] ?"BDT_VBF0LowVPtHighMJJ"  :(cat[5] ?"BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ")); 
         vbfmva_ = readers[key]->EvaluateMVA(key);
@@ -431,16 +442,25 @@ void VBFVectorBoson::runAnalysis()
           flat_vbfmva_=-1000;
         }
       }
+      //.................
 
-      ///////////////////Add other categories
-      
-      
-      vbfmva1_ = -1000;
-      flat1_vbfmva_=-1000;
-      vbfmvaHighVPt1_ = -1000;
-      if (cat[5] || cat[6]) {
-	TString key1(cat[4] ?"BDT_VBF0LowVPtHighMJJ"  :(cat[6] ?"BDT_VBF0HighVPtLowMJJ" :  "BDT_VBF0HighVPtHighMJJ"));
-        vbfmva1_ = readers[key1]->EvaluateMVA(key1);
+      if((cat[4] && cat[5])|| (cat[3] && cat[6])) {
+	TString key0("BDT_VBF0HighVPtHighMJJ");
+	    vbfmva0_ = readers[key0]->EvaluateMVA(key0);
+	vbfmvaHighVPt0_ =readers["BDT_VBF0HighPt"]->EvaluateMVA("BDT_VBF0HighPt");        
+        if(mvaCDFinv[key0]) {
+          flat0_vbfmva_=max(0.,mvaCDFinv[key0]->Eval(vbfmva0_));
+        }        
+        if(doBlindAnalysis_ && ev_.isData && vbfmva0_>0.2) {
+          vbfmva0_=-1000;
+          flat0_vbfmva_=-1000;
+        }
+      }
+      //.................
+
+     if((cat[4] && cat[6])|| (cat[3] && cat[6])) {
+       TString key1("BDT_VBF0HighVPtHighMJJ");
+	    vbfmva1_ = readers[key1]->EvaluateMVA(key1);
 	vbfmvaHighVPt1_ =readers["BDT_VBF0HighPt"]->EvaluateMVA("BDT_VBF0HighPt");        
         if(mvaCDFinv[key1]) {
           flat1_vbfmva_=max(0.,mvaCDFinv[key1]->Eval(vbfmva1_));
@@ -450,15 +470,11 @@ void VBFVectorBoson::runAnalysis()
           flat1_vbfmva_=-1000;
         }
       }
+     //.................
 
-
-      //////////////////////third categories
-       vbfmva2_ = -1000;
-      flat2_vbfmva_=-1000;
-      vbfmvaHighVPt2_ = -1000;
-      if (cat[5] || cat[6]) {
-	TString key2(cat[3] ?"BDT_VBF0HighVPtHighMJJ"  :(cat[6] ?"BDT_VBF0HighVPtLowMJJ" :"BDT_VBF0LowVPtHighMJJ" )); 
-        vbfmva2_ = readers[key2]->EvaluateMVA(key2);
+      if((cat[4] && cat[6])|| (cat[4] && cat[3])) {
+	TString key2("BDT_VBF0HighVPtHighMJJ");
+	     vbfmva2_ = readers[key2]->EvaluateMVA(key2);
 	vbfmvaHighVPt2_ =readers["BDT_VBF0HighPt"]->EvaluateMVA("BDT_VBF0HighPt");        
         if(mvaCDFinv[key2]) {
           flat2_vbfmva_=max(0.,mvaCDFinv[key2]->Eval(vbfmva2_));
@@ -468,7 +484,10 @@ void VBFVectorBoson::runAnalysis()
           flat2_vbfmva_=-1000;
         }
       }
-      
+
+     
+
+       
       
       ////////////////////
       // EVENT WEIGHTS //
@@ -843,7 +862,8 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("detajj",        new TH1F("detajj" ,          ";#Delta#eta(J,J);Events",            20,0,8));  
   ht_->addHist("dphijj",        new TH1F("dphijj" ,          ";#Delta#phi(J,J) [rad];Events",      20,-3.15,3.15));  
   ht_->addHist("dijetpt",       new TH1F("dijetpt",          ";Dijet p_{T} [GeV];Events",          20,0,1000));  
-  ht_->addHist("ht",            new TH1F("ht",               ";H_{T} [GeV];Events",                20,0,4000));  
+  ht_->addHist("ht",            new TH1F("ht",               ";H_{T} [GeV];Events",                20,0,4000));
+  ht_->addHist("Ght",            new TH1F("Ght",               ";H_{T} [GeV];Events",                20,0,4000)); 
   ht_->addHist("mht",           new TH1F("mht",              ";Missing H_{T} [GeV];Events",        20,0,500));  
 
   ht_->addHist("drj1b",         new TH1F("drj1b",            ";#DeltaR(j_{1},boson);Events",       25,0,8));  
@@ -1097,6 +1117,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
 
   ht_->fill("njets",        jets.size(), cplotwgts,c);
   ht_->fill("ht",           vbfVars_.scalarht,    cplotwgts,c);
+  ht_->fill("Ght",           vbfVars_.scalarGht,    cplotwgts,c);
   ht_->fill("mht",          vbfVars_.mht,         cplotwgts,c);
 
   for(size_t ij=0; ij<min(size_t(2),jets.size());ij++) {

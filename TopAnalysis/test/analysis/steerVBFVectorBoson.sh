@@ -97,11 +97,11 @@ case $WHAT in
 	    EXTRA="MVATrees"
         fi
 	python scripts/runLocalAnalysis.py \
-	    -i ${eosdir} --only ${json} \
+	    -i ${eosdir} --only mlm \
             -o ${outdir}/${githash}/${EXTRA} \
             --farmappendix ${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch  0 --only mlm  --runSysts ${extraOpts};
+            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch  0  --runSysts ${extraOpts};
 	;;
 
     SELTRIGEFF )

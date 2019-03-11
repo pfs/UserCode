@@ -414,12 +414,16 @@ void VBFVectorBoson::runAnalysis()
           chTags.clear();
       }
       if(chTags.size()==0) continue;
-      //...................CR
-       if(!CR_)
-	if( chTag=="MM")
-	  if( vbfVars_.leadj_pt >75 && vbfVars_.mjj >200 )
-	  chTags.push_back("newcat");
-
+      //...................LOOS CR for Z
+      if(!CR_){
+	if( chTag=="MM"){
+	  if( vbfVars_.leadj_pt >75 && vbfVars_.mjj >200 ){
+	    chTags.push_back("newcat");
+	  
+	    // chTags.clear();
+	  }
+	}
+      }
       
 
       TString baseCategory(chTags[chTags.size()-1]);
@@ -430,6 +434,7 @@ void VBFVectorBoson::runAnalysis()
       vbfmva_ = vbfmva0_ = vbfmva1_= vbfmva2_ = -1000;
       flat_vbfmva_= flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_ =-1000;
       vbfmvaHighVPt_= vbfmvaHighVPt0_= vbfmvaHighVPt1_= vbfmvaHighVPt2_ = -1000;
+      //for (auto c: chTags){
       if (cat[5] || cat[6]) {
         TString key(cat[3] ?"BDT_VBF0LowVPtHighMJJ"  :(cat[5] ?"BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ")); 
         vbfmva_ = readers[key]->EvaluateMVA(key);
@@ -442,6 +447,7 @@ void VBFVectorBoson::runAnalysis()
           flat_vbfmva_=-1000;
         }
       }
+      // }
       //.................
 
       if((cat[4] && cat[5])|| (cat[3] && cat[6])) {
@@ -863,7 +869,7 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("dphijj",        new TH1F("dphijj" ,          ";#Delta#phi(J,J) [rad];Events",      20,-3.15,3.15));  
   ht_->addHist("dijetpt",       new TH1F("dijetpt",          ";Dijet p_{T} [GeV];Events",          20,0,1000));  
   ht_->addHist("ht",            new TH1F("ht",               ";H_{T} [GeV];Events",                20,0,4000));
-  ht_->addHist("Ght",            new TH1F("Ght",               ";H_{T} [GeV];Events",                20,0,4000)); 
+  ht_->addHist("Ght",            new TH1F("Ght",               ";(#gamma+jets) H_{T} [GeV];Events",                20,0,4000)); 
   ht_->addHist("mht",           new TH1F("mht",              ";Missing H_{T} [GeV];Events",        20,0,500));  
 
   ht_->addHist("drj1b",         new TH1F("drj1b",            ";#DeltaR(j_{1},boson);Events",       25,0,8));  
@@ -904,6 +910,10 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("vbfmva",          new TH1F("vbfmva",         ";VBF MVA;Events",50,-1,1));  
   ht_->addHist("acdfvbfmva",     new TH1F("acdfvbfmva",    ";CDF^{-1}(VBF MVA);Events",50,0,1));  
   ht_->addHist("vbfmvaHighVPt",   new TH1F("vbfmvaHighVPt",   ";VBF MVA;Events",50,-1,1));
+  //............
+   ht_->addHist("vbfmva0",          new TH1F("vbfmva0",         ";VBF MVA;Events",50,-1,1));  
+  ht_->addHist("acdfvbfmva0",     new TH1F("acdfvbfmva0",    ";CDF^{-1}(VBF MVA);Events",50,0,1));  
+  ht_->addHist("vbfmvaHighVPt0",   new TH1F("vbfmvaHighVPt0",   ";VBF MVA;Events",50,-1,1));
   //...........
   ht_->addHist("vbfmva1",          new TH1F("vbfmva1",         ";VBF MVA;Events",50,-1,1));  
   ht_->addHist("acdfvbfmva1",     new TH1F("acdfvbfmva1",    ";CDF^{-1}(VBF MVA);Events",50,0,1));  
@@ -1210,6 +1220,18 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
       ht_->fill("evcount",  1, cplotwgts, c);  
   }
   //................
+
+
+   if(vbfmva0_>-999)  {
+    ht_->fill("vbfmvaHighVPt0", vbfmvaHighVPt0_, cplotwgts,c);
+    ht_->fill("vbfmva0", vbfmva0_, cplotwgts,c);
+    ht_->fill("acdfvbfmva0", flat0_vbfmva_, cplotwgts,c);
+    if(flat0_vbfmva_>0.9)
+      ht_->fill("evcount",  1, cplotwgts, c);  
+  }
+
+
+   
    if(vbfmva1_>-999)  {
     ht_->fill("vbfmvaHighVPt1", vbfmvaHighVPt1_, cplotwgts,c);
     ht_->fill("vbfmva1", vbfmva1_, cplotwgts,c);

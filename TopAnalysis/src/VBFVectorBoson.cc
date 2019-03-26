@@ -434,7 +434,7 @@ void VBFVectorBoson::runAnalysis()
       vbfmva_ = vbfmva0_ = vbfmva1_= vbfmva2_ = -1000;
       flat_vbfmva_= flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_ =-1000;
       vbfmvaHighVPt_= vbfmvaHighVPt0_= vbfmvaHighVPt1_= vbfmvaHighVPt2_ = -1000;
-      //for (auto c: chTags){
+      //for (auto &newcat: chTags){
       if (cat[5] || cat[6]) {
         TString key(cat[3] ?"BDT_VBF0LowVPtHighMJJ"  :(cat[5] ?"BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ")); 
         vbfmva_ = readers[key]->EvaluateMVA(key);

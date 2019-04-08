@@ -144,6 +144,8 @@ void VBFVectorBoson::runAnalysis()
     mvaCDFinv[key1]=(TGraph *)fcdf->Get(key1+"_cdfinv");
     TString key2=it->first;
     mvaCDFinv[key2]=(TGraph *)fcdf->Get(key2+"_cdfinv");
+    TString keyLoos=it->first;
+    mvaCDFinv[keyLoos]=(TGraph *)fcdf->Get(keyLoos+"_cdfinv");
   }
 
 
@@ -413,18 +415,37 @@ void VBFVectorBoson::runAnalysis()
            || vbfVars_.detajj<lowVPtDetaJJCut_)
           chTags.clear();
       }
-      if(chTags.size()==0) continue;
-      //...................LOOS CR for Z
-      if(!CR_){
-	if( chTag=="MM"){
-	  if( vbfVars_.leadj_pt >75 && vbfVars_.mjj >200 ){
-	    chTags.push_back("newcat");
 	  
-	    // chTags.clear();
-	  }
+	  
+	   //...................LOOS CR for Z
+	  
+	  
+	   vbfmvaLoos_ = -1000;
+      flat_vbfmvaLoos_ = -1000;
+      bool is_newcatLooszz(false);
+      
+      if( chTag=="MM" || chTag=="EE" ){
+	if( vbfVars_.leadj_pt >50 && vbfVars_.mjj >200 ){
+	  chTags.push_back(chTag+"newcatLoosZ");
+	  is_newcatLooszz=true;
+	  // chTags.clear();                                                                                         
+	  
 	}
       }
-      
+      if (is_newcatLooszz){
+        if (cat[5] || cat[6]) {
+          TString keyLoos(cat[3] ?"BDT_VBF0LowVPtHighMJJ":(cat[5] ? "BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ"));
+          vbfmvaLoos_      = readers[keyLoos]->EvaluateMVA(keyLoos);
+          flat_vbfmvaLoos_ = readers[keyLoos]->EvaluateMVA(keyLoos);
+          if(mvaCDFinv[keyLoos]) flat_vbfmvaLoos_=max(0.,mvaCDFinv[keyLoos]->Eval(vbfmvaLoos_));
+          if(doBlindAnalysis_ && ev_.isData && flat_vbfmvaLoos_>0.8) flat_vbfmvaLoos_=-1000;
+          if(doBlindAnalysis_ && ev_.isData && vbfmvaLoos_>0.8) vbfmvaLoos_=-1000;
+	  
+	}
+      }
+      if(chTags.size()==0) continue;
+     
+    
 
       TString baseCategory(chTags[chTags.size()-1]);
 
@@ -907,7 +928,8 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("evcount",         new TH1F("evcount",        ";Pass;Events",2,0,2));  
   ht_->getPlots()["evcount"]->GetXaxis()->SetBinLabel(1,"Inclusive");
   ht_->getPlots()["evcount"]->GetXaxis()->SetBinLabel(2,"MVA>0.9");
-  ht_->addHist("vbfmva",          new TH1F("vbfmva",         ";VBF MVA;Events",50,-1,1));  
+  ht_->addHist("vbfmva",          new TH1F("vbfmva",         ";VBF MVA;Events",50,-1,1)); 
+  ht_->addHist("vbfmvaLoos",          new TH1F("vbfmvaLoos",         ";VBF MVA;Events",50,-1,1));
   ht_->addHist("acdfvbfmva",     new TH1F("acdfvbfmva",    ";CDF^{-1}(VBF MVA);Events",50,0,1));  
   ht_->addHist("vbfmvaHighVPt",   new TH1F("vbfmvaHighVPt",   ";VBF MVA;Events",50,-1,1));
   //............
@@ -1215,6 +1237,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   if(vbfmva_>-999)  {
     ht_->fill("vbfmvaHighVPt", vbfmvaHighVPt_, cplotwgts,c);
     ht_->fill("vbfmva", vbfmva_, cplotwgts,c);
+    ht_->fill("vbfmvaLoos", vbfmvaLoos_, cplotwgts,c);
     ht_->fill("acdfvbfmva", flat_vbfmva_, cplotwgts,c);
     if(flat_vbfmva_>0.9)
       ht_->fill("evcount",  1, cplotwgts, c);  

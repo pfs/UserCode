@@ -410,29 +410,27 @@ void VBFVectorBoson::runAnalysis()
           chTags.clear();
       }
 
-      vbfmvaLoos_ = -1000;
-      flat_vbfmvaLoos_ = -1000;
-      bool is_newcatLooszz(false);
+      //vbfmvaLoos_ = -1000;
+      // flat_vbfmvaLoos_ = -1000;
+      // bool is_newcatLooszz(false);
+      vbfmva_ =vbfmvaHH_ = vbfmvaHL_= vbfmvaLH_= -1000;
+      flat_vbfmva_ =flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_=  -1000;
       
       if( chTag=="MM" || chTag=="EE" ){
 	if( vbfVars_.leadj_pt >50 && vbfVars_.mjj >200 ){
 	  chTags.push_back(chTag+"newcatLoosZ");
-	  is_newcatLooszz=true;
-	  // chTags.clear();                                                                                         
+	  //is_newcatLooszz(true);
+
 	  
+	  TString key0("BDT_VBF0HighVPtHighMJJ");
+	  vbfmvaHH_ = readers[key0]->EvaluateMVA(key0);
+	  TString key1("BDT_VBF0HighVPtLowMJJ");
+	  vbfmvaHL_ = readers[key1]->EvaluateMVA(key1);
+	  TString key2("BDT_VBF0LowVPtHighMJJ");
+	  vbfmvaLH_ = readers[key2]->EvaluateMVA(key2);
 	}
       }
-      if (is_newcatLooszz){
-        if (cat[5] || cat[6]) {
-          TString keyLoos(cat[3] ?"BDT_VBF0LowVPtHighMJJ":(cat[5] ? "BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ"));
-          vbfmvaLoos_      = readers[keyLoos]->EvaluateMVA(keyLoos);
-          flat_vbfmvaLoos_ = readers[keyLoos]->EvaluateMVA(keyLoos);
-          if(mvaCDFinv[keyLoos]) flat_vbfmvaLoos_=max(0.,mvaCDFinv[keyLoos]->Eval(vbfmvaLoos_));
-          if(doBlindAnalysis_ && ev_.isData && flat_vbfmvaLoos_>0.8) flat_vbfmvaLoos_=-1000;
-          if(doBlindAnalysis_ && ev_.isData && vbfmvaLoos_>0.8) vbfmvaLoos_=-1000;
-	  
-	}
-      }
+
       
 
       
@@ -442,8 +440,8 @@ void VBFVectorBoson::runAnalysis()
 
       //evaluate discriminator MVA for categories of interest
       //FIXME: this probably needs to be modified for the new training
-      vbfmva_ =vbfmva0_ = vbfmva1_= vbfmva2_= -1000;
-      flat_vbfmva_ =flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_=  -1000;
+     
+      
       if (cat[5] || cat[6]) {
         TString key(cat[3] ?"BDT_VBF0LowVPtHighMJJ":(cat[5] ? "BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ"));
         vbfmva_      = readers[key]->EvaluateMVA(key);
@@ -946,7 +944,9 @@ void VBFVectorBoson::bookHistograms() {
   ht_->getPlots()["evcount"]->GetXaxis()->SetBinLabel(1,"Inclusive");
   ht_->getPlots()["evcount"]->GetXaxis()->SetBinLabel(2,"MVA>0.9");
   ht_->addHist("vbfmva",          new TH1F("vbfmva",         ";VBF MVA;Events",50,-1,1));
-  ht_->addHist("vbfmvaLoos",          new TH1F("vbfmvaLoos",         ";VBF MVA;Events",50,-1,1)); 
+  ht_->addHist("vbfmvaHH",          new TH1F("vbfmvaHH",         ";VBF MVA;Events",50,-1,1));
+  ht_->addHist("vbfmvaHL",          new TH1F("vbfmvaHL",         ";VBF MVA;Events",50,-1,1));
+  ht_->addHist("vbfmvaLH",          new TH1F("vbfmvaLH",         ";VBF MVA;Events",50,-1,1)); 
   ht_->addHist("acdfvbfmva",     new TH1F("acdfvbfmva",    ";CDF^{-1}(VBF MVA);Events",50,0,1));  
   ht_->addHist("tagjetresol", new TH1F("tagjetresol",";#Delta p_{T}/p_{T};Jets",50,-0.5,0.5));
 
@@ -1279,7 +1279,9 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   ht_->fill("evcount",  0, cplotwgts, c);
   if(vbfmva_>-999)  {
     ht_->fill("vbfmva", vbfmva_, cplotwgts,c);
-    ht_->fill("vbfmvaLoos", vbfmvaLoos_, cplotwgts,c);
+    ht_->fill("vbfmvaHH", vbfmvaHH_, cplotwgts,c);
+     ht_->fill("vbfmvaHL", vbfmvaHL_, cplotwgts,c);
+      ht_->fill("vbfmvaLH", vbfmvaLH_, cplotwgts,c);
     ht_->fill("acdfvbfmva", flat_vbfmva_, cplotwgts,c);
     if(flat_vbfmva_>0.9)
       ht_->fill("evcount",  1, cplotwgts, c);  

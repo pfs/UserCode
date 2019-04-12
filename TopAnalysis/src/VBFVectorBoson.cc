@@ -420,29 +420,26 @@ void VBFVectorBoson::runAnalysis()
 	   //...................LOOS CR for Z
 	  
 	  
-	   vbfmvaLoos_ = -1000;
-      flat_vbfmvaLoos_ = -1000;
+       vbfmva_ = vbfmva0_ = vbfmva1_= vbfmva2_ = -1000;
+      flat_vbfmva_= flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_ =-1000;
       bool is_newcatLooszz(false);
       
       if( chTag=="MM" || chTag=="EE" ){
 	if( vbfVars_.leadj_pt >50 && vbfVars_.mjj >200 ){
 	  chTags.push_back(chTag+"newcatLoosZ");
 	  is_newcatLooszz=true;
-	  // chTags.clear();                                                                                         
+	  // chTags.clear();
+		
+	   TString key0("BDT_VBF0HighVPtHighMJJ");
+	  vbfmvaHH_ = readers[key0]->EvaluateMVA(key0);
+	  TString key1("BDT_VBF0HighVPtLowMJJ");
+	  vbfmvaHL_ = readers[key1]->EvaluateMVA(key1);
+	  TString key2("BDT_VBF0LowVPtHighMJJ");
+	  vbfmvaLH_ = readers[key2]->EvaluateMVA(key2);
 	  
 	}
       }
-      if (is_newcatLooszz){
-        if (cat[5] || cat[6]) {
-          TString keyLoos(cat[3] ?"BDT_VBF0LowVPtHighMJJ":(cat[5] ? "BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ"));
-          vbfmvaLoos_      = readers[keyLoos]->EvaluateMVA(keyLoos);
-          flat_vbfmvaLoos_ = readers[keyLoos]->EvaluateMVA(keyLoos);
-          if(mvaCDFinv[keyLoos]) flat_vbfmvaLoos_=max(0.,mvaCDFinv[keyLoos]->Eval(vbfmvaLoos_));
-          if(doBlindAnalysis_ && ev_.isData && flat_vbfmvaLoos_>0.8) flat_vbfmvaLoos_=-1000;
-          if(doBlindAnalysis_ && ev_.isData && vbfmvaLoos_>0.8) vbfmvaLoos_=-1000;
-	  
-	}
-      }
+     
       if(chTags.size()==0) continue;
      
     
@@ -452,8 +449,7 @@ void VBFVectorBoson::runAnalysis()
       //evaluate discriminator MVA for categories of interest
       //FIXME: this probably needs to be modified for the new training
       
-      vbfmva_ = vbfmva0_ = vbfmva1_= vbfmva2_ = -1000;
-      flat_vbfmva_= flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_ =-1000;
+      
       vbfmvaHighVPt_= vbfmvaHighVPt0_= vbfmvaHighVPt1_= vbfmvaHighVPt2_ = -1000;
       //for (auto &newcat: chTags){
       if (cat[5] || cat[6]) {

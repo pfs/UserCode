@@ -170,8 +170,9 @@ python scripts/plotter.py -i analysis/   -j data/era2017/samples.json  -l 12870
 ```
 ## BDT Training
 This part currently works only for the VBF analysis. The signal and background trees must have been produced in the previous session by enabling "--mvatree" with "SEL" option. The training is done per category with the following command:
-
+```
 python scripts/trainVbfBDT.py --vbf nt=50:mns=5:md=3:abb=0.6:nc=1 --ext LowVPtHighMJJ --sig signal.root --bkg backgrounds.root --cat A:LowVPt:HighMJJ --card LowVPtHighMJJCard
+```
 The example above is for "LowVPtHighMJJ" category. Once happy with the training,
 
 cp vbf/weights/LowVPtHighMJJ_BDT_VBF0LowVPtHighMJJ* test/analysis/VBF_weights

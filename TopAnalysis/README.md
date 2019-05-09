@@ -198,18 +198,18 @@ The input histogram will be rebinned to have five bins. If you remove "--doSigna
 ## Photon fake rate estimation and distributions
 The method is explained in AN-18-046. The FR is measured in bins of mjj separately for photons in the barrel and endcap. It is measured in a control region (CR) which has the same selection as the signal region except the 2nd jet that is required to fail the loose pileup identification.
 
-#Input data for FR measurement
+# Input data for FR measurement
 Photon data (HighVPt categories): add --CR to the SEL option in steerVBFVectorBoson.sh
 Jet data (LowVPt category): run steerVBFVectorBoson.sh with SELJETHT in which --CR is a default input
-Input templates for FR measurement
+# Input templates for FR measurement
 Tight template: the output of running default SEL option in steerVBFVectorBoson.sh on GJet samples
 Fake template: the output of running SELJETHT option with -q QCDTemp argument in steerVBFVectorBoson.sh
-Fake rate estimation.
+# Fake rate estimation
 for preparing the PHOTON-DATA and other files, you have to hadd the files.
 Run the command below on the output of the aforementioned steps:
 ```
 python scripts/createFakeRatio.py --fGdata PHOTON-DATA --fJdata JETHT-DATA --fJQCD JETHT-DATA-QCDTEMP --fGMC GJET-MC --cats HighVPtHighMJJA:HighVPtLowMJJA:LowVPtHighMJJA
 ```
 Copy the output fakeRatios.root to data/eraYEAR
-Fake rate application
+# Fake rate application
 Here the distributions of not-tight photons are scaled by the estimated FR. The distributions can be used then in plotting. Need to activate --SRfake for the SEL option in steerVBFVectorBoson.sh and run on SinglePhoton data

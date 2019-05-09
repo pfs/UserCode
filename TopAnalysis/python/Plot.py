@@ -90,13 +90,14 @@ class Plot(object):
         h.SetTitle(title)
 
         #add overflows
-        try:
-            if not h.InheritsFrom('TH2') and not h.InheritsFrom('TGraph'):
-                fixExtremities(h=h,addOverflow=True,addUnderflow=True)
-            if doDivideByBinWidth:
-                divideByBinWidth(h=h)
-        except:
-            pass
+        if not 'ratevsrun' in self.name:
+            try:
+                if not h.InheritsFrom('TH2') and not h.InheritsFrom('TGraph'):
+                    fixExtremities(h=h,addOverflow=True,addUnderflow=True)
+                if doDivideByBinWidth:
+                    divideByBinWidth(h=h)
+            except:
+                pass
 
         #check if color is given in hexadec format
         try:

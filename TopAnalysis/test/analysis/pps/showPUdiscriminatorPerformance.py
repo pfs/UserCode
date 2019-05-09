@@ -178,8 +178,8 @@ for xangle in [120,130,140,150]:
     #feature importance (for random forest classifier only)
     plotFeatureImportance(rfcList,'featimportance_%d'%xangle)
 
-    oob = oob_classifier_accuracy(rfcList[0][1], data['X'], data['y'])
-    imp = permutation_importances(rfcList[0][1], data['X'], data['y'], oob_classifier_accuracy)
+    #oob = oob_classifier_accuracy(rfcList[0][1], data['X'], data['y'])
+    #imp = permutation_importances(rfcList[0][1], data['X'], data['y'], oob_classifier_accuracy)
 
     
     #filter the data for this crossing angle

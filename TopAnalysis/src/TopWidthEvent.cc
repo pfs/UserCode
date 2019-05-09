@@ -28,12 +28,15 @@ TopWidthEvent::TopWidthEvent(std::vector<Particle> &leptons,std::vector<Jet> &je
   
   //jet selection
   std::vector<Jet> bJets,lJets;
+  selJetsIdx.clear();
+  size_t i(0);
   for(auto j : jets) {
+    i++;
     if(j.Pt()<jetPt_) continue;
     if(fabs(j.Eta())>maxJetEta_) continue;    
     bool isBTagged(j.flavor()==5);
-    if(isBTagged) bJets.push_back(j);
-    else          lJets.push_back(j);
+    if(isBTagged) { bJets.push_back(j); selJetsIdx.push_back(i-1); }
+    else          { lJets.push_back(j); }
   }
   nbjets=bJets.size();
   njets=nbjets+lJets.size();

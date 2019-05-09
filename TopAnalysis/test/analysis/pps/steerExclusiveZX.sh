@@ -22,7 +22,7 @@ fi
 queue=tomorrow
 githash=ab05162
 eosdir=/store/cmst3/group/top/RunIIReReco/${githash}
-outdir=/store/cmst3/user/psilva/ExclusiveAna/${githash}
+outdir=/store/cmst3/user/psilva/ExclusiveAna/final/${githash}
 signal_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/signal_samples.json
 plot_signal_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/plot_signal_samples.json
 samples_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/samples.json
@@ -70,38 +70,42 @@ case $WHAT in
         baseOpt="${baseOpt} -o ${outdir} -q ${queue} --era era2017 -m ExclusiveZX::RunExclusiveZX --ch 0 --runSysts"
         #baseOpt="${baseOpt} --exactonly"        
 	python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/scripts/runLocalAnalysis.py ${baseOpt} \
-            --only ${samples_json},${zx_samples_json},${zbias_samples_json};
+            --only ${samples_json},${zx_samples_json}; #,${zbias_samples_json};
 	;;
+
+    CHECKSELINTEG )
+        python scripts/checkLocalAnalysisInteg.py ../../../FARM${githash}/ analysis/data tree
+        ;;
+
 
     MERGESEL )
 	mergeOutputs.py /eos/cms/${outdir} True;
 	;;
 
     PLOTSEL )
-        lumiSpecs="--lumiSpecs lpta:2642"
+        lumiSpecs="--lumiSpecs a:2642"
         kFactorList="--procSF #gamma+jets:1.33"
 	commonOpts="-i /eos/cms/${outdir} --puNormSF puwgtctr -l ${lumi} --mcUnc ${lumiUnc} ${kFactorList} ${lumiSpecs}"
 	python scripts/plotter.py ${commonOpts} -j ${samples_json}    -O plots/sel --only mboson,mtboson,pt,eta,met,jets,nvtx,ratevsrun --saveLog; 
-        python scripts/plotter.py ${commonOpts} -j ${samples_json}    --rawYields --silent --only gen -O plots/zx_sel -o bkg_plotter.root ; 
-	python scripts/plotter.py ${commonOpts} -j ${zx_samples_json} --rawYields --silent --only gen -O plots/zx_sel;
+        python scripts/plotter.py ${commonOpts} -j ${samples_json}    --rawYields --silent --only gen -O plots/ -o bkg_plotter.root ; 
+	python scripts/plotter.py ${commonOpts} -j ${zx_samples_json} --rawYields --silent --only gen -O plots/;
         python test/analysis/pps/computeDileptonSelEfficiency.py 
-        mv *.{png,pdf} plots/zx_sel/
+        mv *.{png,pdf} plots/sel/
         mv effsummary* plots/
 	;;
 
     WWWSEL )
 	mkdir -p ${wwwdir}/presel
 	cp plots/sel/*.{png,pdf} ${wwwdir}/presel
-	cp plots/zx_sel/*.{png,pdf} ${wwwdir}/presel
 	cp $CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/index.php ${wwwdir}/presel
 	;;
 
     TRAINPUDISCR )
         echo "Please remember to use a >10_3_X release for this step"
 
-        commonOpts="--trainFrac 0.4  --RPout test/analysis/pps/golden_noRP.json -o /eos/cms/${outdir}/train_results"
-        #python test/analysis/pps/trainPUdiscriminators.py ${commonOpts} -s "isZ && bosonpt<10 && trainCat>=0" 
-        python test/analysis/pps/trainPUdiscriminators.py ${commonOpts} -s "hasZBTrigger && trainCat>=0" --zeroBiasTrain
+        commonOpts="--trainFrac 0.3  --RPout test/analysis/pps/golden_noRP.json -o /eos/cms/${outdir}/train_results"
+        python test/analysis/pps/trainPUdiscriminators.py ${commonOpts} -s "isZ && evcat==13*13 && bosonpt<10 && trainCat>=0" 
+        #python test/analysis/pps/trainPUdiscriminators.py ${commonOpts} -s "hasZBTrigger && trainCat>=0" --zeroBiasTrain
 
         ;;
 
@@ -113,6 +117,7 @@ case $WHAT in
         echo "output      = ${condor_prep}.out" >> $condor_prep
         echo "error       = ${condor_prep}.err" >> $condor_prep
         echo "log         = ${condor_prep}.log" >> $condor_prep
+        echo "requirements = (OpSysAndVer =?= \"SLCern6\")"  >> $condor_prep
         echo "arguments   = ${predout} \$(chunk)" >> $condor_prep
         echo "queue chunk matching (${predin}/*.root)" >> $condor_prep
         condor_submit $condor_prep

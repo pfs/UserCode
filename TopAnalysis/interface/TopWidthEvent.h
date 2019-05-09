@@ -35,7 +35,7 @@ class TopWidthEvent {
   TString cat;
   unsigned int dilcode;
   float mll,ptll,l1pt,l1eta,l2pt,l2eta,njets,nbjets,j1pt,j1eta,j2pt,j2eta;
-
+  std::vector<size_t> selJetsIdx;
  private:
   std::vector<LeptonBJetPair> lbPairs_;
   void initSelectionCuts();

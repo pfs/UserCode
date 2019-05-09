@@ -117,10 +117,10 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
     mcEff={}
     if isSignal: 
         signalPt=[float(x) for x in re.findall(r'\d+', os.path.basename(inFile) )[2:]]
-        for ch in ['eez','mmz','lpta']:
+        for ch in ['eez','mmz','a']:
             effIn=ROOT.TFile.Open('$CMSSW_BASE/src/TopLJets2015/TopAnalysis/plots/effsummary_%s_ptboson.root'%ch)
-            pname='gen%s2trec_ptboson_ZH#rightarrowllbb_eff'%ch
-            if ch=='lpta': pname='genlpta2trec_ptboson_EWK #gammajj_eff'
+            pname='gen%srec_ptboson_ZH#rightarrowllbb_eff'%ch
+            if ch=='a': pname='genarec_ptboson_EWK #gammajj_eff'
             mcEff[ch]=effIn.Get(pname)
             effIn.Close()        
 
@@ -215,11 +215,10 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
         elif tree.evcat==EMU and not tree.isSS : evcat='em'
         elif tree.evcat==DIMUONS and not tree.isSS : evcat='mm'
         elif tree.evcat==22 :
-            if isSignal:
-                evcat="lpta" if tree.bosonpt<200 else "hpta"
+            if isSignal: 
+                evcat="a" 
             else:
-                if tree.hasLowPtATrigger  and tree.bosonpt<200  : evcat="lpta"
-                elif tree.hasHighPtATrigger and tree.bosonpt>=200 : evcat="hpta"
+                if tree.hasATrigger : evcat="a"
         elif tree.evcat==0  and tree.hasZBTrigger : evcat=='zbias'
         else : continue
         
@@ -424,7 +423,7 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
                     finalPlots=[ [wgt*mcEff['eez'].Eval(boson.Pt())/nEntries, cats],
                                  [wgt*mcEff['mmz'].Eval(boson.Pt())/nEntries, [c.replace(evcat,'mm') for c in cats if c[0:2]=='ee']] ]
                 else:
-                    finalPlots=[ [wgt*mcEff['lpta'].Eval(boson.Pt())/nEntries, cats] ]
+                    finalPlots=[ [wgt*mcEff['a'].Eval(boson.Pt())/nEntries, cats] ]
 
             for pwgt,pcats in finalPlots:   
 
@@ -513,7 +512,7 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
                 #add a copy for the photon
                 aGoldenSel=copy.copy(goldenSel)
                 aGoldenSel[0]=22
-                aGoldenSel[1]=goldenSel[1]*mcEff['lpta'].Eval(boson.Pt())/nEntries
+                aGoldenSel[1]=goldenSel[1]*mcEff['a'].Eval(boson.Pt())/nEntries
                 selEvents.append(aGoldenSel)
                     
         else:

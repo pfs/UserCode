@@ -187,8 +187,8 @@ def showSimpleDistribution(hColl,doLogx,doDivideByBinWidth,outName):
 
 def runSelectionEfficiencyFor(ch,d):
 
-    bkgROOT=ROOT.TFile.Open('plots/zx_sel/bkg_plotter.root')
-    zxROOT=ROOT.TFile.Open('plots/zx_sel/plotter.root')
+    bkgROOT=ROOT.TFile.Open('plots/bkg_plotter.root')
+    zxROOT=ROOT.TFile.Open('plots/plotter.root')
 
     procList  =[('DY','#000000',1001,20,bkgROOT),
                 ("EWK Zjj",'#f0027f',0,26,zxROOT),
@@ -203,7 +203,7 @@ def runSelectionEfficiencyFor(ch,d):
                     ]
 
     
-    tagsList=['singletrig','trig','rec','2trec']
+    tagsList=['trig','rec'] #'singletrig','trig','rec','2trec']
 
     genSummary={}
     effSummary={}
@@ -223,11 +223,11 @@ def runSelectionEfficiencyFor(ch,d):
             effSummary[tag].append(effGr)
 
     #relative gains
-    effSummary['trig_gain']=[]
-    effSummary['rec_gain']=[]
-    for i in xrange(0,len(effSummary[tagsList[0]])):
-        effSummary['trig_gain'].append(getCurveRatio(gr_den=effSummary['singletrig'][i], gr_num=effSummary['trig'][i]))
-        effSummary['rec_gain'].append(getCurveRatio(gr_den=effSummary['2trec'][i],    gr_num=effSummary['rec'][i]))
+    #effSummary['trig_gain']=[]
+    #effSummary['rec_gain']=[]
+    #for i in xrange(0,len(effSummary[tagsList[0]])):
+    #    effSummary['trig_gain'].append(getCurveRatio(gr_den=effSummary['singletrig'][i], gr_num=effSummary['trig'][i]))
+    #    effSummary['rec_gain'].append(getCurveRatio(gr_den=effSummary['2trec'][i],    gr_num=effSummary['rec'][i]))
 
     #cut efficiency
     if d=='ptll':
@@ -243,14 +243,14 @@ def runSelectionEfficiencyFor(ch,d):
 
     #save results 
     fOut=ROOT.TFile.Open('effsummary_%s_%s.root'%(ch,d),'RECREATE')
-    for gr in effSummary['2trec']: gr.Write()
+    for gr in effSummary['rec']: gr.Write()
     fOut.Close()
 
     #efficiency plots
-    for tag,xtit,ytit,logx,logy,yran,legPos in [('trig',      genSummary['rec'][0].GetXaxis().GetTitle(),'Trigger #varepsilon',  doLogx,False,(0.8,1),  'bl'),
-                                                ('trig_gain', genSummary['rec'][0].GetXaxis().GetTitle(),'Ratio to single triggers',          doLogx,False,(0.95,1.15),'tr'),
+    for tag,xtit,ytit,logx,logy,yran,legPos in [('trig',      genSummary['rec'][0].GetXaxis().GetTitle(),'Trigger #varepsilon',  doLogx,False,(0.5,1),  'bl'),
+                                                #('trig_gain', genSummary['rec'][0].GetXaxis().GetTitle(),'Ratio to single triggers',          doLogx,False,(0.95,1.15),'tr'),
                                                 ('rec',       genSummary['rec'][0].GetXaxis().GetTitle(),'Selection #varepsilon',doLogx,False,(0.,1),   'tl' if d=='ptll' else 'tr'),
-                                                ('rec_gain',  genSummary['rec'][0].GetXaxis().GetTitle(),'Ratio to tight selection',          doLogx,False,(0.7,2.2),'tr'),
+                                                #('rec_gain',  genSummary['rec'][0].GetXaxis().GetTitle(),'Ratio to tight selection',          doLogx,False,(0.7,2.2),'tr'),
                                                 ('cut',       genSummary['rec'][0].GetXaxis().GetTitle(),'Cut efficiency',                    doLogx,True, (1e-3,1), 'bl'),
                                                 ]:
 
@@ -273,7 +273,7 @@ ROOT.gStyle.SetOptTitle(0)
 ROOT.gROOT.SetBatch(True)
 
 for d in ['ptboson','mll','drll']:
-    for ch in ['ee','mm','eez','mmz','lpta']:
+    for ch in ['ee','eez', 'mm','mmz','a']:
         try:
             runSelectionEfficiencyFor(ch,d)
         except Exception as e:

@@ -7,6 +7,7 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "TopLJets2015/TopAnalysis/interface/MiniEvent.h"
+#include "TopLJets2015/TopAnalysis/interface/ObjectTools.h"
 #include "CondFormats/BTauObjects/interface/BTagCalibration.h"
 #include "CondTools/BTau/interface/BTagCalibrationReader.h"
 
@@ -24,6 +25,7 @@ class BTagSFUtil{
 
   void addBTagDecisions(MiniEvent_t &ev,float wp=0.4941,float wpl=0.4941);
   void updateBTagDecisions(MiniEvent_t &ev, std::string optionbc = "central", std::string optionlight = "central");
+  double getBtagWeightMethod1a(std::vector<Jet> &jetColl, MiniEvent_t &ev,TString sys);
   void modifyBTagsWithSF( bool& isBTagged, float Btag_SF = 0.98, float Btag_eff = 1.0);  
   bool applySF(bool& isBTagged, float Btag_SF = 0.98, float Btag_eff = 1.0);
   
@@ -34,7 +36,7 @@ class BTagSFUtil{
 
   TRandom3* rand_;
   std::map<BTagEntry::JetFlavor, TGraphAsymmErrors *> expBtagEff_;
-  std::map<BTagEntry::JetFlavor, BTagCalibrationReader *> btvCalibReaders_;
+  std::map<BTagEntry::JetFlavor, BTagCalibrationReader *> btvCalibReaders_,btvCSVCalibReaders_;
   std::map<BTagEntry::JetFlavor, TGraphErrors *> mc2mcCorr_;
 };
 

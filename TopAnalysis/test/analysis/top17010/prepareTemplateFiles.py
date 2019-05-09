@@ -148,9 +148,14 @@ def getBinByBinUncertainties(h):
     return histos
 
 
-def getBinByBinUncertaintiesForSysts(h,hvars,byMax=False):
+def getBinByBinUncertaintiesForSysts(h,hvars,method=2):
     
-    """loops over the bins of a template and build the bin-by-bin stat unc associated to systs"""
+    """
+    loops over the bins of a template and build the bin-by-bin stat unc associated to systs
+    method=0 max. relative uncertainty is used
+    method=1 rel. uncertainties are added in quadrature
+    method=2 rel. uncertainties are added linearly
+    """
     
     #init the up and down variations
     histos = [ [h.Clone('sysbin%dUp'%(xbin)),h.Clone('sysbin%dDown'%(xbin))] for xbin in xrange(1,h.GetNbinsX()+1) ]
@@ -166,13 +171,16 @@ def getBinByBinUncertaintiesForSysts(h,hvars,byMax=False):
             ival = ihvar.GetBinContent(xbin+1)
             if ival==0: continue
             relUnc = ihvar.GetBinError(xbin+1)/ival
-            if byMax:
+            if method=0:
                 unc = max(unc,relUnc)
-            else:
+            elif method=1:
                 unc += relUnc**2
+            else:
+                unc += relUnc
 
-        #finalize computation of total unc. for this bin
-        if not byMax: unc=ROOT.TMath.Sqrt(unc)
+        #if adding in quadrature take the sqrt in the end
+        if method==1: 
+            unc=ROOT.TMath.Sqrt(unc)
 
         #scale central yields up/down
         val=h.GetBinContent(xbin+1)

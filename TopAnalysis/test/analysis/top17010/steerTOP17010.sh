@@ -50,7 +50,7 @@ if [[ ${ERA} = "2017" ]]; then
     fulllumi=41367
 fi
 
-gtList=(0.7 0.8 0.9 1.0 1.05 1.1 1.15 1.2 1.25 1.28 1.3 1.32 1.34 1.36 1.38 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.85 1.9 1.95 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0)
+gtList=(0.7 0.8 0.9 1.0 1.05 1.1 1.15 1.2 1.23 1.25 1.28 1.3 1.31 1.32 1.34 1.36 1.38 1.39 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.85 1.9 1.95 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0 5.0)
 mtList=(169.5 170.5 171 171.5 171.75 172 172.25 172.5 172.75 173 173.5 174.5 175.5)
 dists=em_mlb,ee_mlb,mm_mlb
 dists=${dists},emhighpt_mlb,emhighpt1b_mlb,emhighpt2b_mlb
@@ -70,7 +70,7 @@ fi
 
 json=test/analysis/top17010/samples_${ERA}.json
 syst_json=test/analysis/top17010/syst_samples_${ERA}.json
-wwwdir=${HOME}/www/top17010
+wwwdir=${HOME}/www/top17010/final
 
 RED='\e[31m'
 NC='\e[0m'
@@ -90,13 +90,14 @@ case $WHAT in
         ;;
 
     TESTSEL )               
-        tag=MC13TeV_${ERA}_TTJets
-        input=${eosdir}/${tag}/Chunk_0_ext0.root
+        tag=MC13TeV_${ERA}_TTJets_fsrup
+        input=${eosdir}/${tag}/Chunk_0_ext1.root
         output=${tag}.root 
 
         gidx=`python -c "print int((2-0.7)/0.01)"`
         midx=`python -c "print int((172.5-169)/0.25)"`
         flag=`python -c "print (($midx<<16)|($gidx))"`
+        flag=0
 
 	python scripts/runLocalAnalysis.py \
             -i ${input} -o ${output} --tag ${tag} --only ${json} --flag ${flag}\
@@ -106,7 +107,7 @@ case $WHAT in
 
     SEL )
 	python scripts/runLocalAnalysis.py \
-	    -i ${eosdir} --flag 0 --only ${json},${syst_json} \
+	    -i ${eosdir} --flag 0 --only ${json},${syst_json} --exactonly \
             -o ${outdir}/${githash} \
             --farmappendix ${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \

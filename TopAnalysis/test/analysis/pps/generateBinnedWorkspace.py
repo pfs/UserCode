@@ -308,7 +308,7 @@ def main(args):
 
     if opt.csiacc: 
         opt.csiacc,resolParam=defineCsiAcceptanceAndBinning(opt.csiacc,opt.mass)
-        setattr(opt,'massResol',resolParam[opt.xangle].Eval(opt.mass))
+        setattr(opt,'massResol',resolParam[opt.xangle].Eval(800)) #opt.mass))
         setattr(opt,'nbins', ROOT.TMath.FloorNint( (opt.mMax-opt.mMin)/(opt.massResol)) )
 
     print '[generateWorkspace]'

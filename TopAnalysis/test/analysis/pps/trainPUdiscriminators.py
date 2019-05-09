@@ -57,7 +57,7 @@ def fitModels(data,features,opt,alwaysOptim=False,doGBC=False,doDNN=False):
         if alwaysOptim or xangle==120:
             rfc_params = {
                 'bootstrap': [True],
-                'n_estimators': [100,200,300],
+                'n_estimators': [100,200,300,400],
                 'max_depth': [5,10,15,20],
                 #'min_samples_split':[0.25,0.5],
                 #'min_samples_leaf':[0.25,0.5],

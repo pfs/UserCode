@@ -91,15 +91,13 @@ void RunExclusiveZX(const TString in_fname,
   outT->Branch("rawmu_phi", ev.rawmu_phi, "rawmu_phi[nrawmu]/S");
   outT->Branch("rawmu_pid", ev.rawmu_pid, "rawmu_pid[nrawmu]/I");
 
-  bool hasETrigger,hasMTrigger,hasMMTrigger,hasEETrigger,hasEMTrigger,hasZBTrigger,hasLowPtATrigger,hasHighPtATrigger;
-  outT->Branch("hasETrigger",&hasETrigger,"hasETrigger/O");
-  outT->Branch("hasMTrigger",&hasMTrigger,"hasMTrigger/O");
-  outT->Branch("hasEMTrigger",&hasEMTrigger,"hasEMTrigger/O");
-  outT->Branch("hasMMTrigger",&hasMMTrigger,"hasMMTrigger/O");
-  outT->Branch("hasEETrigger",&hasEETrigger,"hasEETrigger/O");
-  outT->Branch("hasLowPtATrigger",&hasLowPtATrigger,"hasLowPtATrigger/O");
-  outT->Branch("hashighPtATrigger",&hasHighPtATrigger,"hasHighPtATrigger/O");
-  outT->Branch("hasZBTrigger",&hasZBTrigger,"hasZBTrigger/O");
+  bool hasMTrigger,hasMMTrigger,hasEETrigger,hasEMTrigger,hasZBTrigger,hasATrigger;
+  outT->Branch("hasMTrigger",  &hasMTrigger," hasMTrigger/O");
+  outT->Branch("hasEMTrigger", &hasEMTrigger, "hasEMTrigger/O");
+  outT->Branch("hasMMTrigger", &hasMMTrigger, "hasMMTrigger/O");
+  outT->Branch("hasEETrigger", &hasEETrigger, "hasEETrigger/O");
+  outT->Branch("hasATrigger",  &hasATrigger,  "hasATrigger/O");
+  outT->Branch("hasZBTrigger", &hasZBTrigger, "hasZBTrigger/O");
 
   bool isSS,isSF,isZ,isA;
   outT->Branch("isSS",&isSS,"isSS/O");
@@ -119,7 +117,9 @@ void RunExclusiveZX(const TString in_fname,
                    "llcsip", "llcsim",
                    "j1pt","j1eta","j1phi","j1m",
                    "j2pt","j2eta","j2phi","j2m",
+                   "j3pt","j3eta","j3phi","j3m",
                    "nb", "nj", "htb","htj",
+                   "lumiDeliv","lumiReco",
                    "PFMultSumEB",    "PFMultSumEE",    "PFMultSumHE",    "PFMultSumHF", 
                    "PFMultDiffEB",   "PFMultDiffEE",   "PFMultDiffHE",   "PFMultDiffHF", 
                    "PFChMultSumEB",  "PFChMultSumEE",  "PFChMultSumHE",  "PFChMultSumHF", 
@@ -193,7 +193,7 @@ void RunExclusiveZX(const TString in_fname,
   ht.addHist("mindphijmet",  new TH1F("mindphijmet", ";min#Delta#phi(jet,E_{T}^{miss}) [rad];Events",20,0,TMath::Pi()));
   ht.addHist("acopl",        new TH1F("acopl",       ";Acoplanarity;Events",50,0,1.0));
   ht.addHist("ntkrp",        new TH1F("ntkrp",       ";Track multiplicity; Events",6,0,6) );
-  ht.addHist("csirp",        new TH1F("csirp",       ";#csi = #deltap/p; Events",50,0,0.3) );
+  ht.addHist("csirp",        new TH1F("csirp",       ";#xi = #deltap/p; Events",50,0,0.3) );
   ht.addHist("xangle",       new TH1F("xangle",      ";Crossing angle; Events",10,100,200) );
   ht.addHist("evyields",     new TH1F("evyields",    ";Category; Events",6,0,6) );
   ht.getPlots()["evyields"]->GetXaxis()->SetBinLabel(1,"inc");
@@ -251,7 +251,7 @@ void RunExclusiveZX(const TString in_fname,
         std::vector<Particle> genLeptons=selector.getGenLeptons(ev,20.,2.4);
         std::vector<Particle> genPhotons=selector.getGenPhotons(ev,50.,1.442);
         
-        if(genLeptons.size()>=2 && genLeptons[0].Pt()>30 && fabs(genLeptons[0].Eta())<2.1) {
+        if(genLeptons.size()>=2 && genLeptons[0].Pt()>30) { 
           gen_pt=(genLeptons[0]+genLeptons[1]).Pt();          
           gen_m=(genLeptons[0]+genLeptons[1]).M();
           bool isZ(fabs(gen_m-91)<10);
@@ -265,17 +265,16 @@ void RunExclusiveZX(const TString in_fname,
           gen_pt=genPhotons[0].Pt();
           gen_m=0;
           gen_dr=0;
-          gen_cats.push_back("genlpta");
-          gen_cats.push_back("genlpta");
+          gen_cats.push_back("gena");
         }
-
+        
         if(gen_cats.size()>0){
           ht.fill("ptboson", gen_pt, trivialwgts, gen_cats);
           ht.fill("mll",  gen_m,  trivialwgts, gen_cats);
           ht.fill("drll", gen_dr,  trivialwgts, gen_cats);
         }
       }
-
+      
       //start weights and pu weight control
       float wgt(1.0);
       std::vector<double>plotwgts(1,wgt);
@@ -286,7 +285,7 @@ void RunExclusiveZX(const TString in_fname,
         puWgt=(lumi.pileupWeight(ev.g_pu,period)[0]);
         std::vector<double>puPlotWgts(1,puWgt);
         ht.fill("puwgtctr",1,puPlotWgts);
-      }  
+      } 
 	
       //////////////////
       // CORRECTIONS  //
@@ -300,53 +299,28 @@ void RunExclusiveZX(const TString in_fname,
 
       //trigger
       hasZBTrigger=((ev.addTriggerBits>>20)&0x1);
-      hasLowPtATrigger=selector.hasTriggerBit("HLT_Photon90_R9Id90_HE10_IsoM_v", ev.triggerBits);
-      hasHighPtATrigger=selector.hasTriggerBit("HLT_Photon200_v", ev.triggerBits);
-      hasETrigger=(selector.hasTriggerBit("HLT_Ele35_WPTight_Gsf_v", ev.triggerBits));
-      bool hasHighPtMTrigger=(selector.hasTriggerBit("HLT_Mu50_v",     ev.triggerBits));
-      bool hasStdMTrigger=(selector.hasTriggerBit("HLT_IsoMu24_v",     ev.triggerBits) ||
-                           selector.hasTriggerBit("HLT_IsoMu24_2p1_v", ev.triggerBits) ||
-                           selector.hasTriggerBit("HLT_IsoMu27_v",     ev.triggerBits) );     
-      hasMMTrigger=(selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",                  ev.triggerBits) ||
-                    selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8_v",          ev.triggerBits) ||
-                    selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v",        ev.triggerBits) );
-      hasEETrigger=(selector.hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",             ev.triggerBits) ||
-                    selector.hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",          ev.triggerBits) );
+      hasATrigger=selector.hasTriggerBit("HLT_Photon90_R9Id90_HE10_IsoM_v", ev.triggerBits);
+      hasMTrigger=(selector.hasTriggerBit("HLT_IsoMu27_v",     ev.triggerBits) );     
+      hasMMTrigger=selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v",        ev.triggerBits);
+      hasEETrigger=selector.hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",             ev.triggerBits);
       hasEMTrigger=(selector.hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",    ev.triggerBits) ||
                     selector.hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v", ev.triggerBits) ||
-                    selector.hasTriggerBit("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",    ev.triggerBits) ||
-                    selector.hasTriggerBit("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v", ev.triggerBits) ||
-                    selector.hasTriggerBit("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",     ev.triggerBits) ||
                     selector.hasTriggerBit("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",  ev.triggerBits) );
-
-      if (ev.isData) { 
-        //use only these unprescaled triggers for these eras
-        if(filename.Contains("2017E") || filename.Contains("2017F")){
-          hasStdMTrigger=selector.hasTriggerBit("HLT_IsoMu27_v",ev.triggerBits);
-        }
-        if(!(filename.Contains("2017A") || filename.Contains("2017B"))){
-          hasMMTrigger=(selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8_v",   ev.triggerBits) ||
-                        selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v", ev.triggerBits) );
-        }
-      }
-      hasMTrigger=(hasHighPtMTrigger || hasStdMTrigger);
-
+      
+  
       //trigger efficiency
       for(auto gen_cat : gen_cats) {
-        if( (gen_cat.Contains("genlpta") && hasLowPtATrigger) || 
-            (gen_cat.Contains("genhpta") && hasHighPtATrigger) || 
-            (gen_cat.Contains("genee") && (hasEETrigger || hasETrigger)) ||
+        if( (gen_cat.Contains("gena") && hasATrigger) || 
+            (gen_cat.Contains("genee") && hasEETrigger) ||
             (gen_cat.Contains("genmm") && (hasMMTrigger || hasMTrigger)) ||
-            (gen_cat.Contains("genem") && (hasEMTrigger || hasETrigger || hasMTrigger)) ) { 
+            (gen_cat.Contains("genem") && (hasEMTrigger || hasMTrigger)) ) { 
           ht.fill("ptboson", gen_pt, trivialwgts, gen_cat+"trig");
           ht.fill("mll",  gen_m,  trivialwgts, gen_cat+"trig");
           ht.fill("drll", gen_dr, trivialwgts, gen_cat+"trig");
         }
-        if( (gen_cat.Contains("genlpta") && hasLowPtATrigger) || 
-            (gen_cat.Contains("genhpta") && hasHighPtATrigger) || 
-            (gen_cat.Contains("genee") && hasETrigger) ||
-            (gen_cat.Contains("genmm") && hasStdMTrigger) ||
-            (gen_cat.Contains("genem") && (hasETrigger || hasStdMTrigger)) ) { 
+        if( (gen_cat.Contains("gena") && hasATrigger) ||            
+            (gen_cat.Contains("genmm") && hasMTrigger) ||
+            (gen_cat.Contains("genem") && hasMTrigger) ) { 
           ht.fill("ptboson", gen_pt, trivialwgts, gen_cat+"singletrig");
           ht.fill("mll",  gen_m,  trivialwgts, gen_cat+"singletrig");
           ht.fill("drll", gen_dr, trivialwgts, gen_cat+"singletrig");
@@ -359,7 +333,7 @@ void RunExclusiveZX(const TString in_fname,
       leptons = selector.selLeptons(leptons,SelectionTool::LOOSE,SelectionTool::MVA90,20,2.5);
       std::vector<Particle> allPhotons=selector.flaggedPhotons(ev);
       allPhotons=selector.selPhotons(allPhotons,SelectionTool::MVA90,{},50,3);
-      std::vector<Particle> photons=selector.selPhotons(allPhotons,SelectionTool::MVA90,leptons,90,1.442);
+      std::vector<Particle> photons=selector.selPhotons(allPhotons,SelectionTool::MVA90,leptons,95,1.4442);
 
       //jets
       std::vector<Jet> allJets = selector.getGoodJets(ev,30.,4.7,leptons,photons);
@@ -374,7 +348,7 @@ void RunExclusiveZX(const TString in_fname,
       bool passTightSel(false),passMediumSel(false);
       if(leptons.size()>1){
         
-        bool isTrigSafe(leptons[0].Pt()>30 && fabs(leptons[0].Eta())<2.1);
+        bool isTrigSafe(leptons[0].Pt()>30);
 
         bool isLeadingTight( (leptons[0].id()==11 && leptons[0].hasQualityFlag(SelectionTool::MVA80)) ||
                              (leptons[0].id()==13 && leptons[0].hasQualityFlag(SelectionTool::TIGHT)) );
@@ -382,10 +356,6 @@ void RunExclusiveZX(const TString in_fname,
                                 (leptons[1].id()==13 && leptons[1].hasQualityFlag(SelectionTool::TIGHT)) );
         passTightSel = (isTrigSafe && isLeadingTight && isSubLeadingTight);
         
-        //bool isLeadingMedium( (leptons[0].id()==11 && leptons[0].hasQualityFlag(SelectionTool::MVA90)) ||
-        //                      (leptons[0].id()==13 && leptons[0].hasQualityFlag(SelectionTool::LOOSE)) );        
-        //bool isSubLeadingMedium( (leptons[1].id()==11 && leptons[1].hasQualityFlag(SelectionTool::MVA90)) ||
-        //                         (leptons[1].id()==13 && leptons[1].hasQualityFlag(SelectionTool::LOOSE)) );
         bool isLeadingMedium( (leptons[0].id()==11 && leptons[0].hasQualityFlag(SelectionTool::MVA90)) ||
                               (leptons[0].id()==13 && leptons[0].hasQualityFlag(SelectionTool::TIGHT)) );        
         bool isSubLeadingMedium( (leptons[1].id()==11 && leptons[1].hasQualityFlag(SelectionTool::MVA90)) ||
@@ -420,12 +390,8 @@ void RunExclusiveZX(const TString in_fname,
         if(selCode==11*13) selCat="em";
         if(selCode==13*13) selCat="mm";
 
-        lm=TLorentzVector(leptons[l1idx].charge()>0 ? leptons[l1idx] : leptons[l2idx]);
-        lp=TLorentzVector (leptons[l1idx].charge()>0 ? leptons[l2idx] : leptons[l1idx]);
-        if(isSS)  { 
-          lm=leptons[l1idx]; 
-          lp=leptons[l2idx];
-        }
+        lm=leptons[l1idx];
+        lp=leptons[l2idx];
         boson=lm+lp;
 
         //dilepton specific
@@ -441,10 +407,9 @@ void RunExclusiveZX(const TString in_fname,
         selCode=22;
         isSF=false;
         isSS=false;
-        if(photons[0].Pt()<200) selCat="lpta";
-        if(photons[0].Pt()>=200) selCat="hpta";
+        selCat="a";        
         boson=photons[0];
-
+        
         //remove double counting of prompt photons in other samples
         if(vetoPromptPhotons)
           if(ev.gamma_isPromptFinalState[ photons[0].originalReference() ] ) continue;
@@ -465,12 +430,12 @@ void RunExclusiveZX(const TString in_fname,
       if(ev.isData) {
         if(isA) {
           if( !selector.isPhotonPD() ) continue;
-          if( !hasLowPtATrigger && !hasHighPtATrigger) continue;
+          if( !hasATrigger) continue;
         }
         if(selCode==11*11) {
           if( !selector.isDoubleEGPD()      && !selector.isSingleElectronPD()) continue;
           if( selector.isDoubleEGPD()       && !hasEETrigger ) continue;
-          if( selector.isSingleElectronPD() && !(hasETrigger && !hasEETrigger) ) continue;
+          if( selector.isSingleElectronPD()) continue;
         }
         if(selCode==13*13) {
           if( !selector.isDoubleMuonPD() && !selector.isSingleMuonPD()) continue;
@@ -480,8 +445,8 @@ void RunExclusiveZX(const TString in_fname,
         if(selCode==11*13) {
           if( !selector.isMuonEGPD()        && !selector.isSingleElectronPD() && !selector.isSingleMuonPD()) continue;
           if( selector.isMuonEGPD()         && !hasEMTrigger ) continue;
-          if( selector.isSingleElectronPD() && !(hasETrigger && !hasEMTrigger) ) continue;
-          if( selector.isSingleMuonPD()     && !(hasMTrigger && !hasETrigger && !hasEMTrigger) ) continue;
+          if( selector.isSingleElectronPD()) continue; 
+          if( selector.isSingleMuonPD()     && !(hasMTrigger && !hasEMTrigger) ) continue;
         }
         
         //check trigger rates and final channel assignment
@@ -568,11 +533,10 @@ void RunExclusiveZX(const TString in_fname,
 
       //from this point onward require offline object and trigger
       bool hasOffAndTrig( (selector.isZeroBiasPD() && hasZBTrigger) ||
-                          (selCat=="lpta" && hasLowPtATrigger) || 
-                          (selCat=="hpta" && hasHighPtATrigger) || 
-                          (selCat=="ee" && hasETrigger) ||
-                          (selCat=="mm" && hasStdMTrigger) ||
-                          (selCat=="em" && (hasETrigger || hasStdMTrigger)) );
+                          (selCat=="a"             && hasATrigger)  || 
+                          (selCat=="ee"            && hasEETrigger) ||
+                          (selCat=="mm"            && (hasMMTrigger || hasMTrigger)) ||
+                          (selCat=="em"            && (hasEMTrigger || hasMTrigger)) );
       if(!hasOffAndTrig) continue;
 
 
@@ -671,6 +635,10 @@ void RunExclusiveZX(const TString in_fname,
       outVars["j2eta"]=jets.size()>1 ? jets[1].Eta() : 0.;
       outVars["j2phi"]=jets.size()>1 ? jets[1].Phi() : 0.;
       outVars["j2m"]=jets.size()>1 ? jets[1].M() : 0.;
+      outVars["j3pt"]=jets.size()>2 ? jets[2].Pt() : 0.;
+      outVars["j3eta"]=jets.size()>2 ? jets[2].Eta() : 0.;
+      outVars["j3phi"]=jets.size()>2 ? jets[2].Phi() : 0.;
+      outVars["j3m"]=jets.size()>2 ? jets[2].M() : 0.;
       
       //flux variables
       if(!isA) {
@@ -678,7 +646,7 @@ void RunExclusiveZX(const TString in_fname,
         ev.sumPVChHt=max(ev.sumPVChPt-lp.Pt() - lm.Pt(),0.);
         ev.sumPVChPz=max(ev.sumPVChPz- fabs(lp.Pz()) - fabs(lm.Pz()),0.);
         for(size_t i=0; i<2; i++){ 
-          TLorentzVector lp4(i==0 ? lp : lm);
+          TLorentzVector lp4(i==0 ? lm : lp);
           size_t etaidx(0);
           if(lp4.Eta()>-3)   etaidx=1;
           if(lp4.Eta()>-2.5) etaidx=2;
@@ -776,6 +744,8 @@ void RunExclusiveZX(const TString in_fname,
           const edm::EventID ev_id( ev.run, ev.lumi, ev.event );        
           const ctpps::conditions_t lhc_cond = lhc_conds.get( ev_id );
           beamXangle = std::round(lhc_cond.crossing_angle);
+          outVars["lumiDeliv"] = lhc_cond.luminosity.delivered;
+          outVars["lumiReco"]  = lhc_cond.luminosity.recorded;
           ht.fill("beamXangle", beamXangle, plotwgts, selCat);
           
           if(beamXangle==120 || beamXangle==130 || beamXangle==140 || beamXangle==150) {

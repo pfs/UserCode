@@ -169,7 +169,8 @@ To plot the output of the local analysis you can run the following:
 python scripts/plotter.py -i analysis/   -j data/era2017/samples.json  -l 12870
 ```
 ## BDT Training
-This part currently works only for the VBF analysis. The signal and background trees must have been produced in the previous session by enabling "--mvatree" with "SEL" option. The training is done per category with the following command:
+This part currently works only for the VBF analysis. The signal and background trees must have been produced in the previous session by enabling "--mvatree" with "SEL" option.The training is done per category with the following command:
+just remember that before doing the below command just hadd the signal.root files and also for background.
 ```
 python scripts/trainVbfBDT.py --vbf nt=50:mns=5:md=3:abb=0.6:nc=1 --ext LowVPtHighMJJ --sig signal.root --bkg backgrounds.root --cat A:LowVPt:HighMJJ --card LowVPtHighMJJCard
 ```
@@ -192,3 +193,23 @@ This part currently works only for the VBF analysis. It assumes that there are r
 python scripts/makeWorkspace.py --Chan LowMJJ --nBin 5 --doSignalPH
 ```
 The input histogram will be rebinned to have five bins. If you remove "--doSignalPH", the signal process in the signal and control region will NOT be connected via the transfer function.
+
+
+## Photon fake rate estimation and distributions
+The method is explained in AN-18-046. The FR is measured in bins of mjj separately for photons in the barrel and endcap. It is measured in a control region (CR) which has the same selection as the signal region except the 2nd jet that is required to fail the loose pileup identification.
+
+#Input data for FR measurement
+Photon data (HighVPt categories): add --CR to the SEL option in steerVBFVectorBoson.sh
+Jet data (LowVPt category): run steerVBFVectorBoson.sh with SELJETHT in which --CR is a default input
+Input templates for FR measurement
+Tight template: the output of running default SEL option in steerVBFVectorBoson.sh on GJet samples
+Fake template: the output of running SELJETHT option with -q QCDTemp argument in steerVBFVectorBoson.sh
+Fake rate estimation.
+for preparing the PHOTON-DATA and other files, you have to hadd the files.
+Run the command below on the output of the aforementioned steps:
+```
+python scripts/createFakeRatio.py --fGdata PHOTON-DATA --fJdata JETHT-DATA --fJQCD JETHT-DATA-QCDTEMP --fGMC GJET-MC --cats HighVPtHighMJJA:HighVPtLowMJJA:LowVPtHighMJJA
+```
+Copy the output fakeRatios.root to data/eraYEAR
+Fake rate application
+Here the distributions of not-tight photons are scaled by the estimated FR. The distributions can be used then in plotting. Need to activate --SRfake for the SEL option in steerVBFVectorBoson.sh and run on SinglePhoton data

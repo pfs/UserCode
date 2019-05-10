@@ -200,9 +200,11 @@ The method is explained in AN-18-046. The FR is measured in bins of mjj separate
 
 ## Input data for FR measurement
 Photon data (HighVPt categories): add --CR to the SEL option in steerVBFVectorBoson.sh
+
 Jet data (LowVPt category): run steerVBFVectorBoson.sh with SELJETHT in which --CR is a default input
 ## Input templates for FR measurement
 Tight template: the output of running default SEL option in steerVBFVectorBoson.sh on GJet samples
+
 Fake template: the output of running SELJETHT option with -q QCDTemp argument in steerVBFVectorBoson.sh
 ## Fake rate estimation
 for preparing the PHOTON-DATA and other files, you have to hadd the files.

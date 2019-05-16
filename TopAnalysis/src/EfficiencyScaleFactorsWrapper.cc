@@ -180,6 +180,41 @@ EffCorrection_t EfficiencyScaleFactorsWrapper::getDileptonTriggerCorrection(std:
 
 
 //
+EffCorrection_t EfficiencyScaleFactorsWrapper::getPhotonTrigCorrection(float apt,float mjj){
+  
+  EffCorrection_t corr(1.0,0.0);
+  if(era_==2017){
+    if(apt>=200){
+      corr.first  = 0.5*0.993*(1.+TMath::Erf((apt-201.5)/(TMath::Sqrt(2.)*14.4)));
+      corr.second = 0.03*corr.first;
+    }else{
+      corr.first  = 0.5*1.000*(1.+TMath::Erf((apt-71.73)/(TMath::Sqrt(2.)*1.005)));
+      corr.first *= 0.5*1.000*(1.+TMath::Erf((mjj-264.906)/(TMath::Sqrt(2.)*100.)));
+      float a_relUnc((0.2-0.03)/2.);
+      float b_relUnc(0.2-a_relUnc*3.);
+      float relUnc=min(max(a_relUnc*(mjj/1000.)+b_relUnc,0.03),0.2);
+      corr.second=relUnc*corr.first;
+    }    
+  }else{
+    if(apt>=200){
+      corr.first  = 0.5*0.999*(1.+TMath::Erf((apt-162.62)/(TMath::Sqrt(2.)*4.391)));
+      corr.second = 0.03*corr.first;
+    }else{
+      corr.first  = 0.5*1.000*(1.+TMath::Erf((apt-70.01)/(TMath::Sqrt(2.)*1.196)));
+      corr.first *= 0.5*1.000*(1.+TMath::Erf((mjj-260.948)/(TMath::Sqrt(2.)*174.5)));
+      float a_relUnc((0.05-0.03)/2.);
+      float b_relUnc(0.05-a_relUnc*3.);
+      float relUnc=min(max(a_relUnc*(mjj/1000.)+b_relUnc,0.03),0.05);
+      corr.second = relUnc*corr.first;
+    }
+  }
+
+  return corr;
+}
+
+
+
+//
 EffCorrection_t EfficiencyScaleFactorsWrapper::getTriggerCorrection(std::vector<Particle> leptons, 
                                                                     std::vector<Particle> photons,
                                                                     std::vector<Particle> jets,

@@ -343,8 +343,11 @@ void VBFVectorBoson::runAnalysis()
       }
 
       //jet selection
+      //qg discriminator re-weighting uncertainty
+      //https://twiki.cern.ch/twiki/bin/view/CMS/QuarkGluonLikelihood#Systematics
       std::vector<Jet> alljets = selector_->getGoodJets(ev_,30.,4.7,leptons,photons_);
       std::vector<Jet> jets;
+      float qgWgt_g(1.0),qgWgt_q(1.0);
       for(auto j : alljets) {
         int idx=j.getJetIndex();
         if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
@@ -359,6 +362,19 @@ void VBFVectorBoson::runAnalysis()
 	  if(jets.size()!=1 && !passPu) continue;
 	  if(jets.size()==1 && passLoosePu) continue;
 	}
+        
+        if(!ev_.isData && jets.size()<2 && fabs(j.Eta())<2.0){
+          float xqg=ev_.j_qg[idx];
+          int jflav(abs(ev_.j_flav[idx]));
+          if(jflav==21) {
+            double qgsf=-55.7067*pow(xqg,7) + 113.218*pow(xqg,6) -21.1421*pow(xqg,5) -99.927*pow(xqg,4) + 92.8668*pow(xqg,3) -34.3663*pow(xqg,2) + 6.27*xqg + 0.612992;
+            qgWgt_g *= min(max(0.5,qgsf),2.);
+          }
+          else if(jflav!=0) {
+            double qgsf=-0.666978*pow(xqg,3) + 0.929524*pow(xqg,2) -0.255505*xqg + 0.981581;
+            qgWgt_q *= min(max(0.5,qgsf),2.);
+          }
+        }
         
         jets.push_back(j);
       }
@@ -502,7 +518,7 @@ void VBFVectorBoson::runAnalysis()
 
         // norm weight
         wgt  = (normH_? normH_->GetBinContent(1) : 1.0);
-            
+
         // pu weight
         ht_->fill("puwgtctr",0,plotwgts);
         puWgts=lumi_->pileupWeight(ev_.g_pu,period);
@@ -516,7 +532,7 @@ void VBFVectorBoson::runAnalysis()
         // photon trigger*selection weights        
         if(chTag=="A")
           {
-            trigSF = gammaEffWR_->getTriggerCorrection({},photons_,{}, period);
+            trigSF = gammaEffWR_->getPhotonTrigCorrection(photons_[0].pt(),vbfVars_.mjj);
             selSF  = gammaEffWR_->getOfflineCorrection(22,photons_[0].pt(),photons_[0].eta(), period);
           }
         else
@@ -596,7 +612,7 @@ void VBFVectorBoson::runAnalysis()
         TLorentzVector iBoson(boson);
         std::vector<Jet> ijets(jets);
         bool reSelect(false);        
-        
+
         if(sname=="puup")             iwgt *= puWgts[1]*trigSF.first*selSF.first*l1prefireProb.first;
         else if(sname=="pudn")        iwgt *= puWgts[2]*trigSF.first*selSF.first*l1prefireProb.first;
         else if(sname=="trigup")      iwgt *= puWgts[0]*(trigSF.first+trigSF.second)*selSF.first*l1prefireProb.first;
@@ -605,7 +621,10 @@ void VBFVectorBoson::runAnalysis()
         else if(sname=="seldn")       iwgt *= puWgts[0]*trigSF.first*(selSF.first-selSF.second)*l1prefireProb.first;
         else if(sname=="l1prefireup") iwgt *= puWgts[0]*trigSF.first*selSF.first*(l1prefireProb.first+l1prefireProb.second);
         else if(sname=="l1prefiredn") iwgt *= puWgts[0]*trigSF.first*selSF.first*(l1prefireProb.first-l1prefireProb.second);
+        else if(sname=="gluonqg")     iwgt *= qgWgt_g*puWgts[0]*trigSF.first*selSF.first*(l1prefireProb.first-l1prefireProb.second);
+        else if(sname=="quarkqg")     iwgt *= qgWgt_q*puWgts[0]*trigSF.first*selSF.first*(l1prefireProb.first-l1prefireProb.second);
         else                          iwgt = wgt;           
+        
 
         if(sname.Contains("aes") && chTag=="A")  {
           reSelect=true;
@@ -733,9 +752,6 @@ void VBFVectorBoson::runAnalysis()
         
         if( !icat.Contains("MJJ") ) continue;
 
-        //qg discriminator re-weighting uncertainty
-        //https://twiki.cern.ch/twiki/bin/view/CMS/QuarkGluonLikelihood#Systematics
-        float qgwgt(1.0);
         std::vector<float> tagJetResol;        
         for(size_t ij=0; ij<min((size_t)2,ijets.size()); ij++) {
           int idx=ijets[ij].getJetIndex();
@@ -745,23 +761,10 @@ void VBFVectorBoson::runAnalysis()
             if(genJet_pt>0)
               tagJetResol.push_back( ijets[ij].Pt()/genJet_pt-1 );
           }
-
-          if(sname=="gluonqg" || sname=="quarkqg") {
-            float xqg=ev_.j_qg[idx];
-            int jflav(abs(ev_.j_flav[idx]));
-            if(jflav==21) {
-              double qgsf=-0.666978*pow(xqg,3) + 0.929524*pow(xqg,2) -0.255505*xqg + 0.981581;
-              qgwgt *= min(max(0.5,qgsf),2.);
-            }
-            else if(jflav!=0) {
-              double qgsf=-55.7067*pow(xqg,7) + 113.218*pow(xqg,6) -21.1421*pow(xqg,5) -99.927*pow(xqg,4) + 92.8668*pow(xqg,3) -34.3663*pow(xqg,2) + 6.27*xqg + 0.612992;
-              qgwgt *= min(max(0.5,qgsf),2.);
-            }
-          }
         }
-
+        
         //fill with new values/weights
-        std::vector<double> eweights(1,iwgt*qgwgt);
+        std::vector<double> eweights(1,iwgt);
 
         for(auto jr : tagJetResol) {
           ht_->fill2D("tagjetresol_exp",  jr, is,eweights,icat);

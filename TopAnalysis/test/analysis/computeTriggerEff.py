@@ -6,7 +6,7 @@ year=sys.argv[2]
 
 HISTOLIST=[('hptoff_apt','hpttrig_hptoff_apt'),
            ('lptoff_apt','lpttrig_lptoff_apt'),
-           ('lpthmjjoff_apt','lpthmjjtrig_lpthmjjoff_apt'),
+           #('lpthmjjoff_apt','lpthmjjtrig_lpthmjjoff_apt'),
            ('lpthmjjoff_mjj','lpthmjjtrig_lpthmjjoff_mjj'),
            ]
 
@@ -38,13 +38,14 @@ def getEffGraph(name,total_pass,total,isData):
         gr.SetLineColor(ROOT.kBlue)
         gr.SetLineWidth(2)
         gr.SetTitle('MC')
-    else:
+    else:            
         gr=ROOT.TGraphAsymmErrors()
         gr.BayesDivide(total_pass,total)
         gr.SetName(name)
         gr.SetTitle('Data')
         gr.SetFillStyle(0)
         gr.SetMarkerStyle(20)
+
     return gr
 
 def scaleGr(gr,sf):
@@ -86,8 +87,8 @@ def getEffPlots(url,year,isData=True):
 #                sf=2567./35879. if not 'hmjj' in grname else 28412./35879.
 #            if year=='2017' and not 'hpt' in grname:
 #                sf=1327./41367. if not 'hmjj' in grname else 7661./41367.
-#            scaleGr(gr,1./sf)
-
+#            scaleGr(gr,sf)
+#
     return effGrs
 
 url=sys.argv[1]
@@ -136,7 +137,7 @@ for i in xrange(len(effGr)):
     mcEffGr[i].GetYaxis().SetTitleSize(0.08)
     mcEffGr[i].GetYaxis().SetLabelSize(0.08)
     mcEffGr[i].GetYaxis().SetTitleOffset(0.7)
-    mcEffGr[i].GetYaxis().SetRangeUser(0.0,1.)
+    mcEffGr[i].GetYaxis().SetRangeUser(0.01,1.)
 
     leg1=ROOT.TLegend(0.15,0.88,0.6,0.66)
     leg1.SetFillStyle(0)
@@ -162,7 +163,7 @@ for i in xrange(len(effGr)):
     frame.Reset('ICE')
     frame.Draw()
     frame.GetYaxis().SetNdivisions(5)
-    frame.GetYaxis().SetRangeUser(0.72,1.28)
+    frame.GetYaxis().SetRangeUser(0.62,1.28)
     frame.GetXaxis().SetTitleSize(0.08)
     frame.GetXaxis().SetLabelSize(0.08)
     frame.GetYaxis().SetTitleSize(0.08)
@@ -173,14 +174,38 @@ for i in xrange(len(effGr)):
     sfgr=getData2MC(effGr[i],mcEffGr[i])
     minX=150
     if 'vbf' in effGr[i].GetName(): minX=50
-    sff=ROOT.TF1('sff','([0]*pow(x-[3],2)+[1]*(x-[3])+[0])*exp([2]*(x-[3]))+[4]',minX,frame.GetYaxis().GetXmax())    
+    sff=ROOT.TF1('sff','0.5*[0]*(1.+TMath::Erf((x-[1])/(TMath::Sqrt(2.)*[2])))',minX,frame.GetYaxis().GetXmax())    
+    sff.SetParLimits(0,0.1,1)
+    if 'hptoff_apt' in effGr[i].GetName():
+        sff.SetParLimits(1,150,210)
+        sff.SetParLimits(2,1,50)
+    elif 'lptoff_apt' in effGr[i].GetName():
+        sff.SetParLimits(1,70,80)
+        sff.SetParLimits(2,1,50)
+    else:
+        sff.SetParLimits(1,200,1500)
+        sff.SetParLimits(2,100,500)
+        sfgr.Fit(sff,'M','')
+        sfVal=sff.GetParameter(0)
+        scaleGr(effGr[i],1./sfVal)
+        sfgr=getData2MC(effGr[i],mcEffGr[i])
+
     sfgr.Fit(sff,'M+')
+
+
     sfgr.Draw('p')
+
+    txt=ROOT.TLatex()
+    txt.SetNDC(True)
+    txt.SetTextFont(42)
+    txt.SetTextSize(0.07)
+    txt.SetTextAlign(12)
+    for ip in range(3):
+        txt.DrawLatex(0.15,0.9-0.07*ip,'p_{%d}=%3.3f'%(ip+1,sff.GetParameter(ip)))
     p2.RedrawAxis()
 
     c.cd()
     c.Modified()
     c.Update()
-    raw_input()
     for ext in ['png','pdf']:
         c.SaveAs('%s_%s.%s'%(effGr[i].GetName(),year,ext))

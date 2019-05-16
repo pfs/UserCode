@@ -169,7 +169,7 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
     ht.add(ROOT.TH1F('ntk',';Track multiplicity;Events',5,0,5))
     ht.add(ROOT.TH1F('ppcount',';pp candidates;Events',3,0,3))
     ht.add(ROOT.TH1F('csi',';#xi;Events',50,0,0.3))
-    ht.add(ROOT.TH2F('csi2d',';#xi(far);#xhi(near);Events',50,0,0.3,50,0,0.3))
+    ht.add(ROOT.TH2F('csi2d',';#xi(far);#xi(near);Events',50,0,0.3,50,0,0.3))
 
     #pileup control
     ht.add(ROOT.TH1F('nvtx',';Vertex multiplicity;Events',50,0,100))

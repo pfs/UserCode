@@ -55,14 +55,16 @@ case $WHAT in
     TESTSEL )
                
         json=data/era${ERA}/vbf_samples.json
-        tag=MC13TeV_2016_DY50toInf_mlm
-       # if [[ ${ERA} == "2016" ]]; then
-        #   tag=MC13TeV_2016_TTJets
-       # fi
-        input=${eosdir}/${tag}/Chunk_0_ext0.root        
-        output=testsel.root   #${tag}.root 
-        #input=${eosdir}
-        #output=testsel
+
+        tag=MC13TeV_2017_EWKAJJ
+        if [[ ${ERA} == "2016" ]]; then
+            tag=MC13TeV_2016_EWKAJJ
+        fi
+        #input=${eosdir}/${tag}/Chunk_0_ext0.root        
+        #output=${tag}.root 
+        input=${eosdir}
+        output=testsel
+
 
 	python scripts/runLocalAnalysis.py \
             -i ${input} -o ${output} --tag ${tag} --only ${tag} --mvatree\
@@ -193,11 +195,12 @@ case $WHAT in
 	inDir=${outdir}/trig/${githash}/${EXTRA}
 	plotOutDir=${outdir}/trig/${githash}/${EXTRA}/plots/       
 	commonOpts="-i ${inDir} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi}"
+       
         #skipList=Data13TeV_2016G_SingleMuon,Data13TeV_2016H_SingleMuon
         #if [[ ${ERA} == "2017" ]]; then
         #    skipList=Data13TeV_2017B_SingleMuon,Data13TeV_2017C_SingleMuon,Data13TeV_2017D_SingleMuon,Data13TeV_2017E_SingleMuon
         #fi
-	python scripts/plotter.py ${commonOpts} -j ${json} ${kFactors} --silent; # --skip ${skipList}
+	python scripts/plotter.py ${commonOpts} -j ${json} ${kFactors} --silent; # --skip ${skipList};
 
         python test/analysis/computeTriggerEff.py ${inDir}/plots/plotter.root ${ERA};
 

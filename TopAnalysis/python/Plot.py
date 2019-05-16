@@ -64,10 +64,14 @@ class Plot(object):
         self.plotformats = ['pdf','png']
         self.savelog = False
         self.doChi2 = False
+        self.range=None
         self.ratiorange = [0.4,1.6]
+        self.xtit=None
+        self.ytit=None
         self.frameMin=0.01
         self.frameMax=1.45
         self.mcUnc=0
+        ROOT.TGaxis.SetMaxDigits(4)
 
     def normToData(self):
         if not self.dataH : return
@@ -140,10 +144,14 @@ class Plot(object):
                 else : 
                     self.mc[title].Add(h)
             except Exception as e: 
+                
                 h.SetName('%s_%s' % (h.GetName(), title ) )
-                h.SetDirectory(0)
-                h.SetMarkerStyle(1)
-                h.SetMarkerColor(color)
+                if h.InheritsFrom('TH1'):
+                    h.SetDirectory(0)
+                    h.SetMarkerStyle(1)
+                    h.SetMarkerColor(color)
+                else:
+                    h.SetMarkerColor(color)
                 if spImpose :
                     self.spimpose[title]=h
                     h.SetFillStyle(0)
@@ -363,27 +371,44 @@ class Plot(object):
         frame = None
         if totalMC      : frame=totalMC.Clone('frame')
         elif self.dataH : frame=self.dataH.Clone('frame')
-        else            : frame=self.spimpose[self.spimpose.keys()[0]].Clone('frame')
+        else            : 
+            spobj=self.spimpose[self.spimpose.keys()[0]]
+            if spobj.InheritsFrom('TH1'):
+                frame=self.spimpose[self.spimpose.keys()[0]].Clone('frame')
+            else:
+                frame=ROOT.TMultiGraph()
+                for x in self.spimpose:
+                    frame.Add(self.spimpose[x],'p')
 
-        if noStack:
-            if self.dataH:   maxY=self.dataH.GetMaximum()*1.25 
-            elif stack: maxY=stack.GetStack().At(0).GetMaximum()/1.25
-            else:       maxY=frame.GetMaximum()*1.25
-        elif totalMC:
-            maxY = totalMC.GetMaximum()
-            if self.dataH:
-                if maxY<self.dataH.GetMaximum():
-                    maxY=self.dataH.GetMaximum()
-        else:
-            maxY=frame.GetMaximum()
-
-        frame.GetYaxis().SetRangeUser(self.frameMin,self.frameMax*maxY)
-        frame.SetDirectory(0)
-        frame.Reset('ICE')
         self._garbageList.append(frame)
-        frame.GetYaxis().SetTitleSize(0.05)
-        frame.GetYaxis().SetLabelSize(0.045)
-        ROOT.TGaxis.SetMaxDigits(4)
+
+        if frame.InheritsFrom('TH1'):
+            maxY=frame.GetMaximum()
+            if noStack:
+                if self.dataH:   maxY=self.dataH.GetMaximum()*1.25 
+                elif stack: maxY=stack.GetStack().At(0).GetMaximum()/1.25
+                else:       maxY=frame.GetMaximum()*1.25
+            elif totalMC:
+                maxY = totalMC.GetMaximum()
+                if self.dataH:
+                    if maxY<self.dataH.GetMaximum():
+                        maxY=self.dataH.GetMaximum()                                     
+            frame.Draw()
+            frame.GetYaxis().SetRangeUser(self.frameMin,self.frameMax*maxY)
+            frame.SetDirectory(0)
+            frame.Reset('ICE')
+
+            frame.GetYaxis().SetTitleSize(0.05)
+            frame.GetYaxis().SetLabelSize(0.045)
+        else:
+            frame.Draw('ap')
+            maxY=frame.GetYaxis().GetXmax()
+            
+        if self.ytit:
+            frame.GetYaxis().SetTitle(self.ytit)
+        if self.xtit:
+            frame.GetXaxis().SetTitle(self.xtit)
+
         frame.GetYaxis().SetTitleOffset(1.2)
         if noRatio:
             frame.GetYaxis().SetTitleOffset(0.9)
@@ -399,7 +424,6 @@ class Plot(object):
         if self.wideCanvas and totalMC is None :
             frame.GetXaxis().SetLabelSize(0.03)
             frame.GetXaxis().SetTitleSize(0.035)
-        frame.Draw()
 
         if totalMC is not None   :
             if noStack: stack.Draw('nostack same')
@@ -421,10 +445,13 @@ class Plot(object):
                     nlegCols += 1
 
         for m in self.spimpose:
-            if self.spimposeWithErrors:
-                self.spimpose[m].Draw('e1same')
+            if self.spimpose[m].InheritsFrom('TGraph'):
+                continue
             else:
-                self.spimpose[m].Draw('histsame')
+                if self.spimposeWithErrors:
+                    self.spimpose[m].Draw('e1same')
+                else:
+                    self.spimpose[m].Draw('histsame')
 
         if self.data is not None : self.data.Draw('p')
 
@@ -444,7 +471,9 @@ class Plot(object):
         txt.SetTextAlign(12)
         iniy=0.88 if self.wideCanvas else 0.88
  
-        txt.DrawLatex(0.16,0.9,self.cmsLabel)
+        ycms=0.9
+        if noRatio or self.dataH is None or len(self.mc)==0: ycms=0.88
+        txt.DrawLatex(0.16,ycms,self.cmsLabel)
         txt.SetTextAlign(ROOT.kHAlignRight+ROOT.kVAlignCenter)
         if lumi<1:
             txt.DrawLatex(0.95,0.97,'#scale[0.8]{%3.1f nb^{-1} (%s)}' % (lumi*1000.,self.com) )
@@ -555,12 +584,14 @@ class Plot(object):
         c.Update()
 
         #save
-        if lumi == 1: frame.GetYaxis().SetRangeUser(0,0.8)
+        if self.range:
+            frame.GetYaxis().SetRangeUser(self.range[0],self.range[1])
         for ext in self.plotformats : c.SaveAs(os.path.join(outDir, self.name+'.'+ext))
         if self.savelog:
             p1.cd()
             frame.GetYaxis().SetRangeUser(1,maxY*50)
-            if lumi == 1: frame.GetYaxis().SetRangeUser(0.001,1)
+            if self.range:
+                frame.GetYaxis().SetRangeUser(self.range[0],self.range[1])
             p1.SetLogy()
             c.cd()
             c.Modified()

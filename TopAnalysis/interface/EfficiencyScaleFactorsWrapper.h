@@ -19,6 +19,7 @@ class EfficiencyScaleFactorsWrapper
   EfficiencyScaleFactorsWrapper(bool isData,TString era);
   EfficiencyScaleFactorsWrapper(bool isData,TString era,std::map<TString,TString> cfgMap);
   EffCorrection_t getDileptonTriggerCorrection(std::vector<Particle> &leptons);
+  EffCorrection_t getPhotonTrigCorrection(float apt,float mjj);
   EffCorrection_t getTriggerCorrection(std::vector<Particle> leptons={}, 
                                        std::vector<Particle> photons={},
                                        std::vector<Particle> jets={},

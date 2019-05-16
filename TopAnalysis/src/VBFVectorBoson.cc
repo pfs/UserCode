@@ -142,8 +142,7 @@ void VBFVectorBoson::runAnalysis()
     mvaCDFinv[key1]=(TGraph *)fcdf->Get(key1+"_cdfinv");
     TString key2=it->first;
     mvaCDFinv[key2]=(TGraph *)fcdf->Get(key2+"_cdfinv");
-    TString keyLoos=it->first;
-    mvaCDFinv[keyLoos]=(TGraph *)fcdf->Get(keyLoos+"_cdfinv");
+   
     
   }
   
@@ -410,7 +409,7 @@ void VBFVectorBoson::runAnalysis()
           chTags.clear();
       }
 
-      //vbfmvaLoos_ = -1000;
+      //vbfmvaLoose_ = -1000;
       // flat_vbfmvaLoos_ = -1000;
       // bool is_newcatLooszz(false);
       vbfmva_ =vbfmvaHH_ = vbfmvaHL_= vbfmvaLH_= -1000;
@@ -418,7 +417,7 @@ void VBFVectorBoson::runAnalysis()
       
       if( chTag=="MM" || chTag=="EE" ){
 	if( vbfVars_.leadj_pt >50 && vbfVars_.mjj >200 ){
-	  chTags.push_back(chTag+"newcatLoosZ");
+	  chTags.push_back(chTag+"newcatLooseZ");
 	  //is_newcatLooszz(true);
 
 	  

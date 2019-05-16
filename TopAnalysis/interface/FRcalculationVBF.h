@@ -48,7 +48,7 @@ TH1D* mergeBin(TH1D * h){
   return ret;
 }
 
-TH1D*  rawFRMaker(TH1D& Num1, TH1D& Den1, TString fname = "Data13TeV_SinglePhoton_2017.root", TString catName = "LowMJJA", TString det = "EB"){
+TH1D*  rawFRMaker(TH1D& Num1, TH1D& Den1, TString fname = "Data13TeV_SinglePhoton_2016.root", Tstring catName = "LowMJJA", TString det = "EB"){
   TFile * f = TFile::Open(fname);
   TString tmpCat = corrCat(fname,catName);
   TH2D * Num = (TH2D*)f->Get(tmpCat+"_tightMjj"+det);
@@ -61,12 +61,13 @@ TH1D*  rawFRMaker(TH1D& Num1, TH1D& Den1, TString fname = "Data13TeV_SinglePhoto
     Num->Add(tmpNum);
     Den->Add(tmpDen);
   }
-
+  
   Num1 = *((TH1D*)Num->ProjectionY("rawNum"));
   Den1 = *((TH1D*)Den->ProjectionY("Den"));
   TH1D * ratio = (TH1D*)Num1.Clone("rawFR");
   ratio->Divide(&Den1);
   return ratio;
+  
 }
 
 void makeFile(){
@@ -92,7 +93,7 @@ void makeFile(){
   f->Close();
 }
 
-void promptEstimator(TString dataname = "Data13TeV_SinglePhoton_2017.root", TString catName = "LowMJJA", TString det = "EB", TString pname = "MC13TeV_GJets.root", TString qcd = "Data13TeV_JetHTQCD_2017.root"){
+void promptEstimator(TString dataname = "Data13TeV_SinglePhoton_2016.root", TString catName = "LowMJJA", TString det = "EB", TString pname = "MC13TeV_GJets.root", TString qcd = "Data13TeV_JetHTQCD_2016.root"){
   double pHigh = 0.00996;
   if (det == "EE")
     pHigh = 0.0271;

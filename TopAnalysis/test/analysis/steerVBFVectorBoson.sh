@@ -93,27 +93,30 @@ case $WHAT in
         ### --mvatree: to store trees for BDT training in signal region
         ### --CR     : gives a control region to evaluate fake rates in the photon data samples
         ### --SRfake : gives the distributions of fakes, normalised based on fake rates
-
-        #json=data/era${ERA}/vbf_samples.json,data/era${ERA}/vbf_syst_samples.json
-	#json=data/era${ERA}/vbf_syst_samples.json
-
-	json=data/era${ERA}/vbf_DY_FXFX_mlm.json
-
+	
+	json=data/era${ERA}/vbf_samples.json,data/era${ERA}/vbf_syst_samples.json
+	 #json=data/era${ERA}/vbf_syst_samples.json
+	
+	#json=data/era${ERA}/vbf_DY_FXFX_mlm.json
+	#json=data/era${ERA}/JetHT.json;
+	#json=data/era${ERA}/gjets_samples.json
+	extraOpts=" --CR"
 	if [[ -z ${EXTRA} ]]; then
 	    echo "Making trees ... "
 	    extraOpts=" --mvatree"
 	    json=data/era${ERA}/vbf_trees.json
 	    EXTRA="MVATrees"
         fi
-	echo ${json}
+        echo ${json}
 	python scripts/runLocalAnalysis.py \
-      	    -i ${eosdir}  --only ${json} \
+	    -i ${eosdir} --only SinglePhoton \
             -o ${outdir}/${githash}/${EXTRA} \
             --farmappendix ${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts   ${extraOpts}; # --CR --skipexisting
-	;;
+            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch  0  --runSysts ${extraOpts}; #  --CR --skipexisting
 
+	;;
+    
     SELTRIGEFF )
 	python scripts/runLocalAnalysis.py \
 	    -i ${eosdir} --only SinglePhoton,EWKAJJ\
@@ -155,16 +158,16 @@ case $WHAT in
 
     PLOT )
 	
-        json=data/era${ERA}/vbf_DY_FXFX_mlm.json;
-	syst_json=data/era${ERA}/vbf_syst_samples.json;
+        json=data/era${ERA}/JetHT.json;
+	#syst_json=data/era${ERA}/vbf_syst_samples.json;
         gjets_json=data/era${ERA}/gjets_samples.json;
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
 	commonOpts="-i ${outdir}/${githash}/${EXTRA} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi}"
-       # python scripts/plotter.py ${commonOpts} -j ${gjets_json} --silent --only A_gen
-        #python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
-	python scripts/plotter.py ${commonOpts} -j ${json}  ${kFactors}  --only  HighMJJ,LowMJJ,newcat 
+        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --silent --only A_gen
+        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
+	python scripts/plotter.py ${commonOpts} -j ${json}  ${kFactors}  --only  HighMJJ,LowMJJ,newcat,JetHT 
 #	python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
-	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
+#	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
         ;;
     
     NLOTFACTORS )

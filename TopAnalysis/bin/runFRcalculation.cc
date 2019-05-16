@@ -15,7 +15,7 @@ using namespace std;
 using namespace TMVA;
 int main( int argc, char** argv )
 {
-  TString fGammaData("Data13TeV_SinglePhoton_2017.root"), fJetData("Data13TeV_JetHT_2017.root"), fJetQCD("Data13TeV_JetHTQCD_2017.root"), fGammaMC("MC13TeV_GJets.root");
+  TString fGammaData("Data13TeV_SinglePhoton_2016.root"), fJetData("Data13TeV_JetHT_2016.root"), fJetQCD("Data13TeV_JetHTQCD_2016.root"), fGammaMC("MC13TeV_GJets.root");
   std::string categories;
   for (int i=1; i<argc; i++) {
     TString input(argv[i]);

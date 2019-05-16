@@ -39,9 +39,9 @@ def main():
     #configuration
     usage = 'usage: %prog [options]'
     parser = optparse.OptionParser(usage)
-    parser.add_option(''  , '--fGdata',     dest='gData',        help='Photon data in signal region [%default]',      default='Data13TeV_SinglePhoton_2017.root',          type='string')
-    parser.add_option(''  , '--fJdata',     dest='jData',        help='Jet data from control region [%default]',      default='Data13TeV_JetHT_2017.root',                 type='string')
-    parser.add_option(''  , '--fJQCD',      dest='jQCD',         help='Jet data for QCD templates [%default]',        default='Data13TeV_JetHTQCD_2017.root',              type='string')
+    parser.add_option(''  , '--fGdata',     dest='gData',        help='Photon data in signal region [%default]',      default='Data13TeV_SinglePhoton_2016.root',          type='string')
+    parser.add_option(''  , '--fJdata',     dest='jData',        help='Jet data from control region [%default]',      default='Data13TeV_JetHT_2016.root',                 type='string')
+    parser.add_option(''  , '--fJQCD',      dest='jQCD',         help='Jet data for QCD templates [%default]',        default='Data13TeV_JetHTQCD_2016.root',              type='string')
     parser.add_option(''  , '--fGMC',       dest='gMC',          help='Photon MC in signal region [%default]',        default='MC13TeV_GJets.root',                        type='string')
     parser.add_option(''  , '--cats',       dest='cats',         help='selection categories [%default]',              default='HighVPtA',                                  type='string')
 

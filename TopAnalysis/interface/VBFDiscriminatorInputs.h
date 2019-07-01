@@ -11,11 +11,12 @@ namespace vbf{
   public:
     
     //variables to be used in a small tree/MVA
-    float leadj_pt,leadj_gawidth,leadj_c2_02,leadj_qg;
-    float subleadj_pt,subleadj_gawidth,subleadj_c2_02,subleadj_qg;
+    float leadj_pt,leadj_eta,leadj_gawidth,leadj_c2_02,leadj_qg;
+    float subleadj_pt,subleadj_eta,subleadj_gawidth,subleadj_c2_02,subleadj_qg;
     float centraleta,forwardeta;
     float mjj,detajj,dphijj,jjpt,jjetas,ystar,balance,relbpt,dphibjj,dphivj0,dphivj1,dphivj2,dphivj3;
     float isotropy,circularity,sphericity,aplanarity,C,D;
+
     float scalarht,mht,dijetht,syspt;
     float ncentj;
 
@@ -27,11 +28,13 @@ namespace vbf{
     
     //CTOR
   DiscriminatorInputs(): 
-    leadj_pt(0),leadj_gawidth(-99),leadj_c2_02(-99),leadj_qg(-99),
-      subleadj_pt(0),subleadj_gawidth(-99),subleadj_c2_02(-99),subleadj_qg(-99),
+    leadj_pt(0),leadj_eta(0),leadj_gawidth(-99),leadj_c2_02(-99),leadj_qg(-99),
+      subleadj_pt(0),subleadj_eta(0),subleadj_gawidth(-99),subleadj_c2_02(-99),subleadj_qg(-99),
       centraleta(-99),forwardeta(-99),
       mjj(0),detajj(-99),dphijj(-99),jjpt(0),jjetas(-99),ystar(-99),balance(-99),relbpt(-99),dphibjj(-99),dphivj0(-99),dphivj1(-99),dphivj2(-99),dphivj3(-99),
+
       isotropy(-99),circularity(-99),sphericity(-99),aplanarity(-99),C(-99),D(-99),scalarht(0),mht(0),dijetht(0),syspt(0),
+
       ncentj(0),
       cosqj1(-99),  cosqjj(-99),
       beta_v_j2(-99),  beta_j1_j2(-99), beta_v_j3(-99), beta_closej_j3(-99),
@@ -91,7 +94,8 @@ namespace vbf{
         aplanarity       = o.aplanarity;  
         C                = o.C;  
         D                = o.D;
-        scalarht         = o.scalarht; 
+        scalarht         = o.scalarht;
+	//scalarGht         = o.scalarGht; 
         mht              = o.mht;
 	dijetht          = o.dijetht;
 	syspt            = o.syspt;
@@ -113,6 +117,7 @@ namespace vbf{
 
       if(jets.size()>0){
         leadj_pt      = jets[0].Pt();
+	leadj_eta      = fabs(jets[0].Eta());
         leadj_gawidth = ev.j_gawidth[jets[0].getJetIndex()];
         leadj_c2_02   = ev.j_c2_02[jets[0].getJetIndex()];
         leadj_qg      = ev.j_qg[jets[0].getJetIndex()];
@@ -123,6 +128,7 @@ namespace vbf{
     
       if(jets.size()>=2){
         subleadj_pt      = jets[1].Pt();
+	subleadj_eta = fabs(jets[1].Eta());
         subleadj_gawidth = ev.j_gawidth[jets[1].getJetIndex()];
         subleadj_c2_02   = ev.j_c2_02[jets[1].getJetIndex()];
         subleadj_qg      = ev.j_qg[jets[1].getJetIndex()];
@@ -152,13 +158,17 @@ namespace vbf{
 
       //tag jet + addition jet activity
       scalarht = 0.;
+      scalarGht = 0.;
+      
       TLorentzVector mhtP4(0,0,0,0);
+      
       ncentj=0;
       std::fill(dphivcentj.begin(),dphivcentj.end(),-99);
       std::fill(centjy.begin(),centjy.end(),-99);
       for(size_t ij=0; ij<jets.size(); ij++){
         scalarht += jets[ij].Pt();
         mhtP4 += jets[ij];
+	scalarGht += scalarht+boson.Pt();
         if(ij<2) continue;
 
         float dy = fabs(jets[0].Rapidity() - jets[1].Rapidity())/2;
@@ -173,7 +183,8 @@ namespace vbf{
         beta_v_j3       = fabs(boson.DeltaPhi(jets[ij]))/((boson.Eta()<0 ? -1 : 1)*(jets[ij].Eta()-boson.Eta()+1e-6));        
         int closeJ( jets[0].DeltaR(jets[ij])<jets[1].DeltaR(jets[ij]) ? 0 : 1 );
         beta_closej_j3  = fabs(jets[closeJ].DeltaPhi(jets[ij]))/((jets[closeJ].Eta()<0 ? -1 : 1)*(jets[ij].Eta()-jets[closeJ].Eta()+1e-6));
-        
+
+	
       }
       mht = mhtP4.Pt();
 

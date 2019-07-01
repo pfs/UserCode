@@ -172,48 +172,54 @@ To plot the output of the local analysis you can run the following:
 ```
 python scripts/plotter.py -i analysis/   -j data/era2017/samples.json  -l 12870
 ```
-# BDT training
-This part currently works only for the VBF analysis. The signal and background trees must have been produced in the previous session by enabling "--mvatree" with "SEL" option.
-The training is done per category with the following command:
+# BDT Training
+This part currently works only for the VBF analysis. The signal and background trees must have been produced in the previous session by enabling "--mvatree" with "SEL" option.The training is done per category with the following command:
+just remember that before doing the below command do hadd for signal.root files and also background.
 ```
-python scripts/trainVbfBDT --vbf nt=50:mns=5:md=3:abb=0.6:nc=1 --ext LowVPtHighMJJ --sig signal.root --bkg backgrounds.root --cat A:VBF --card LowVPtHighMJJCard
+python scripts/trainVbfBDT.py --vbf nt=50:mns=5:md=3:abb=0.6:nc=1 --ext LowVPtHighMJJ --sig signal.root --bkg backgrounds.root --cat A:LowVPt:HighMJJ --card LowVPtHighMJJCard
 ```
-The example above is for "LowVPtHighMJJ" category. Once happy with the training, 
-```
+The example above is for "LowVPtHighMJJ" category. Once happy with the training,
+
 cp vbf/weights/LowVPtHighMJJ_BDT_VBF0LowVPtHighMJJ* test/analysis/VBF_weights
-```
+>>>>>>> 0dc4a00494395136b9245169fc06adc2d7994747
+
 Update src/VBFVectorBoson.cc accordingly and compile.
 
 ## Transformed BDT
 To make the background BDT distribution flat, following steps must be followed:
-   * Produce plots with the compiled version of the code including new BDT weights (see Local analysis) and
-     ```
-     cd test/analysis/VBF_weights
-     python getInverseCDFFromPlotter.py PATH_TO_plotter.root
-     ```
-   * Reproduce the plots to have the proper flat BDT distribution of background
 
+Produce plots with the compiled version of the code including new BDT weights (see Local analysis) and
+cd test/analysis/VBF_weights
+python getInverseCDFFromPlotter.py PATH_TO_plotter.root
+Reproduce the plots to have the proper flat BDT distribution of background
 # Preparation of the data cards and workspaces
 
 This part currently works only for the VBF analysis. It assumes that there are root files in the working directory which includes the plots created in the previous section. For the example below, the root file is called plotter_LowVPtHighMJJ2016.root. Running the script below will make two data cards and a single corresponding workspace for signal region (here gamma+jets) and control region (here Z+jets) of the "LowVPtHighMJJ" the category:
 ```
 python scripts/makeWorkspace.py --Chan LowVPtHighMJJ --Hist vbfmva --nBin 20 --year 2016 --shapeOnly --doSignalPH
 ```
-The input histogram will be rebinned to have five bins. If you remove "--doSignalPH", the signal process in the signal and control region will NOT be connected via the transfer function (TF). Note that the TF part is not developed fully since it is statistics limited. "--shapeOnly" is to disentangle the shape and rate systematics for non-TF version.
+
+The input histogram will be rebinned to have five bins. If you remove "--doSignalPH", the signal process in the signal and control region will NOT be connected via the transfer function.
+
+
 # Photon fake rate estimation and distributions
-The method is explained in AN-18-046. The FR is measured in bins of mjj separately for photons in the barrel and endcap. It is measured in a control region (CR) which has the same selection as the signal region except the 2nd jet that is required to ```fail``` the loose pileup identification.
+The method is explained in AN-18-046. The FR is measured in bins of mjj separately for photons in the barrel and endcap. It is measured in a control region (CR) which has the same selection as the signal region except the 2nd jet that is required to fail the loose pileup identification.
+
 ## Input data for FR measurement
-   * Photon data (HighVPt categories): add ```--CR``` to the SEL option in steerVBFVectorBoson.sh
-   * Jet data (LowVPt category): run steerVBFVectorBoson.sh with SELJETHT in which ```--CR``` is a default input
+Photon data (HighVPt categories): add --CR to the SEL option in steerVBFVectorBoson.sh
+
+Jet data (LowVPt category): run steerVBFVectorBoson.sh with SELJETHT in which --CR is a default input
 ## Input templates for FR measurement
-   * Tight template: the output of running default SEL option in steerVBFVectorBoson.sh on GJet samples
-   * Fake template: the output of running SELJETHT option with ```-q QCDTemp``` argument in steerVBFVectorBoson.sh
+Tight template: the output of running default SEL option in steerVBFVectorBoson.sh on GJet samples
+
+Fake template: the output of running SELJETHT option with -q QCDTemp argument in steerVBFVectorBoson.sh
 ## Fake rate estimation
-   * Run the command below on the output of the aforementioned steps:
+for preparing the PHOTON-DATA and other files, you have to hadd the files.
+Run the command below on the output of the aforementioned steps:
 ```
 python scripts/createFakeRatio.py --fGdata PHOTON-DATA --fJdata JETHT-DATA --fJQCD JETHT-DATA-QCDTEMP --fGMC GJET-MC --cats HighVPtHighMJJA:HighVPtLowMJJA:LowVPtHighMJJA
 ```
-   * Copy the output ```fakeRatios.root``` to data/eraYEAR
+Copy the output fakeRatios.root to data/eraYEAR
 ## Fake rate application
-Here the distributions of not-tight photons are scaled by the estimated FR. The distributions can be used then in plotting. Need to activate ```--SRfake``` for the SEL option in steerVBFVectorBoson.sh and run on SinglePhoton data
-
+Here the distributions of not-tight photons are scaled by the estimated FR. The distributions can be used then in plotting. Need to activate --SRfake for the SEL option in steerVBFVectorBoson.sh and run on SinglePhoton data
+>>>>>>> 0dc4a00494395136b9245169fc06adc2d7994747

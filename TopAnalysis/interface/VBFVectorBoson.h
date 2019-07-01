@@ -29,6 +29,7 @@
 #include "TRandom3.h"
 #include "TMath.h"
 
+
 class VBFVectorBoson{
  public:
 
@@ -90,12 +91,12 @@ class VBFVectorBoson{
   {
     zMassWindow_  = 15.;
 
-    leadJetPt_    = 50.;
+    leadJetPt_    = 75.;
     subLeadJetPt_ = 50.;
     jetPuId_      = 2;
     cleanEENoise_ = true;
 
-    lowVPtCut_        = 75.;
+    lowVPtCut_        = 50.;
     lowVPtDetaJJCut_  = 3.0;
     lowVPtMaxRapCut_  = 1.4442;
     if (era_.Contains("2017")) lowVPtPhotonTrigs_.push_back("HLT_Photon75_R9Id90_HE10_IsoM_EBOnly_PFJetsMJJ300DEta3_v");
@@ -173,7 +174,9 @@ private:
 
   //Variables to be added to the MVA Tree and additional variables
   vbf::DiscriminatorInputs vbfVars_;
+
   float vbfmva_,flat_vbfmva_,vbfmvaLoos_,flat_vbfmvaLoos_,vbfmvaHH_,flat0_vbfmva_,vbfmvaHL_,flat1_vbfmva_,vbfmvaLH_,flat2_vbfmva_;
+
   float evtWeight_;
   float sihih_,chiso_,r9_,hoe_,mindrl_,mindrj_;
   int training_;
@@ -183,7 +186,7 @@ private:
   float xsec_;
 
   //selection configuration
-  float leadJetPt_, subLeadJetPt_,leadeta,subleadeta,leadPt, subleadPt;
+  float leadJetPt_, subLeadJetPt_,leadEta,subleadEta,leadPt, subleadPt;
   int jetPuId_;
   bool cleanEENoise_;
   float zMassWindow_;

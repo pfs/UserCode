@@ -105,7 +105,7 @@ int TMVAClassification( TString myMethodList , TString extention, BDTOptimizer* 
    bool isLowVptHighMJJ  = (isLowVpt && isHighMJJ);
    bool isHighVptHighMJJ = (isHighVpt && isHighMJJ);
    bool isHighVptLowMJJ  = (isHighVpt && isLowMJJ);
-   isHighVpt = (isHighVptHighMJJ && isHighVptLowMJJ);
+   isHighVpt = (isHighVptHighMJJ  && isHighVptLowMJJ);
    if (isVBF)    isLowVptHighMJJ = true;
    if (isHighPt) isHighVpt       = true;
    if (isHighVpt && extention.Contains("HighV") && extention.Contains("HighM")) isHighVptHighMJJ = true;
@@ -131,12 +131,12 @@ int TMVAClassification( TString myMethodList , TString extention, BDTOptimizer* 
    if (Use["VBF"]) {
      if (isLowVptHighMJJ)
        dataloader->setVariables();
-     else if (isHighVpt && !isHighVptHighMJJ && !isHighVptLowMJJ)
+     else if (isHighVpt && !isHighVptHighMJJ  && !isHighVptLowMJJ)
        dataloader->setAllVariables(); 
      else if(isHighVptHighMJJ)
        dataloader->setVariables();
      else if(isHighVptLowMJJ)
-       dataloader->setVariables();
+     dataloader->setVariables();
    }
    else if (Use["Cuts"] || Use["CutsD"]) dataloader->setCutOptVars();
    else if (Use["Fisher"] || Use["BoostedFisher"]) dataloader->setBestVars(isLowVptHighMJJ, false);

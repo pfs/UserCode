@@ -4,7 +4,7 @@
 class FakeRateTool{
  public:
   FakeRateTool(TString era, TString fname);
-  double getWeight(TString cat, double mjj,double PT, double eta, double veta);
+  double getWeight(TString cat, double mjj, double veta);
  private:
   TFile * f;
   double HighMJJFR,  HighMJJFRSyst;

@@ -735,7 +735,7 @@ void VBFVectorBoson::runAnalysis()
           for(auto j : alljets) {
 
             int idx=j.getJetIndex();
-	    // if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
+	    if(cleanEENoise_ && fabs(j.Eta())>2.7 && fabs(j.Eta())<3 && ev_.j_emf[idx]>0.55) continue;
 
             //shift jet energy/resolution
             float scaleVar(1.0);
@@ -1220,7 +1220,6 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
 
   ht_->fill("njets",        jets.size(), cplotwgts,c);
   ht_->fill("ht",           vbfVars_.scalarht,    cplotwgts,c);
-  ht_->fill("Ght",           vbfVars_.scalarGht,    cplotwgts,c);
   ht_->fill("mht",          vbfVars_.mht,         cplotwgts,c);
   ht_->fill("dijetht",      vbfVars_.dijetht,     cplotwgts,c);
   ht_->fill("syspt",        vbfVars_.syspt,       cplotwgts,c);
@@ -1304,10 +1303,10 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   ht_->fill("jjetas",       vbfVars_.jjetas,      cplotwgts,c);
   ht_->fill("dphivj0",      vbfVars_.dphivj0 ,    cplotwgts,c);
   ht_->fill("dphivj1",      vbfVars_.dphivj1 ,    cplotwgts,c);
-  ht_->fill("leadeta",      leadeta,              cplotwgts,c);
+  /* ht_->fill("leadeta",      leadeta,              cplotwgts,c);
   ht_->fill("subleadeta",   subleadeta,           cplotwgts,c);
   ht_->fill("leadpt",       leadPt,               cplotwgts,c);
-  ht_->fill("subleadpt",    subleadPt,            cplotwgts,c);
+  ht_->fill("subleadpt",    subleadPt,            cplotwgts,c);*/
 
   //central jet activity
   ht_->fill("ncentj", vbfVars_.ncentj, cplotwgts, c);
@@ -1353,35 +1352,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
     if(flat_vbfmva_>0.9)
       ht_->fill("evcount",  1, cplotwgts, c);  
   }
-  //................
-
-
-   if(vbfmva0_>-999)  {
-    ht_->fill("vbfmvaHighVPt0", vbfmvaHighVPt0_, cplotwgts,c);
-    ht_->fill("vbfmva0", vbfmva0_, cplotwgts,c);
-    ht_->fill("acdfvbfmva0", flat0_vbfmva_, cplotwgts,c);
-    if(flat0_vbfmva_>0.9)
-      ht_->fill("evcount",  1, cplotwgts, c);  
-  }
-
-
-   
-   if(vbfmva1_>-999)  {
-    ht_->fill("vbfmvaHighVPt1", vbfmvaHighVPt1_, cplotwgts,c);
-    ht_->fill("vbfmva1", vbfmva1_, cplotwgts,c);
-    ht_->fill("acdfvbfmva1", flat1_vbfmva_, cplotwgts,c);
-    if(flat_vbfmva_>0.9)
-      ht_->fill("evcount",  1, cplotwgts, c);  
-  }
-   //................
-    if(vbfmva2_>-999)  {
-    ht_->fill("vbfmvaHighVPt2", vbfmvaHighVPt2_, cplotwgts,c);
-    ht_->fill("vbfmva2", vbfmva2_, cplotwgts,c);
-    ht_->fill("acdfvbfmva2", flat2_vbfmva_, cplotwgts,c);
-    if(flat_vbfmva_>0.9)
-      ht_->fill("evcount",  1, cplotwgts, c);  
-  }
-
+ 
 
   //theory uncertainties are filled only for MC
   if(runSysts_ && !ev_.isData && ev_.g_w[0]!=0 && normH_ && normH_->GetBinContent(1)>0 && c.Contains("MJJ")) {

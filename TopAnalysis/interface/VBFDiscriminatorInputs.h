@@ -158,7 +158,7 @@ namespace vbf{
 
       //tag jet + addition jet activity
       scalarht = 0.;
-      scalarGht = 0.;
+     
       
       TLorentzVector mhtP4(0,0,0,0);
       
@@ -168,7 +168,7 @@ namespace vbf{
       for(size_t ij=0; ij<jets.size(); ij++){
         scalarht += jets[ij].Pt();
         mhtP4 += jets[ij];
-	scalarGht += scalarht+boson.Pt();
+	//	scalarGht += scalarht+boson.Pt();
         if(ij<2) continue;
 
         float dy = fabs(jets[0].Rapidity() - jets[1].Rapidity())/2;

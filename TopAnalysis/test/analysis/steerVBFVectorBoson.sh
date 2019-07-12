@@ -25,7 +25,7 @@ if [ -z "$WHAT" ]; then
     exit 1; 
 fi
 
-githash=3129835
+githash=ab05162
 eosdir=/store/cmst3/group/top/RunIIReReco/${githash}
 fulllumi=41367
 vbflumi=7661
@@ -54,16 +54,16 @@ case $WHAT in
 
     TESTSEL )
                
-        json=data/era${ERA}/vbf_samples.json
+        json=data/era${ERA}/Chunk_0_ext0.root
 
-        tag=MC13TeV_2017_EWKAJJ
+        tag=MC13TeV_2017_EWKAJJ_nlo
         if [[ ${ERA} == "2016" ]]; then
             tag=MC13TeV_2016_EWKAJJ
         fi
-        #input=${eosdir}/${tag}/Chunk_0_ext0.root        
-        #output=${tag}.root 
-        input=${eosdir}
-        output=testsel
+        input=${eosdir}/${tag}/Chunk_0_ext0.root        
+        output=${tag}.root 
+        #input=${eosdir}
+        #output=testsel
 
 
 	python scripts/runLocalAnalysis.py \
@@ -97,13 +97,13 @@ case $WHAT in
         ### --SRfake : gives the distributions of fakes, normalised based on fake rates
 
 	
-	json=data/era${ERA}/vbf_samples.json,data/era${ERA}/vbf_syst_samples.json
+	json=data/era${ERA}/EWKAJJ_NLO_samples.json   #,data/era${ERA}/vbf_syst_samples.json
 	 #json=data/era${ERA}/vbf_syst_samples.json
 	
 	#json=data/era${ERA}/vbf_DY_FXFX_mlm.json
 	#json=data/era${ERA}/JetHT.json;
 	#json=data/era${ERA}/gjets_samples.json
-	extraOpts=" --CR"
+	#extraOpts=" --CR"
 
 	if [[ -z ${EXTRA} ]]; then
 	    echo "Making trees ... "
@@ -113,8 +113,7 @@ case $WHAT in
         fi
         echo ${json}
 	python scripts/runLocalAnalysis.py \
-
-	    -i ${eosdir} --only SinglePhoton \
+	    -i ${eosdir} --only ${json} \
             -o ${outdir}/${githash}/${EXTRA} \
             --farmappendix ${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \
@@ -167,16 +166,16 @@ case $WHAT in
 
     PLOT )
 	
-        json=data/era${ERA}/JetHT.json;
+        json=data/era${ERA}/EWKAJJ_NLO_samples.json;
 	#syst_json=data/era${ERA}/vbf_syst_samples.json;
-        gjets_json=data/era${ERA}/gjets_samples.json;
+        #gjets_json=data/era${ERA}/gjets_samples.json;
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
 	commonOpts="-i ${outdir}/${githash}/${EXTRA} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi}"
 
         #python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
-	python scripts/plotter.py ${commonOpts} -j ${json} ${kFactors}  --only HighMJJ,LowMJJ 
+	python scripts/plotter.py ${commonOpts} -j ${json} ${kFactors}  --only HighMJJ,LowMJJ, newcat 
         #python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
-	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
+#	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
 
         ;;
 

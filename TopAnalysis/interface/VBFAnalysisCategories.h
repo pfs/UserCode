@@ -20,7 +20,7 @@ namespace vbf {
       LowVPt          = (float) cat[3];
       HighVPt         = (float) cat[4];
       LowMJJ          = (float) cat[5];
-      HighMJJ         = (float) cat[6];
+      HighMJJ         = (float) cat[5];
     };
     std::vector<TString> getChannelTags() {
       std::vector<TString> chTags;

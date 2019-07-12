@@ -5,7 +5,7 @@ FakeRateTool::FakeRateTool(TString era, TString fname){
   HighMJJFRSyst = 0.006;
 }
 
-double FakeRateTool::getWeight(TString cat, double mjj,double PT, double eta, double veta){
+double FakeRateTool::getWeight(TString cat, double mjj, double veta){
   if (cat.Contains("HighMJJ")) return HighMJJFR;
   TString det = "EB";
   if (! ( fabs(veta) < 1.442) ) det = "EE";

@@ -91,12 +91,12 @@ class VBFVectorBoson{
   {
     zMassWindow_  = 15.;
 
-    leadJetPt_    = 75.;
+    leadJetPt_    = 50.;
     subLeadJetPt_ = 50.;
     jetPuId_      = 2;
     cleanEENoise_ = true;
 
-    lowVPtCut_        = 50.;
+    lowVPtCut_        = 75.;
     lowVPtDetaJJCut_  = 3.0;
     lowVPtMaxRapCut_  = 1.4442;
     if (era_.Contains("2017")) lowVPtPhotonTrigs_.push_back("HLT_Photon75_R9Id90_HE10_IsoM_EBOnly_PFJetsMJJ300DEta3_v");

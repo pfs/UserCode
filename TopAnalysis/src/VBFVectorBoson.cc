@@ -72,27 +72,39 @@ void VBFVectorBoson::runAnalysis()
   readers[method]->AddVariable("j_pt[0]+j_pt[1]+gamma_pt[0]",          &vbfVars_.syspt);
   readers[method]->BookMVA(method,weightFile);
 
-  method="BDT_VBF0HighPt";
-  weightFile="${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/VBF_weights/HighPt_BDT_VBF0HighPt.weights.xml";
+  method="BDT_VBF0HighVPt";
+  weightFile="${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/VBF_weights/HighVPt_BDT_VBF0HighVPt.weights.xml";
   gSystem->ExpandPathName(weightFile);
   readers[method]=new TMVA::Reader( "!Color:!Silent" );
-
+  readers[method]->AddVariable("subleadj_pt",   &vbfVars_.subleadj_pt);
   readers[method]->AddVariable("mjj",           &vbfVars_.mjj);
   readers[method]->AddVariable("jjpt",          &vbfVars_.jjpt);
   readers[method]->AddVariable("detajj",        &vbfVars_.detajj);
   readers[method]->AddVariable("dphijj",        &vbfVars_.dphijj);
   readers[method]->AddVariable("ystar",         &vbfVars_.ystar);
-  readers[method]->AddVariable("relbpt",        &vbfVars_.relbpt);
   readers[method]->AddVariable("dphibjj",       &vbfVars_.dphibjj);
-  readers[method]->AddVariable("balance",       &vbfVars_.balance);
-  readers[method]->AddVariable("j_c2_00[0]",    &vbfVars_.leadj_c2_02);
-  readers[method]->AddVariable("j_c2_00[1]",    &vbfVars_.subleadj_c2_02);
   readers[method]->AddVariable("j_qg[0]",       &vbfVars_.leadj_qg);
   readers[method]->AddVariable("j_qg[1]",       &vbfVars_.subleadj_qg);
+  readers[method]->AddVariable("dphivj0",       &vbfVars_.dphivj0);
   readers[method]->AddVariable("dphivj1",       &vbfVars_.dphivj1);
-  readers[method]->AddVariable("dphivj2",       &vbfVars_.dphivj2);
-  readers[method]->AddVariable("ht",            &vbfVars_.scalarht);
-  readers[method]->AddVariable("isotropy",      &vbfVars_.isotropy);
+  readers[method]->AddVariable("aplanarity",    &vbfVars_.aplanarity);
+  readers[method]->AddVariable("C",             &vbfVars_.C);
+  readers[method]->BookMVA(method,weightFile);
+
+  method="BDT_VBF0LowVPt";
+  weightFile="${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/VBF_weights/LowVPt_BDT_VBF0LowVPt.weights.xml";
+  gSystem->ExpandPathName(weightFile);
+  readers[method]=new TMVA::Reader( "!Color:!Silent" );
+  readers[method]->AddVariable("circularity",   &vbfVars_.circularity);
+  readers[method]->AddVariable("mjj",           &vbfVars_.mjj);
+  readers[method]->AddVariable("jjpt",          &vbfVars_.jjpt);
+  readers[method]->AddVariable("dphijj",        &vbfVars_.dphijj);
+  readers[method]->AddVariable("ystar",         &vbfVars_.ystar);
+  readers[method]->AddVariable("relbpt",        &vbfVars_.relbpt);
+  readers[method]->AddVariable("dphibjj",       &vbfVars_.dphibjj);
+  readers[method]->AddVariable("j_qg[0]",       &vbfVars_.leadj_qg);
+  readers[method]->AddVariable("j_qg[1]",       &vbfVars_.subleadj_qg);
+  readers[method]->AddVariable("dphivj0",       &vbfVars_.dphivj0);
   readers[method]->AddVariable("D",             &vbfVars_.D);
   readers[method]->BookMVA(method,weightFile);
 
@@ -419,6 +431,7 @@ void VBFVectorBoson::runAnalysis()
       if(jets.size()>=2) {
         cat[5]  =  (vbfVars_.mjj>lowMJJCut_ && vbfVars_.mjj<=highMJJCut_);
         cat[6]  =  (vbfVars_.mjj>highMJJCut_);
+	cat[7]  =  (vbfVars_.mjj>lowMJJCut_);
       }
 
       category_.set(cat);
@@ -436,7 +449,7 @@ void VBFVectorBoson::runAnalysis()
       //vbfmvaLoose_ = -1000;
       // flat_vbfmvaLoos_ = -1000;
       // bool is_newcatLooszz(false);
-      vbfmva_ =vbfmvaHH_ = vbfmvaHL_= vbfmvaLH_= -1000;
+      /*    vbfmva_ =vbfmvaHH_ = vbfmvaHL_= vbfmvaLH_= -1000;
       flat_vbfmva_ =flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_=  -1000;
       
       if( chTag=="MM" || chTag=="EE" ){
@@ -455,7 +468,7 @@ void VBFVectorBoson::runAnalysis()
 	  
 	}
       }
-     
+      */
       if(chTags.size()==0) continue;
      
     
@@ -464,18 +477,6 @@ void VBFVectorBoson::runAnalysis()
 
       //evaluate discriminator MVA for categories of interest
       //FIXME: this probably needs to be modified for the new training
-     
-      if (cat[5] || cat[6]) {
-        TString key(cat[3] ?"BDT_VBF0LowVPtHighMJJ":(cat[5] ? "BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ"));
-        vbfmva_      = readers[key]->EvaluateMVA(key);
-	flat_vbfmva_ = readers[key]->EvaluateMVA(key);
-        if(mvaCDFinv[key]) flat_vbfmva_=max(0.,mvaCDFinv[key]->Eval(vbfmva_));
-        if(doBlindAnalysis_ && ev_.isData && flat_vbfmva_>0.8) flat_vbfmva_=-1000;
-	if(doBlindAnalysis_ && ev_.isData && vbfmva_>0.8) vbfmva_=-1000;
-
-       }
-
-
 
       //Add new categories
 
@@ -564,6 +565,31 @@ void VBFVectorBoson::runAnalysis()
 
 
       
+
+     
+      
+      
+      for(unsigned int icat = 0; icat<chTags.size(); icat++){
+	int pos(chTags[icat].EndsWith("A")? chTags[icat].Sizeof()-1 : chTags[icat].Sizeof()-2);
+	std::string s(chTags[icat]);
+	TString key("BDT_VBF0"+s.substr(0,pos-1));
+	vbfmva_[chTags[icat]]      = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
+	flat_vbfmva_[chTags[icat]] = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
+	if(mvaCDFinv[key]) flat_vbfmva_[chTags[icat]]=max(0.,mvaCDFinv[key]->Eval(vbfmva_[icat]));
+	  if(doBlindAnalysis_ && ev_.isData && flat_vbfmva_[chTags[icat]]>0.8) flat_vbfmva_[chTags[icat]]=-1000;
+	  if(doBlindAnalysis_ && ev_.isData && vbfmva_[chTags[icat]]>0.8) vbfmva_[chTags[icat]]=-1000;
+      }
+	
+      // if (cat[5] || cat[6]) {
+      // 	TString key(cat[3] ?"BDT_VBF0LowVPtHighMJJ":(cat[5] ? "BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ"));
+      // 	vbfmva_      = readers[key]->EvaluateMVA(key);
+      // 	flat_vbfmva_ = readers[key]->EvaluateMVA(key);
+      // 	if(mvaCDFinv[key]) flat_vbfmva_=max(0.,mvaCDFinv[key]->Eval(vbfmva_));
+      // 	if(doBlindAnalysis_ && ev_.isData && flat_vbfmva_>0.8) flat_vbfmva_=-1000;
+      // 	if(doBlindAnalysis_ && ev_.isData && vbfmva_>0.8) vbfmva_=-1000;
+      // }
+            
+
       ////////////////////
       // EVENT WEIGHTS //
       //////////////////
@@ -603,7 +629,7 @@ void VBFVectorBoson::runAnalysis()
         
         // generator level weights
         wgt *= (ev_.g_nw>0 ? ev_.g_w[0] : 1.0);
-        
+
         //update weight for plotter
         plotwgts[0]=wgt;
       }
@@ -660,9 +686,9 @@ void VBFVectorBoson::runAnalysis()
         bool isUpVar(sname.Contains("up"));
         
         //base values and kinematics
-        TString icat(baseCategory);
-        float imva=vbfmva_;
-        float flat_imva=flat_vbfmva_;
+	TString icat(baseCategory);
+	std::map<TString,float> imva;
+	std::map<TString,float> flat_imva;
         float iwgt=(ev_.g_nw>0 ? ev_.g_w[0] : 1.0);
         iwgt *= (normH_? normH_->GetBinContent(1) : 1.0);
         TLorentzVector iBoson(boson);
@@ -767,6 +793,7 @@ void VBFVectorBoson::runAnalysis()
         }
 	
         //re-select if needed
+	std::vector<TString> myCat;
         if(reSelect) {
           
           if (ijets.size()<2) continue;
@@ -786,27 +813,42 @@ void VBFVectorBoson::runAnalysis()
           bool isLowMJJ(vbfVars_.mjj>lowMJJCut_ && vbfVars_.mjj<=highMJJCut_);
           bool isHighMJJ(vbfVars_.mjj>highMJJCut_);
 
-          if(isLowVPt && isHighMJJ 
-             && fabs(iBoson.Rapidity())<lowVPtMaxRapCut_ && vbfVars_.mjj>highMJJCut_ && vbfVars_.detajj>lowVPtDetaJJCut_)       
-            icat="LowVPtHighMJJ"+chTag;
-          else if(isHighVPt && isLowMJJ)  icat="HighVPtLowMJJ"+chTag;
-          else if(isHighVPt && isHighMJJ) icat="HighVPtHighMJJ"+chTag;
+
+	  
+          if(isLowVPt && fabs(iBoson.Rapidity())<lowVPtMaxRapCut_ && vbfVars_.mjj>highMJJCut_ && vbfVars_.detajj>lowVPtDetaJJCut_){
+	    if(vbfVars_.mjj>lowMJJCut_){
+	      myCat.push_back("LowVPt"+chTag);
+	      if(isHighMJJ) myCat.push_back("LowVPtHighMJJ"+chTag);
+	    }
+	  } else if(isHighVPt) {
+	    if(vbfVars_.mjj>lowMJJCut_){
+	      myCat.push_back("HighVPt"+chTag);
+	      if(isLowMJJ) myCat.push_back("HighVPtLowMJJ"+chTag);
+	      else if(isHighVPt && isHighMJJ) myCat.push_back("HighVPtHighMJJ"+chTag);
+	    }
+	  }
           
           //re-evaluate MVA         
-	  if (isLowMJJ || isHighMJJ) {
-	    TString key(isLowVPt ?"BDT_VBF0LowVPtHighMJJ":(isLowMJJ ? "BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ"));
-	    imva = readers[key]->EvaluateMVA(key);	    
-	    if(mvaCDFinv[key]) {
-              flat_imva=max(0.,mvaCDFinv[key]->Eval(imva));	    
-            }
-          }
+	  // if (isLowMJJ || isHighMJJ) {
+	  //   TString key(isLowVPt ?"BDT_VBF0LowVPtHighMJJ":(isLowMJJ ? "BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ"));
+	  //   imva = readers[key]->EvaluateMVA(key);	    
+	  //   if(mvaCDFinv[key]) {
+          //     flat_imva=max(0.,mvaCDFinv[key]->Eval(imva));	    
+          //   }
+          // }
 
-          //TString key(isLowVPt ? "BDT_VBF0HighMJJ" : "BDT_VBF0LowMJJ");
-          // imva = readers[key]->EvaluateMVA(key);
-          // if(mvaCDFinv[key]) imva=max(0.,mvaCDFinv[key]->Eval(imva));
+	  for(unsigned int ic = 0; ic<myCat.size(); ic++){
+	    int pos(myCat[ic].EndsWith("A")? myCat[ic].Sizeof()-1 : myCat[ic].Sizeof()-2);
+	    std::string s(myCat[ic]);
+	    TString key("BDT_VBF0"+s.substr(0,pos-1));
+	    imva[myCat[ic]]           = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
+	    flat_imva[myCat[ic]]      = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
+	    if(mvaCDFinv[key]) flat_imva[myCat[ic]]=max(0.,mvaCDFinv[key]->Eval(imva[myCat[ic]]));
+	  }
         }
         
-        if( !icat.Contains("MJJ") ) continue;
+	//        if( !icat.Contains("VPt") ) continue;
+	if(myCat.size() == 0) continue;
 
         std::vector<float> tagJetResol;        
         for(size_t ij=0; ij<min((size_t)2,ijets.size()); ij++) {
@@ -820,25 +862,30 @@ void VBFVectorBoson::runAnalysis()
         }
         
         //fill with new values/weights
+
+        std::vector<double> eweights(1,iwgt*qgwgt);
+	for(unsigned int ic = 0; ic < myCat.size(); ic++){
+	  for(auto jr : tagJetResol) {
+	    ht_->fill2D("tagjetresol_exp",  jr, is,eweights,myCat[ic]);
+	  }
+
         std::vector<double> eweights(1,iwgt);
 
-        for(auto jr : tagJetResol) {
-          ht_->fill2D("tagjetresol_exp",  jr, is,eweights,icat);
-        }
 
-        ht_->fill2D("vbfmva_exp",       imva,                 is,eweights,icat);
-        ht_->fill2D("acdfvbfmva_exp",  flat_imva,   is,eweights,icat);
-        ht_->fill2D("centraleta_exp",   vbfVars_.centraleta,  is,eweights,icat);
-        ht_->fill2D("forwardeta_exp",   vbfVars_.forwardeta,  is,eweights,icat);
-        ht_->fill2D("leadpt_exp",       vbfVars_.leadj_pt,    is,eweights,icat);
-        ht_->fill2D("subleadpt_exp",    vbfVars_.subleadj_pt, is,eweights,icat);
-        ht_->fill2D("detajj_exp",       vbfVars_.detajj,      is,eweights,icat);
-        ht_->fill2D("dphijj_exp",       vbfVars_.dphijj,      is,eweights,icat);
-        ht_->fill2D("mjj_exp", 	        vbfVars_.mjj,         is,eweights,icat);
-        ht_->fill2D("vpt_exp", 	        iBoson.Pt(),          is,eweights,icat);
-        ht_->fill2D("evcount_exp",      0,                    is,eweights,icat);
-        if(flat_imva>0.9)
-          ht_->fill2D("evcount_exp",    1,                    is,eweights,icat);
+	  ht_->fill2D("vbfmva_exp",       imva[myCat[ic]],      is,eweights,myCat[ic]);
+	  ht_->fill2D("acdfvbfmva_exp",   flat_imva[myCat[ic]], is,eweights,myCat[ic]);
+	  ht_->fill2D("centraleta_exp",   vbfVars_.centraleta,  is,eweights,myCat[ic]);
+	  ht_->fill2D("forwardeta_exp",   vbfVars_.forwardeta,  is,eweights,myCat[ic]);
+	  ht_->fill2D("leadpt_exp",       vbfVars_.leadj_pt,    is,eweights,myCat[ic]);
+	  ht_->fill2D("subleadpt_exp",    vbfVars_.subleadj_pt, is,eweights,myCat[ic]);
+	  ht_->fill2D("detajj_exp",       vbfVars_.detajj,      is,eweights,myCat[ic]);
+	  ht_->fill2D("dphijj_exp",       vbfVars_.dphijj,      is,eweights,myCat[ic]);
+	  ht_->fill2D("mjj_exp", 	  vbfVars_.mjj,         is,eweights,myCat[ic]);
+	  ht_->fill2D("vpt_exp", 	  iBoson.Pt(),          is,eweights,myCat[ic]);
+	  ht_->fill2D("evcount_exp",      0,                    is,eweights,myCat[ic]);
+	  if(flat_imva[myCat[ic]]>0.9)
+	    ht_->fill2D("evcount_exp",    1,                    is,eweights,myCat[ic]);
+	}
       }
       selector_->setDebug(debug_);
     }
@@ -907,8 +954,8 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("vpt", 	       new TH1F("vectorbosonPt",    ";Boson p_{T}[GeV];Events",           25,50,550));  
   ht_->addHist("vy", 	       new TH1F("vectorbosony",     ";Boson rapidity;Events",             25,-3,3));  
   ht_->addHist("mindrl",        new TH1F("mindrl",           ";min #Delta R(boson,lepton);Events", 25,0,6));  
-  ht_->addHist("mindrj",        new TH1F("mindrj",           ";min #Delta R(boson,jet);Events",    25,0,6));  
-  ht_->addHist("sihih", 	       new TH1F("sihih",            ";#sigma(i#eta,i#eta);Events",        50,0,0.1));  
+  ht_->addHist("mindrj",       new TH1F("mindrj",           ";min #Delta R(boson,jet);Events",    25,0,6));  
+  ht_->addHist("sihih",        new TH1F("sihih",            ";#sigma(i#eta,i#eta);Events",        50,0,0.1));  
   ht_->addHist("hoe", 	       new TH1F("hoe",              ";h/e;Events",                        25,0,0.05));  
   ht_->addHist("r9", 	       new TH1F("r9",               ";r9;Events",                         25,0.9,1.0));  
   ht_->addHist("chiso", 	       new TH1F("chiso",            ";Charged isolation [GeV];Events",    50,0,10));  
@@ -1003,10 +1050,8 @@ void VBFVectorBoson::bookHistograms() {
   ht_->getPlots()["evcount"]->GetXaxis()->SetBinLabel(1,"Inclusive");
   ht_->getPlots()["evcount"]->GetXaxis()->SetBinLabel(2,"MVA>0.9");
 
-  ht_->addHist("vbfmva",          new TH1F("vbfmva",         ";VBF MVA;Events",50,-1,1));
-  ht_->addHist("vbfmvaHH",          new TH1F("vbfmvaHH",         ";VBF MVA;Events",50,-1,1));
-  ht_->addHist("vbfmvaHL",          new TH1F("vbfmvaHL",         ";VBF MVA;Events",50,-1,1));
-  ht_->addHist("vbfmvaLH",          new TH1F("vbfmvaLH",         ";VBF MVA;Events",50,-1,1)); 
+  ht_->addHist("vbfmva",          new TH1F("vbfmva",         ";VBF MVA;Events",50,-1,1));  
+  ht_->addHist("vbfmvaAcc",       new TH1F("vbfmvaAcc",      ";VBF MVA;Events",50,-1,1));  
   ht_->addHist("acdfvbfmva",     new TH1F("acdfvbfmva",    ";CDF^{-1}(VBF MVA);Events",50,0,1));  
   ht_->addHist("tagjetresol", new TH1F("tagjetresol",";#Delta p_{T}/p_{T};Jets",50,-0.5,0.5));
 
@@ -1021,7 +1066,8 @@ void VBFVectorBoson::bookHistograms() {
   
   //instantiate 2D histograms for most relevant variables to trace with systs
 
-  TString hoi[]={"vbfmva","acdfvbfmva","evcount","mjj","detajj","dphijj","leadpt","subleadpt","forwardeta","centraleta","vpt","tagjetresol"};
+  TString hoi[]={"vbfmva","acdfvbfmva","evcount","mjj","detajj","dphijj","leadpt","subleadpt","forwardeta","centraleta","vpt","tagjetresol","vbfmvaAcc"};
+
 
 
   size_t nexpSysts=sizeof(expSystNames)/sizeof(TString);
@@ -1082,6 +1128,18 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("looseMjjEE",         new TH2F("looseMjjEE",";Loose #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
   ht_->addHist("allMjjEE",           new TH2F("allMjjEE",";All #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
   ht_->addHist("tmpQCDMjjEE",        new TH2F("tmpQCDMjjEE",";All #sigma_{i#etai#eta}; m_{jj} (GeV)",100,0,0.05,4,bins));
+
+  double binsPt[]={75,100,150,200,250,300,400,600,1000};
+  //2D's for Pt-binned FR
+  ht_->addHist("relaxedTightPtEB",  new TH2F("relaxedTightPtEB",";Relaxed tight #sigma_{i#etai#eta}; p_{T,#gamma} (GeV)",100,0,0.05,8,binsPt)); //80,0,4000
+  ht_->addHist("tightPtEB",         new TH2F("tightPtEB",";Tight #sigma_{i#etai#eta}; p_{T,#gamma} (GeV)",100,0,0.05,8,binsPt));
+  ht_->addHist("loosePtEB",         new TH2F("loosePtEB",";Loose #sigma_{i#etai#eta}; p_{T,#gamma} (GeV)",100,0,0.05,8,binsPt));
+  ht_->addHist("tmpQCDPtEB",        new TH2F("tmpQCDPtEB",";All #sigma_{i#etai#eta}; p_{T,#gamma} (GeV)",100,0,0.05,8,binsPt));
+  ht_->addHist("relaxedTightPtEE",  new TH2F("relaxedTightPtEE",";Relaxed tight #sigma_{i#etai#eta}; p_{T,#gamma} (GeV)",100,0,0.05,8,binsPt)); //80,0,4000
+  ht_->addHist("tightPtEE",         new TH2F("tightPtEE",";Tight #sigma_{i#etai#eta}; p_{T,#gamma} (GeV)",100,0,0.05,8,binsPt));
+  ht_->addHist("loosePtEE",         new TH2F("loosePtEE",";Loose #sigma_{i#etai#eta}; p_{T,#gamma} (GeV)",100,0,0.05,8,binsPt));
+  ht_->addHist("allPtEE",           new TH2F("allPtEE",";All #sigma_{i#etai#eta}; p_{T,#gamma} (GeV)",100,0,0.05,8,binsPt));
+  ht_->addHist("tmpQCDPtEE",        new TH2F("tmpQCDPtEE",";All #sigma_{i#etai#eta}; p_{T,#gamma} (GeV)",100,0,0.05,8,binsPt));
 }
 
 
@@ -1165,25 +1223,34 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
       for(auto a : photons_) {
         int idx = a.originalReference();
         ht_->fill("allsihih",   ev_.gamma_sieie[idx]             ,cplotwgts,c);
-        if (fabs(ev_.gamma_eta[idx]) < 1.442)
+        if (fabs(ev_.gamma_eta[idx]) < 1.442){
           ht_->fill2D("allMjjEB"  ,   ev_.gamma_sieie[idx], vbfVars_.mjj        ,cplotwgts,c); 
-        else
+	  ht_->fill2D("allPtEB"  ,    ev_.gamma_sieie[idx], a.Pt()              ,cplotwgts,c); 
+	} else {
           ht_->fill2D("allMjjEE"  ,   ev_.gamma_sieie[idx], vbfVars_.mjj        ,cplotwgts,c); 
+	  ht_->fill2D("allPtEE"  ,    ev_.gamma_sieie[idx], a.Pt()              ,cplotwgts,c); 
+	}
       }
       for(auto a : relaxedTightPhotons_) {
         int idx = a.originalReference();
         ht_->fill("relaxedTightsihih",   ev_.gamma_sieie[idx]             ,cplotwgts,c);
-        if (fabs(ev_.gamma_eta[idx]) < 1.442)
+        if (fabs(ev_.gamma_eta[idx]) < 1.442){
           ht_->fill2D("relaxedTightMjjEB"  ,   ev_.gamma_sieie[idx], vbfVars_.mjj        ,cplotwgts,c); 
-        else
+	  ht_->fill2D("relaxedTightPtEB"  ,    ev_.gamma_sieie[idx], a.Pt()              ,cplotwgts,c); 
+	} else {
           ht_->fill2D("relaxedTightMjjEE"  ,   ev_.gamma_sieie[idx], vbfVars_.mjj        ,cplotwgts,c); 
+	  ht_->fill2D("relaxedTightPtEE"  ,    ev_.gamma_sieie[idx], a.Pt()              ,cplotwgts,c); 
+	}
       }
       for(auto a : tmpPhotons_) {
         int idx = a.originalReference();
-        if (fabs(ev_.gamma_eta[idx]) < 1.442)
+        if (fabs(ev_.gamma_eta[idx]) < 1.442){
           ht_->fill2D("tmpQCDMjjEB"  ,   ev_.gamma_sieie[idx], vbfVars_.mjj        ,cplotwgts,c); 
-        else
+	  ht_->fill2D("tmpQCDPtEB"  ,    ev_.gamma_sieie[idx], a.Pt()              ,cplotwgts,c); 
+	} else {
           ht_->fill2D("tmpQCDMjjEE"  ,   ev_.gamma_sieie[idx], vbfVars_.mjj        ,cplotwgts,c); 
+	  ht_->fill2D("tmpQCDPtEE"  ,    ev_.gamma_sieie[idx], a.Pt()              ,cplotwgts,c); 
+	}
       }
       //bosons in CR and fakes
       for(auto a : fakeACR) {
@@ -1192,10 +1259,13 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
         ht_->fill("fakechiso",   ev_.gamma_chargedHadronIso[idx]  ,cplotwgts,c);
         ht_->fill("fakeneutiso", ev_.gamma_neutralHadronIso[idx]  ,cplotwgts,c);
         ht_->fill("fakeaiso",    ev_.gamma_photonIso[idx]         ,cplotwgts,c);
-        if (fabs(ev_.gamma_eta[idx]) < 1.442)
+        if (fabs(ev_.gamma_eta[idx]) < 1.442){
           ht_->fill2D("looseMjjEB"  ,  ev_.gamma_sieie[idx], vbfVars_.mjj        ,cplotwgts,c);
-        else
+	  ht_->fill2D("loosePtEB"   ,  ev_.gamma_sieie[idx], a.Pt()              ,cplotwgts,c);
+        } else {
           ht_->fill2D("looseMjjEE"  ,  ev_.gamma_sieie[idx], vbfVars_.mjj        ,cplotwgts,c);
+	  ht_->fill2D("loosePtEE"   ,  ev_.gamma_sieie[idx], a.Pt()              ,cplotwgts,c);
+	}
       }
       for(auto a : tightACR) { 
         int idx = a.originalReference();
@@ -1203,10 +1273,13 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
         ht_->fill("tightchiso",   ev_.gamma_chargedHadronIso[idx]  ,cplotwgts,c);
         ht_->fill("tightneutiso", ev_.gamma_neutralHadronIso[idx]  ,cplotwgts,c);
         ht_->fill("tightaiso",    ev_.gamma_photonIso[idx]         ,cplotwgts,c);
-        if (fabs(ev_.gamma_eta[idx]) < 1.442)
+        if (fabs(ev_.gamma_eta[idx]) < 1.442){
           ht_->fill2D("tightMjjEB"  ,   ev_.gamma_sieie[idx], vbfVars_.mjj        ,cplotwgts,c);
-        else
+	  ht_->fill2D("tightPtEB"   ,   ev_.gamma_sieie[idx], a.Pt()              ,cplotwgts,c);
+        } else {
           ht_->fill2D("tightMjjEE"  ,   ev_.gamma_sieie[idx], vbfVars_.mjj        ,cplotwgts,c);
+	  ht_->fill2D("tightPtEE"   ,   ev_.gamma_sieie[idx], a.Pt()              ,cplotwgts,c);
+	}
       }
       ht_->fill("nloose",        fakeACR.size(),       cplotwgts,c);
       ht_->fill("ntight",        tightACR.size(),      cplotwgts,c);
@@ -1341,29 +1414,36 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   //final analysis histograms
   ht_->fill("evcount",  0, cplotwgts, c);
   ht_->fill("evcount",  0, cplotwgts, c);
-  if(vbfmva_>-999)  {
-    ht_->fill("vbfmva", vbfmva_, cplotwgts,c);
-    /*
-    ht_->fill("vbfmvaHH", vbfmvaHH_, cplotwgts,c);
-     ht_->fill("vbfmvaHL", vbfmvaHL_, cplotwgts,c);
-     ht_->fill("vbfmvaLH", vbfmvaLH_, cplotwgts,c);*/
 
-    ht_->fill("acdfvbfmva", flat_vbfmva_, cplotwgts,c);
-    if(flat_vbfmva_>0.9)
+  if(vbfmva_[c]>-1000)  {
+    ht_->fill("vbfmva", vbfmva_[c], cplotwgts,c);
+    ht_->fill("acdfvbfmva", flat_vbfmva_[c], cplotwgts,c);
+    std::vector<double> AccWeights(1,1);
+    AccWeights[0]*=(ev_.g_nw>0 ? ev_.g_w[0] : 1.0);
+    ht_->fill("vbfmvaAcc", vbfmva_[c], AccWeights,c);
+    if(flat_vbfmva_[c]>0.9)
+
       ht_->fill("evcount",  1, cplotwgts, c);  
   }
  
 
   //theory uncertainties are filled only for MC
-  if(runSysts_ && !ev_.isData && ev_.g_w[0]!=0 && normH_ && normH_->GetBinContent(1)>0 && c.Contains("MJJ")) {
+  if(runSysts_ && !ev_.isData && ev_.g_w[0]!=0 && normH_ && normH_->GetBinContent(1)>0 && c.Contains("VPt")) {
     
     //replicas for theory systs
     for(size_t is=0; is<weightSysts_.size(); is++){
       std::vector<double> sweights(1,cplotwgts[0]);
+      std::vector<double> sgenweights(1,1);
       size_t idx=weightSysts_[is].second;
-      sweights[0] *= (ev_.g_w[idx]/ev_.g_w[0])*(normH_->GetBinContent(idx+1)/normH_->GetBinContent(1));
-      ht_->fill2D("vbfmva_th",       vbfmva_,               is,sweights,c);
-      ht_->fill2D("acdfvbfmva_th",   flat_vbfmva_, is,sweights,c);
+      sweights[0]    *= (ev_.g_w[idx]/ev_.g_w[0])*(normH_->GetBinContent(idx+1)/normH_->GetBinContent(1));
+      sgenweights[0] *= ev_.g_w[idx];
+
+      if(vbfmva_[c]>-1000){
+	ht_->fill2D("vbfmva_th",       vbfmva_[c],               is,sweights,c);
+	ht_->fill2D("vbfmvaAcc_th",    vbfmva_[c],               is,sgenweights,c);
+      }
+      if(flat_vbfmva_[c]>0.9)
+	ht_->fill2D("acdfvbfmva_th",   flat_vbfmva_[c], is,sweights,c);
       ht_->fill2D("centraleta_th",   vbfVars_.centraleta,   is,sweights,c);
       ht_->fill2D("forwardeta_th",   vbfVars_.forwardeta,   is,sweights,c);
       ht_->fill2D("leadpt_th",       vbfVars_.leadj_pt,     is,sweights,c);
@@ -1373,7 +1453,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
       ht_->fill2D("mjj_th", 	     vbfVars_.mjj,          is,sweights,c);
       ht_->fill2D("vpt_th", 	     boson.Pt(),            is,sweights,c);
       ht_->fill2D("evcount_th",      0,                     is,sweights,c);
-      if(vbfmva_>0.9)
+      if(vbfmva_[c]>0.9)
         ht_->fill2D("evcount_th",    1,                     is,sweights,c);
     }  
   }

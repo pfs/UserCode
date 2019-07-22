@@ -45,8 +45,10 @@ outdir=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/VBFVectorBoson
 wwwdir=~/www/VBFVectorBoson
 
 #k-factors for gamma+jets
-kFactors="--procSF MC13TeV_era${ERA}_QCDEM_15to20:1.26,MC13TeV_era${ERA}_QCDEM_20to30:1.26,MC13TeV_era${ERA}_QCDEM_30to50:1.26,MC13TeV_era${ERA}_QCDEM_50to80:1.26,MC13TeV_era${ERA}_QCDEM_80to120:1.26,MC13TeV_era${ERA}_QCDEM_120to170:1.26,MC13TeV_era${ERA}_QCDEM_170to300:1.26,MC13TeV_era${ERA}_QCDEM_300toInf:1.26,MC13TeV_era${ERA}_GJets_HT40to100:1.26,MC13TeV_era${ERA}_GJets_HT100to200:1.26,MC13TeV_era${ERA}_GJets_HT200to400:1.26,MC13TeV_era${ERA}_GJets_HT400to600:1.26,MC13TeV_era${ERA}_GJets_HT600toInf:1.26"
+kFactors="--procSF MC13TeV_${ERA}_QCDEM_15to20:1.26,MC13TeV_${ERA}_QCDEM_20to30:1.26,MC13TeV_${ERA}_QCDEM_30to50:1.26,MC13TeV_${ERA}_QCDEM_50to80:1.26,MC13TeV_${ERA}_QCDEM_80to120:1.26,MC13TeV_${ERA}_QCDEM_120to170:1.26,MC13TeV_${ERA}_QCDEM_170to300:1.26,MC13TeV_${ERA}_QCDEM_300toInf:1.26,MC13TeV_${ERA}_GJets_HT40to100:1.26,MC13TeV_${ERA}_GJets_HT100to200:1.26,MC13TeV_${ERA}_GJets_HT200to400:1.26,MC13TeV_${ERA}_GJets_HT400to600:1.26,MC13TeV_${ERA}_GJets_HT600toInf:1.26"
 
+#Fake raw list
+fake="--rawList MC13TeV_${ERA}_Fake --skip MC13TeV_${ERA}_QCDEM"
 
 RED='\e[31m'
 NC='\e[0m'
@@ -67,9 +69,9 @@ case $WHAT in
 
 
 	python scripts/runLocalAnalysis.py \
-            -i ${input} -o ${output} --tag ${tag} --only ${tag} --mvatree\
+            -i ${input} -o ${output} --tag ${tag} --only ${tag} --mvatree \
             --njobs 8 -q local --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --debug --SRfake ;
+            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --debug ;
 
         #--debug --mvatree \
         ./scripts/mergeOutputs.py ${output};
@@ -96,14 +98,9 @@ case $WHAT in
         ### --CR     : gives a control region to evaluate fake rates in the photon data samples
         ### --SRfake : gives the distributions of fakes, normalised based on fake rates
 
-	
-	json=data/era${ERA}/EWKAJJ_NLO_samples.json   #,data/era${ERA}/vbf_syst_samples.json
-	 #json=data/era${ERA}/vbf_syst_samples.json
-	
-	#json=data/era${ERA}/vbf_DY_FXFX_mlm.json
-	#json=data/era${ERA}/JetHT.json;
-	#json=data/era${ERA}/gjets_samples.json
-	#extraOpts=" --CR"
+
+        #json=data/era${ERA}/vbf_samples.json,data/era${ERA}/vbf_syst_samples.json
+#	json=data/era${ERA}/vbf_syst_samples.json
 
 	if [[ -z ${EXTRA} ]]; then
 	    echo "Making trees ... "
@@ -111,15 +108,20 @@ case $WHAT in
 	    json=data/era${ERA}/vbf_trees.json
 	    EXTRA="MVATrees"
         fi
-        echo ${json}
+	
+	if [[ ${QCD} == "QCDTemp" ]]; then
+	    echo 'I do QCD Template photon selection'
+	    extraOpts=${extraOpts}" --QCDTemp"
+	fi
+	echo ${json}
 	python scripts/runLocalAnalysis.py \
-	    -i ${eosdir} --only ${json} \
-            -o ${outdir}/${githash}/${EXTRA} \
-            --farmappendix ${githash} \
+      	    -i ${eosdir}  --only MC13TeV_2016_DY50toInf_mlm --exactonly \
+            -o ${outdir}/${githash}/${EXTRA}${QCD} \
+            --farmappendix ${githash}${QCD} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch  0  --runSysts ${extraOpts}; #  --CR --skipexisting
-
+            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts ${extraOpts};
 	;;
+
     
     SELTRIGEFF )
 	python scripts/runLocalAnalysis.py \
@@ -150,7 +152,7 @@ case $WHAT in
             -o ${outdir}/${githash}/${EXTRA}${QCD} \
             --farmappendix ${githash}${EXTRA}${QCD} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts ${extraOpts} --skipexisting;
+            --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts ${extraOpts};# --skipexisting;
 	;;
 
 
@@ -166,16 +168,20 @@ case $WHAT in
 
     PLOT )
 	
-        json=data/era${ERA}/EWKAJJ_NLO_samples.json;
-	#syst_json=data/era${ERA}/vbf_syst_samples.json;
-        #gjets_json=data/era${ERA}/gjets_samples.json;
+
+        json=data/era${ERA}/vbf_samples.json;
+	syst_json=data/era${ERA}/vbf_syst_samples.json;
+        gjets_json=data/era${ERA}/gjets_samples.json;
+	fake_json=data/era${ERA}/vbf_fake_samples.json;
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
 	commonOpts="-i ${outdir}/${githash}/${EXTRA} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi}"
-
+#        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --silent --only A_gen
         #python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
-	python scripts/plotter.py ${commonOpts} -j ${json} ${kFactors}  --only HighMJJ,LowMJJ, newcat 
-        #python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
+#	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors}
+#	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors} --rawYields -o acceptance_plotter.root
+#	python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
 #	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
+	python scripts/plotter.py ${commonOpts} -j ${json},${fake_json} --only HighMJJ,LowMJJ ${kFactors} ${fake} -o fake_plotter.root
 
         ;;
 
@@ -191,7 +197,7 @@ case $WHAT in
         python test/analysis/computeTransferFactor.py ${commonOpts} --var dphijj     --rebin 2
         python test/analysis/computeTransferFactor.py ${commonOpts} --var mjj        --binList 500,600,700,800,900,1000,1250,1500,2000,3000,4000
         python test/analysis/computeTransferFactor.py ${commonOpts} --var vpt        --binList 75,100,150,200,250,300,350,400,550
-        python test/analysis/computeTransferFactor.py ${commonOpts} --var vbfmva     --rebin 2
+        python test/analysis/computeTransferFactor.py ${commonOpts} --var vbfmva     --rebin 5
         python test/analysis/computeTransferFactor.py ${commonOpts} --var ystar      
         python test/analysis/computeTransferFactor.py ${commonOpts} --var ht     
         python test/analysis/computeTransferFactor.py ${commonOpts} --var balance    --rebin 2

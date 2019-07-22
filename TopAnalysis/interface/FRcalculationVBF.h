@@ -48,16 +48,16 @@ TH1D* mergeBin(TH1D * h){
   return ret;
 }
 
-TH1D*  rawFRMaker(TH1D& Num1, TH1D& Den1, TString fname = "Data13TeV_SinglePhoton_2017.root", TString catName = "LowMJJA", TString det = "EB"){
+TH1D*  rawFRMaker(TH1D& Num1, TH1D& Den1, TString fname = "Data13TeV_SinglePhoton_2017.root", TString catName = "LowMJJA", TString det = "EB", TString binvar="Mjj"){
   TFile * f = TFile::Open(fname);
   TString tmpCat = corrCat(fname,catName);
-  TH2D * Num = (TH2D*)f->Get(tmpCat+"_tightMjj"+det);
-  TH2D * Den = (TH2D*)f->Get(tmpCat+"_looseMjj"+det);
+  TH2D * Num = (TH2D*)f->Get(tmpCat+"_tight"+binvar+det);
+  TH2D * Den = (TH2D*)f->Get(tmpCat+"_loose"+binvar+det);
   if(tmpCat == catName && catName == "HighVPtA"){
-    Num = (TH2D*)f->Get("HighVPtHighMJJA_tightMjj"+det);
-    Den = (TH2D*)f->Get("HighVPtHighMJJA_looseMjj"+det);
-    TH2D * tmpNum = (TH2D*)f->Get("HighVPtLowMJJA_tightMjj"+det);
-    TH2D * tmpDen = (TH2D*)f->Get("HighVPtLowMJJA_looseMjj"+det);
+    Num = (TH2D*)f->Get("HighVPtHighMJJA_tight"+binvar+det);
+    Den = (TH2D*)f->Get("HighVPtHighMJJA_loose"+binvar+det);
+    TH2D * tmpNum = (TH2D*)f->Get("HighVPtLowMJJA_tight"+binvar+det);
+    TH2D * tmpDen = (TH2D*)f->Get("HighVPtLowMJJA_loose"+binvar+det);
     Num->Add(tmpNum);
     Den->Add(tmpDen);
   }
@@ -70,7 +70,7 @@ TH1D*  rawFRMaker(TH1D& Num1, TH1D& Den1, TString fname = "Data13TeV_SinglePhoto
   
 }
 
-void makeFile(){
+void makeFile(TString binvar){
   const int nCat = 4;
   TString cats[nCat] = {"LowVPtHighMJJ","HighVPtHighMJJ","HighVPtLowMJJ","HighVPt"};
   TString det[2] = {"EB","EE"};
@@ -79,7 +79,8 @@ void makeFile(){
     for(int iDet = 0; iDet < 2; iDet++){
       TFile * f = TFile::Open(cats[iCat]+"A_FR_"+det[iDet]+".root");
       if(f){
-	TH1D * h = (TH1D*) f->Get("fracRatio_Merged");
+	TString hname(binvar == "Mjj"? "fracRatio_Merged":"fracRatio");
+	TH1D * h = (TH1D*) f->Get(hname);
 	h->SetName(cats[iCat]+"_"+det[iDet]);
 	hists.push_back(h);
       }
@@ -93,14 +94,14 @@ void makeFile(){
   f->Close();
 }
 
-void promptEstimator(TString dataname = "Data13TeV_SinglePhoton_2017.root", TString catName = "LowMJJA", TString det = "EB", TString pname = "MC13TeV_GJets.root", TString qcd = "Data13TeV_JetHTQCD_2017.root"){
+void promptEstimator(TString binvar= "Mjj", TString dataname = "Data13TeV_SinglePhoton_2017.root", TString catName = "LowMJJA", TString det = "EB", TString pname = "MC13TeV_GJets.root", TString qcd = "Data13TeV_JetHTQCD_2017.root"){
   double pHigh = 0.00996;
   if (det == "EE")
     pHigh = 0.0271;
   TFile * fD = TFile::Open(dataname);
   TString tmpCat = corrCat(dataname,catName);
   TH2D * data = 0;
-  TString gDataHist("relaxedTightMjj"),qcdDataHist("tmpQCDMjj"),gMCHist("tightMjj");
+  TString gDataHist("relaxedTight"+binvar),qcdDataHist("tmpQCD"+binvar),gMCHist("tight"+binvar);
   //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   // tmpQCD <--> relaxedTight
   //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -115,9 +116,9 @@ void promptEstimator(TString dataname = "Data13TeV_SinglePhoton_2017.root", TStr
   }
   std::vector<TH1D*> dataSihih;
   std::vector<double> trueNData;
-  for(int i = 0; i<4; i++){
+  for(int i = 0; i<data->GetYaxis()->GetNbins(); i++){
     std::stringstream name;
-    name <<"data_MJJbin"<<i+1;
+    name <<"data_"+binvar+"bin"<<i+1;
     dataSihih.push_back((TH1D*)data->ProjectionX(name.str().c_str(),i+1,i+1));
     trueNData.push_back(dataSihih[dataSihih.size()-1]->Integral(1,pHigh));
   }
@@ -137,6 +138,7 @@ void promptEstimator(TString dataname = "Data13TeV_SinglePhoton_2017.root", TStr
   prompt->Scale(1/prompt->Integral());
   RooDataHist dP("dP","dP",sihih,Import(*prompt));
   RooHistPdf promptPdf("promptPdf","promptPdf",sihih,dP,0) ;
+  //  if(qcd.Contains("2016") && det == "EE") qcd = dataname;
   TFile * fQ = TFile::Open(qcd);
   tmpCat = corrCat(qcd,catName);
   TH2D * QCD2 = (TH2D*)fQ->Get(tmpCat+"_"+qcdDataHist+det);
@@ -162,17 +164,17 @@ void promptEstimator(TString dataname = "Data13TeV_SinglePhoton_2017.root", TStr
     if(dataSihih[i]->GetEntries() == 0) continue;
     fixZeroBins(dataSihih[i]);
     std::stringstream name;
-    name <<"dh_MJJbin"<<i+1;
+    name <<"dh_"+binvar+"bin"<<i+1;
     RooDataHist dh(name.str().c_str(),name.str().c_str(),sihih,Import(*dataSihih[i]));
     name.str("");
-    name <<"frac_MJJbin"<<i+1;
+    name <<"frac_"+binvar+"bin"<<i+1;
     RooRealVar frac(name.str().c_str(),name.str().c_str(),0.8,0,1) ;
     name.str("");
-    name <<"norm_MJJbin"<<i+1;
+    name <<"norm_"+binvar+"bin"<<i+1;
     RooRealVar norm(name.str().c_str(),name.str().c_str(),0.9*dataSihih[i]->GetEntries(),0,dataSihih[i]->GetEntries()) ;
 
     name.str("");
-    name <<"model_MJJbin"<<i+1;
+    name <<"model_"+binvar+"bin"<<i+1;
     RooAddPdf model(name.str().c_str(),name.str().c_str(),RooArgList(promptPdf,QCDPdf),RooArgList(frac)) ;
     RooExtendPdf pext("pext", "pext", model, norm);
 
@@ -201,7 +203,7 @@ void promptEstimator(TString dataname = "Data13TeV_SinglePhoton_2017.root", TStr
     c.push_back(C);
   }
   TH1D rawnum, *num, den, *rawRatio, *Ratio;
-  rawRatio = rawFRMaker(rawnum,den,dataname,catName,det);
+  rawRatio = rawFRMaker(rawnum,den,dataname,catName,det,binvar);
   TH1D* negPrompt = (TH1D*)nPrompt->Clone("negPrompt");
   num = (TH1D*)rawnum.Clone("Num");
   negPrompt->Scale(-1);

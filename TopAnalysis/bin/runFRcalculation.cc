@@ -15,7 +15,9 @@ using namespace std;
 using namespace TMVA;
 int main( int argc, char** argv )
 {
-  TString fGammaData("Data13TeV_SinglePhoton_2016.root"), fJetData("Data13TeV_JetHT_2016.root"), fJetQCD("Data13TeV_JetHTQCD_2016.root"), fGammaMC("MC13TeV_GJets.root");
+
+  TString fGammaData("Data13TeV_SinglePhoton_2017.root"), fJetData("Data13TeV_JetHT_2017.root"), fJetQCD("Data13TeV_JetHTQCD_2017.root"), fGammaMC("MC13TeV_GJets.root"),binvar("Mjj");
+
   std::string categories;
   for (int i=1; i<argc; i++) {
     TString input(argv[i]);
@@ -38,6 +40,9 @@ int main( int argc, char** argv )
     } else if( input == "--cats"){
       i++;
       categories = std::string(argv[i]);
+    } else if( input == "--binvar"){
+      i++;
+      binvar = std::string(argv[i]);
     }
   }
   std::vector<TString> cats = TMVA::gTools().SplitString( categories, ':' );
@@ -45,15 +50,15 @@ int main( int argc, char** argv )
     cout << cats[icat]<<endl;
     //HighMJJ: bias from VBF trigger --> use jet data
     if(cats[icat].Contains("LowVPtHighMJJ")){ 
-      promptEstimator(fJetData,cats[icat], "EB", fGammaMC, fJetQCD);
+      promptEstimator(binvar,fJetData,cats[icat], "EB", fGammaMC, fJetQCD);
       continue;
     }
-    promptEstimator(fGammaData,cats[icat], "EB", fGammaMC, fJetQCD);
-    promptEstimator(fGammaData,cats[icat], "EE", fGammaMC, fJetQCD);
+    promptEstimator(binvar,fGammaData,cats[icat], "EB", fGammaMC, fJetQCD);
+    promptEstimator(binvar,fGammaData,cats[icat], "EE", fGammaMC, fJetQCD);
   }
 
 
-  makeFile();
+  makeFile(binvar);
   return 0;
 }
 

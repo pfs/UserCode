@@ -128,6 +128,10 @@ class WorkspaceProvider{
 
     wsNoTF      = new RooWorkspace("wsNoTF"+chan, "wsNoTF"+chan);
     wsNoTF->import(*var);
+
+    frSysts["LowVPtHighMJJ"] = 0.99;
+    frSysts["HighVPtLowMJJ"] = 0.2;
+    frSysts["HighVPtHighMJJ"] = 0.3;
   }
 
   ~WorkspaceProvider(){}
@@ -295,38 +299,61 @@ class WorkspaceProvider{
     fOut2->Close();
   }
 
-  void makeCardNLO(YieldsErr YieldErrors, TString boson){
-    TString outname = chan+"_"+boson+"_NLO"+SR->year+".txt";
+  void makeCardNLO(YieldsErr YieldErrors, TString boson, TString NLO=""){
+    bool hasFake = (SR->hFake != NULL);
+    TString outname = chan+"_"+boson+"_NLO"+SR->year+NLO+".txt";
     TString binName = "signal";
     ofstream myfile;
     myfile.setf(ios_base::fixed);
     myfile.precision(4);
     myfile.open(outname);
-    myfile << "Datacard for Signal Region with Gamma+Jets corrected to NLO"<<endl;
+    myfile << "Datacard for Signal Region with Gamma+Jets has an NLO shape uncretainty"<<endl;
     myfile << "imax *  number of categories" << endl;
     myfile << "jmax *  number of samples minus 1" << endl;
     myfile << "kmax *  number of nuisance parameters (sources of systematical uncertainties)" << endl;
 
     myfile << "\n------------" << endl;
     myfile << "shapes\tSignal\t" <<binName <<"\tSignal_"    <<chan<<boson<<SR->year<<".root\t"    <<SR->hSig->GetName()    <<  "\t$PROCESS_$SYSTEMATIC"<< endl; 
-    myfile << "shapes\tBkg\t"    <<binName <<"\tBackground_"<<chan<<boson<<SR->year<<".root\t"    <<SR->hBkgCorr->GetName()<<  "\t$PROCESS_$SYSTEMATIC"<< endl; 
+    TString bkgName(SR->hBkg->GetName());
+    TString bkgProcess("Bkg");
+    if(NLO.Contains("Binned")) {
+      bkgName = SR->hBkgCorr->GetName();
+      bkgProcess = "BkgNLOBinned";
+    }
+    if(NLO.Contains("Lin")){    
+      bkgName = SR->hBkgCorrLin[0]->GetName();
+      bkgProcess = "BkgNLO";
+    }
+    myfile << "shapes\t" << bkgProcess <<"\t"    <<binName <<"\tBackground_"<<chan<<boson<<SR->year<<".root\t"    << bkgName <<  "\t$PROCESS_$SYSTEMATIC"<< endl; 
+    if(hasFake)
+      myfile << "shapes\tFake\t"    <<binName <<"\tBackground_"<<chan<<boson<<SR->year<<".root\t"    <<SR->hFake->GetName()<<  "\t$PROCESS_$SYSTEMATIC"<< endl; 
     myfile << "shapes\tdata_obs\t"<<binName<<"\tData_"<<chan<<boson<<SR->year<<".root\t"          <<SR->hData->GetName()   <<  "\t$PROCESS_$SYSTEMATIC"<< endl;
     myfile << "------------" << endl;
     myfile << "bin\t"<<binName << endl;
     myfile << "observation\t-1.0" << endl;
     myfile << "------------" << endl;
 
-    myfile << "bin\t"<<binName<<"\t"<<binName<< endl;
-    myfile << "process\tSignal\tBkg" << endl;
-    myfile << "process\t0\t1" << endl;
-    myfile << "rate\t"<<SR->hSig->Integral()<<"\t"<<SR->hBkgCorr->Integral()<< endl;
+    myfile << "bin\t"<<binName<<"\t"<<binName;
+    if(hasFake) myfile <<"\t"<<binName<< endl;
+    else myfile << endl;
+    myfile << "process\tSignal\t"<<bkgProcess;
+    if(hasFake) myfile <<"\tFake" << endl;
+    else myfile << endl;
+    myfile << "process\t0\t1";
+    if(hasFake) myfile <<"\t2" << endl;
+    else myfile << endl;
+    myfile << "rate\t"<<SR->hSig->Integral()<<"\t"<<SR->hBkg->Integral();
+    if(hasFake) myfile <<"\t"<< SR->hFake->Integral() << endl;
+    else myfile << endl;
 
     myfile << "------------" << endl;
-    myfile << "backgroundNorm rateParam * Bkg 1.0 [0,10]"<<endl;
+    myfile << "backgroundNorm rateParam * "<<bkgProcess<<" 1.0 [0,10]"<<endl;
     for (auto& x : YieldErrors) {
-      if(x.second.first == x.second.second )
-	myfile << x.first << "\tlnN\t" << x.second.first << "\t"<<x.second.first << endl;
-      else
+      if(x.second.first == x.second.second ){
+	myfile << x.first << "\tlnN\t" << x.second.first << "\t"<<x.second.first ;
+	if(hasFake) myfile <<"\t-"<< endl;
+	else myfile << endl;
+      } else
 	myfile << x.first << "\tlnN\t" << x.second.first << "/" << x.second.second << "\t-" << endl;
     }
     stringstream line;
@@ -342,24 +369,20 @@ class WorkspaceProvider{
 	  line <<"-\t";
       } else line << s.second.first << "/" << s.second.second <<"\t" ;
       for (auto& b : SR->Exp->yieldSystBkg) {
-	if(s.first != b.first) {	  
-	  continue;
-	}
-	if(b.second.first == b.second.second ) {
-	  if( b.second.second != 1)
-	    line << b.second.first << "\t";
-	  else
-	    line <<"-\t";
-	} else line << b.second.first << "/" << b.second.second;
+	if(s.first != b.first) continue;
+	line <<"-\t";	
       }
       std::string tmpStr = line.str();
-      if(count(tmpStr.begin(),tmpStr.end(),'-') < 2)
-	myfile << line.str() << endl;
+      if(count(tmpStr.begin(),tmpStr.end(),'-') < 2){
+	myfile << line.str() ;
+	if(hasFake) myfile <<"\t-"<< endl;
+	else myfile << endl;
+      }
     }
 
     for (auto& s : SR->Theo->yieldSystSig) {
       line.str("");
-      if (s.first == "ratemuR" || s.first == "ratemuF") continue;
+      if (s.first == "ratemuR" || s.first == "ratemuF" || s.first == "ratemuRmuF") continue;
       line << s.first << "\tlnN\t";
       if(s.second.first == s.second.second ) {
 	if( s.second.second != 1)
@@ -369,25 +392,49 @@ class WorkspaceProvider{
       } else line << s.second.first << "/" << s.second.second <<"\t" ;
       for (auto& b : SR->Theo->yieldSystBkg) {
 	if(s.first != b.first) continue;
-	if(b.second.first == b.second.second ) {
-	  if( b.second.second != 1)
-	    line << b.second.first << "\t";
-	  else
-	    line <<"-\t";
-	} else line << b.second.first << "/" << b.second.second;
+	line <<"-\t";
       }
       std::string tmpStr = line.str();
-      if(count(tmpStr.begin(),tmpStr.end(),'-') < 2)
-	myfile << line.str() << endl;
+      if(count(tmpStr.begin(),tmpStr.end(),'-') < 2){
+	myfile << line.str() ;
+	if(hasFake) myfile <<"\t-"<< endl;
+	else myfile << endl;
+      }
     }
+
+    for (auto& s : SR->Theo->accScaleSig) {
+      line.str("");
+      if (s.first == "ratemuR" || s.first == "ratemuF" || s.first == "ratemuRmuF") continue;
+      line << s.first << "\tlnN\t";
+      if(s.second.first == s.second.second ) {
+	if(( s.second.second-1) > 1.0e-6)
+	  line << s.second.first << "\t";
+	else{
+	  line <<"-\t";
+	}
+      } else line << s.second.first << "/" << s.second.second <<"\t" ;
+      line <<"-\t";
+      std::string tmpStr = line.str();
+      if(count(tmpStr.begin(),tmpStr.end(),'-') < 2){
+	myfile << line.str();
+	if(hasFake) myfile <<"\t-"<< endl;
+	else myfile << endl;
+      }
+    }
+
     for (auto& s : SR->Exp->shapeSystMap) {
       myfile << s.first << "\tshape";
       TString tmp(s.second.first == 1 ? "\t1" : "\t-");
       myfile << tmp;
       tmp = (s.second.second == 1 ? "\t1" : "\t-");
-      myfile << tmp << endl;
+      myfile << tmp ;
+      if(hasFake) myfile <<"\t-"<< endl;
+      else myfile << endl;
     }
     for (auto& s : SR->Theo->shapeSystMap) {
+      if(NLO == "" && (s.first.Contains("Lin") || s.first.Contains("Binned"))) continue;
+      if(NLO.Contains("Lin") && (s.first == "NLO" || s.first.Contains("Binned"))) continue;
+      if(NLO.Contains("Binned") && (s.first == "NLO" || s.first.Contains("Lin"))) continue;
       /////////////////////////////
       // Decorrelate EWK and QCD //
       /////////////////////////////
@@ -400,8 +447,12 @@ class WorkspaceProvider{
       TString tmp(s.second.first == 1 ? "\t1" : "\t-");
       myfile << tmp;
       tmp = (s.second.second == 1 ? "\t1" : "\t-");
-      myfile << tmp << endl;
+      myfile << tmp ;
+      if(hasFake) myfile <<"\t-"<< endl;
+      else myfile << endl;
     }
+    if (hasFake)
+      myfile << "rate"+chan+SR->year+"_FR\tlnN\t-\t-\t"<<1.-frSysts[chan]<<"/"<<1+frSysts[chan]<<endl;
     myfile.close();
   }
 
@@ -484,11 +535,16 @@ class WorkspaceProvider{
     for(unsigned int iSyst = 0; iSyst < hists.size(); iSyst++){
       sigD->cd();
       TString hName = hists[iSyst]->GetName();
+      //if (hName.Contains("UP")) cout << hName<<endl;
+      if (hName.Contains("NLOLin")) cout << hName <<endl;
       if(hName.Contains("Down")) continue;
       TString systName = hName(process.Length()+1,hName.Length()-(process.Length()+3));
+      //if (systName.Contains("UP")) cout << systName<<endl;
+      if (hName.Contains("NLOLin")) cout << systName <<endl;
       for(unsigned int iSyst2 = 0; iSyst2 < hists.size(); iSyst2++){
 	if(TString(hists[iSyst2]->GetName()).Contains("Up")) continue;
 	if(!TString(hists[iSyst2]->GetName()).Contains(systName)) continue;
+	if (hName.Contains("NLOLin")) cout << hists[iSyst2]->GetName() <<endl;
 	TCanvas * c = new TCanvas(process+"_"+systName, systName, 448,99,500,500);
 	c->SetHighLightColor(2);
 	c->Range(0,0,1,1);
@@ -533,6 +589,8 @@ class WorkspaceProvider{
 	hists[iSyst]->SetMarkerStyle(24);
 	hists[iSyst]->SetStats(0);
 	hists[iSyst]->SetTitle(systName+" up");
+        /* if(!systName.Contains("NLO")) */
+	//  hists[iSyst]->SetTitle(systName+", rewighted");
 	hists[iSyst]->Draw("sames");
 	hists[iSyst2]->SetLineColor(kBlue);
 	hists[iSyst2]->SetFillColor(0);
@@ -540,6 +598,7 @@ class WorkspaceProvider{
 	hists[iSyst2]->SetMarkerColor(kBlue);
 	hists[iSyst2]->SetMarkerStyle(25);
 	hists[iSyst2]->SetTitle(systName + " down");
+	//if(!systName.Contains("NLO"))
 	hists[iSyst2]->Draw("sames");
 	pad1->BuildLegend();
 	c->cd();
@@ -569,6 +628,7 @@ class WorkspaceProvider{
 	tmpU->Draw();
 	TH1F * tmpD = (TH1F*)hists[iSyst2]->Clone();
 	tmpD->Divide(nom);	
+	//if(!systName.Contains("NLO"))
 	tmpD->Draw("sames");
 	c->cd();
 	sigD->cd();
@@ -594,7 +654,16 @@ class WorkspaceProvider{
     plotter(r->hBkg, r->Exp->rateSystBkg,"Bkg",bkgD, dName);
     plotter(r->hBkg, r->Theo->shapeSystBkg,"Bkg",bkgD, dName);
     f->cd();
+    TDirectory * bkgDNLO = bkgD->mkdir("NLO");
+    plotter(r->hBkgCorrLin[0], r->Exp->shapeSystBkgNLO,"BkgNLO",bkgDNLO, dName);
+    plotter(r->hBkgCorrLin[0], r->Theo->shapeSystBkgNLO,"BkgNLO",bkgDNLO, dName);
+    f->cd();
 
+    TDirectory * bkgDNLOBinned = bkgD->mkdir("NLOBinned");
+    plotter(r->hBkgCorr, r->Exp->shapeSystBkgNLOBinned,"BkgNLOBinned",bkgDNLOBinned, dName);
+    plotter(r->hBkgCorr, r->Theo->shapeSystBkgNLOBinned,"BkgNLOBinned",bkgDNLOBinned, dName);
+    f->cd();
+ 
     f->Close();    
   }
  private:
@@ -604,6 +673,7 @@ class WorkspaceProvider{
   RooRealVar * var;
   RooWorkspace * ws, * wsNoTF;
   std::vector<std::pair<TString,double> > bTFUnc, sTFUnc;
+  std::map<TString,double> frSysts;
 
 };
 

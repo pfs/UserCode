@@ -38,7 +38,8 @@ def main():
     parser.add_option(      '--lumiSpecs',   dest='lumiSpecs',   help='lumi specifications for some channels [tag:lumi,tag2:lumi2,...]', default=None,       type=str)
     parser.add_option(      '--only',        dest='only',        help='plot only these (csv)',          default='',                type='string')
     parser.add_option(      '--strictOnly',  dest='strictOnly',  help='strict matching for only plots', default=False, action='store_true')
-    parser.add_option(      '--skip',        dest='skip',        help='skip these samples (csv)',          default='MC13TeV_TTJets_cflip',                type='string')
+    parser.add_option(      '--skip',        dest='skip',        help='skip these samples (csv)',       default='MC13TeV_TTJets_cflip',                type='string')
+    parser.add_option(      '--rawList',     dest='rawList',     help='don\'t scale these samples',     default='',                type='string')
     parser.add_option(      '--puNormSF',    dest='puNormSF',    help='Use this histogram to correct pu weight normalization', default=None, type='string')
     parser.add_option(      '--procSF',      dest='procSF',      help='Use this to scale a given process component e.g. "W":.wjetscalefactors.pck,"DY":dyscalefactors.pck', default=None, type='string')
     (opt, args) = parser.parse_args()
@@ -103,6 +104,7 @@ def main():
 
 
     onlyList=opt.only.split(',')
+    rawList=opt.rawList.split(',')
 
     #read plots 
     plots=OrderedDict()
@@ -114,8 +116,16 @@ def main():
             print "tag: %s, sample: %s" %(tag,sample)
             if isSyst and not 't#bar{t}' in sample[3] : continue
             if tag in skipList:
-              print("SKIPPED "+tag)
-              continue
+                print("SKIPPED "+tag)
+                continue
+            skip = False
+            for sl in skipList:
+                if ROOT.TString(tag).Contains(sl):
+                    skip = True
+                    break
+            if skip:
+                print("SKIPPED "+tag)
+                continue
             xsec=sample[0]
             isData=sample[1]
             doFlavourSplitting=sample[6]
@@ -133,18 +143,19 @@ def main():
                 puNormSF=1
                 if opt.puNormSF and not isData:
                     puCorrH=fIn.Get(opt.puNormSF)
-                    try:
-                        nonWgt=puCorrH.GetBinContent(1)
-                        wgt=puCorrH.GetBinContent(2)
-                        if wgt>0 :
-                            puNormSF=nonWgt/wgt
-                            if puNormSF>1.3 or puNormSF<0.7 : 
-                                puNormSF=1
-                                report += '%s wasn\'t be scaled as too large SF was found (probably low stats)\n' % sp[0]
-                            else :
-                                report += '%s was scaled by %3.3f for pileup normalization\n' % (sp[0],puNormSF)
-                    except:
-                        print 'Check pu weight control histo',opt.puNormSF,'for',sp[0]
+                    if tag not in rawList:
+                        try:
+                            nonWgt=puCorrH.GetBinContent(1)
+                            wgt=puCorrH.GetBinContent(2)
+                            if wgt>0 :
+                                puNormSF=nonWgt/wgt
+                                if puNormSF>1.3 or puNormSF<0.7 : 
+                                    puNormSF=1
+                                    report += '%s wasn\'t be scaled as too large SF was found (probably low stats)\n' % sp[0]
+                                else :
+                                    report += '%s was scaled by %3.3f for pileup normalization\n' % (sp[0],puNormSF)
+                        except:
+                            print 'Check pu weight control histo',opt.puNormSF,'for',sp[0]
 
                 for tkey in fIn.GetListOfKeys():
                     keyIsSyst=False
@@ -185,7 +196,7 @@ def main():
                             histos[-1].SetTitle(sp[1])
 
                         for hist in histos:
-                            if "vbfmvaOrig" in hist.GetName() and isData:
+                            if "vbfmva" in hist.GetName() and isData:
                                 tmpBin = hist.GetXaxis().FindBin(0.2)
                                 for iBin in range(tmpBin,hist.GetXaxis().GetNbins()):
                                     hist.SetBinContent(iBin, 0.0000001)
@@ -203,11 +214,11 @@ def main():
 
                                 #scale by lumi
                                 lumi=opt.lumi
-                                for tag in lumiSpecs:                                    
-                                    if not tag in key.split('_'): continue
-                                    lumi=lumiSpecs[tag]
+                                for lSpec in lumiSpecs:                                    
+                                    if not lSpec in key.split('_'): continue
+                                    lumi=lumiSpecs[lSpec]
                                     break
-                                if not opt.rawYields:
+                                if not opt.rawYields and not tag in rawList:
                                     hist.Scale(xsec*lumi*puNormSF*sfVal)       
              
                             #rebin if needed
@@ -235,7 +246,7 @@ def main():
     ROOT.gStyle.SetOptTitle(0)
     ROOT.gStyle.SetOptStat(0)
     ROOT.gROOT.SetBatch(True)
-    if (not opt.outDir): outDir = opt.inDir+'/plots'
+    if (not opt.outDir): outDir = opt.inDir+'/plots/'+opt.outName.split('.root')[0]
     else:                outDir = opt.outDir
     os.system('mkdir -p %s' % outDir)
     os.system('rm %s/%s'%(outDir,opt.outName))
@@ -246,15 +257,15 @@ def main():
         if opt.onlyData and plots[p].dataH is None: skipPlot=True 
         if opt.silent : skipPlot=True
         lumi=opt.lumi
-        for tag in lumiSpecs:
-            if not tag in p.split('_'): continue
-            lumi=lumiSpecs[tag]
+        for lSpec in lumiSpecs:
+            if not lSpec in p.split('_'): continue
+            lumi=lumiSpecs[lSpec]
             break
 
         #continue
         if opt.normToData: plots[p].normToData()
         if not skipPlot: plots[p].show(outDir=outDir,lumi=lumi,noStack=opt.noStack,saveTeX=opt.saveTeX)
-        plots[p].appendTo('%s/%s'%(outDir,opt.outName))
+        plots[p].appendTo('%s/../%s'%(outDir,opt.outName))
         plots[p].reset()
 
     print '-'*50

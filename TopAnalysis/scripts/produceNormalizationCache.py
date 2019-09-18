@@ -37,11 +37,15 @@ def main():
         putrue=None
         labelH=None
         for f in os.listdir('%s/%s/%s' % (baseEOS,opt.inDir,sample ) ):
+            print f
             fIn=ROOT.TFile.Open('%s/%s/%s/%s' % (baseEOS,opt.inDir,sample,f ) )
+            if not fIn:
+                print "Wanring!!! Can't open chunk file:", f, " skipping this file!"
+                continue
             if not opt.HiForest:
                 if wgtCounter is None:
                     try:
-                        wgtCounter=fIn.Get('analysis/fidcounter').ProjectionX('genwgts',1,1)
+                        wgtCounter=fIn.Get('analysis/fidcounter').ProjectionX('genwgts',1,1) # get the nominal one 
                         wgtCounter.SetDirectory(0)
                         wgtCounter.Reset('ICE')
                         putrue=fIn.Get('analysis/putrue').Clone()

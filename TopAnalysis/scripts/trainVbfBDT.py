@@ -41,11 +41,11 @@ def main():
     usage = 'usage: %prog [options]'
     parser = optparse.OptionParser(usage)
     parser.add_option(''  , '--vbf',        dest='options',      help='options for BDT training [%default]',                default='nt=50:mns=5:md=3:abb=0.6:nc=1',                       type='string')
-    parser.add_option(''  , '--ext',        dest='extention',    help='extention for the weight file [%default]',           default='LowVPtHighMJJ',                                       type='string')
+    parser.add_option(''  , '--ext',        dest='extention',    help='extention for the weight file [%default]',           default='LowVPt',                                       type='string')
     parser.add_option(''  , '--sig',        dest='signal',       help='signal file name  [%default]',                       default='signal.root',                                         type='string')
     parser.add_option(''  , '--bkg',        dest='background',  help='background file name [%default]',                    default='backgrounds.root',                                    type='string')
     parser.add_option(''  , '--cat',        dest='category',     help='selection category [%default]',                      default='A:VBF',                                               type='string')
-    parser.add_option(''  , '--card',       dest='card',         help='card name including input variables [%default]',     default='LowVPtHighMJJCard',                                   type='string')
+    parser.add_option(''  , '--card',       dest='card',         help='card name including input variables [%default]',     default='LowVPtCard',                                   type='string')
 
 
     (opt, args) = parser.parse_args()

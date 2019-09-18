@@ -149,10 +149,7 @@ void VBFVectorBoson::runAnalysis()
   for(std::map<TString,TMVA::Reader *>::iterator it=readers.begin(); it!=readers.end(); it++) {
     TString key=it->first;
     mvaCDFinv[key]=(TGraph *)fcdf->Get(key+"_cdfinv");
-     TString key0=it->first;
-
-    mvaCDFinv[key0]=(TGraph *)fcdf->Get(key+"_cdfinv");
-    TString key1=it->first;
+     TString key1=it->first;
     mvaCDFinv[key1]=(TGraph *)fcdf->Get(key1+"_cdfinv");
     TString key2=it->first;
     mvaCDFinv[key2]=(TGraph *)fcdf->Get(key2+"_cdfinv");
@@ -163,7 +160,8 @@ void VBFVectorBoson::runAnalysis()
   ///////////////////////
   // LOOP OVER EVENTS //
   /////////////////////
-  for (Int_t iev=0;iev<nentries_;iev++)
+   for (Int_t iev=0;iev<nentries_;iev++)
+  // for (Int_t iev=0;iev<10;iev++)    
     {
       t_->GetEntry(iev);
       if(debug_) cout << "Number of event: "<<iev<<endl;
@@ -435,7 +433,7 @@ void VBFVectorBoson::runAnalysis()
       }
 
       category_.set(cat);
-      std::vector<TString> chTags( category_.getChannelTags() );
+      std::vector<TString> chTags ( category_.getChannelTags() );
 
       //veto untriggerable events for photons
       if(chTag=="A" && cat[3]) {
@@ -449,26 +447,21 @@ void VBFVectorBoson::runAnalysis()
       //vbfmvaLoose_ = -1000;
       // flat_vbfmvaLoos_ = -1000;
       // bool is_newcatLooszz(false);
-      /*    vbfmva_ =vbfmvaHH_ = vbfmvaHL_= vbfmvaLH_= -1000;
-      flat_vbfmva_ =flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_=  -1000;
+      // flat_vbfmva_ =flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_=  -1000;
+       vbfmvaHVPt_ = vbfmvaLVPt_= -1000;
       
       if( chTag=="MM" || chTag=="EE" ){
-	if( vbfVars_.leadj_pt >50 && vbfVars_.mjj >200 ){
+
+	if( vbfVars_.leadj_pt >50 &&  vbfVars_.mjj > 200 &&  vbfVars_.mjj <500 ){
 	  chTags.push_back(chTag+"newcatLooseZ");
-	  //is_newcatLooszz(true);
-
-	  
-	  TString key0("BDT_VBF0HighVPtHighMJJ");
-
-	  vbfmvaHH_ = readers[key0]->EvaluateMVA(key0);
-	  TString key1("BDT_VBF0HighVPtLowMJJ");
-	  vbfmvaHL_ = readers[key1]->EvaluateMVA(key1);
-	  TString key2("BDT_VBF0LowVPtHighMJJ");
-	  vbfmvaLH_ = readers[key2]->EvaluateMVA(key2);
-	  
+	  TString key1("BDT_VBF0HighVPt");
+	  vbfmvaHVPt_ = readers[key1]->EvaluateMVA(key1);
+	  TString key2("BDT_VBF0LowVPt");
+	  vbfmvaLVPt_ = readers[key2]->EvaluateMVA(key2);
+	  // std::cout << "Debug Inside the if: vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;
 	}
       }
-      */
+      // std::cout << "Debug:outside the if vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;      
       if(chTags.size()==0) continue;
      
     
@@ -477,6 +470,21 @@ void VBFVectorBoson::runAnalysis()
 
       //evaluate discriminator MVA for categories of interest
       //FIXME: this probably needs to be modified for the new training
+
+
+
+
+
+       for(unsigned int icat = 0; icat<chTags.size(); icat++){
+	int pos(chTags[icat].EndsWith("A")? chTags[icat].Sizeof()-1 : chTags[icat].Sizeof()-2);
+	std::string s(chTags[icat]);
+	TString key("BDT_VBF0"+s.substr(0,pos-1));
+	vbfmva_[chTags[icat]]      = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
+	flat_vbfmva_[chTags[icat]] = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
+	if(mvaCDFinv[key]) flat_vbfmva_[chTags[icat]]=max(0.,mvaCDFinv[key]->Eval(vbfmva_[icat]));
+	  if(doBlindAnalysis_ && ev_.isData && flat_vbfmva_[chTags[icat]]>0.8) flat_vbfmva_[chTags[icat]]=-1000;
+	  if(doBlindAnalysis_ && ev_.isData && vbfmva_[chTags[icat]]>0.8) vbfmva_[chTags[icat]]=-1000;
+      }
 
       //Add new categories
 
@@ -569,16 +577,7 @@ void VBFVectorBoson::runAnalysis()
      
       
       
-      for(unsigned int icat = 0; icat<chTags.size(); icat++){
-	int pos(chTags[icat].EndsWith("A")? chTags[icat].Sizeof()-1 : chTags[icat].Sizeof()-2);
-	std::string s(chTags[icat]);
-	TString key("BDT_VBF0"+s.substr(0,pos-1));
-	vbfmva_[chTags[icat]]      = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
-	flat_vbfmva_[chTags[icat]] = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
-	if(mvaCDFinv[key]) flat_vbfmva_[chTags[icat]]=max(0.,mvaCDFinv[key]->Eval(vbfmva_[icat]));
-	  if(doBlindAnalysis_ && ev_.isData && flat_vbfmva_[chTags[icat]]>0.8) flat_vbfmva_[chTags[icat]]=-1000;
-	  if(doBlindAnalysis_ && ev_.isData && vbfmva_[chTags[icat]]>0.8) vbfmva_[chTags[icat]]=-1000;
-      }
+     
 	
       // if (cat[5] || cat[6]) {
       // 	TString key(cat[3] ?"BDT_VBF0LowVPtHighMJJ":(cat[5] ? "BDT_VBF0HighVPtLowMJJ" : "BDT_VBF0HighVPtHighMJJ"));
@@ -596,20 +595,26 @@ void VBFVectorBoson::runAnalysis()
       float wgt(1.0);
       std::vector<float>puWgts(3,1.0);
       EffCorrection_t trigSF(1.0,0.),selSF(1.0,0.),l1prefireProb(1.0,0.);
+      std::cout << "Debug: Is data?" << ev_.isData << " current wt:" << wgt << std::endl;
       if (!ev_.isData) {
 
         // norm weight
-        wgt  = (normH_? normH_->GetBinContent(1) : 1.0);
-
+	std::cout << "Norm weight:" << normH_->GetBinContent(1) << std::endl;
+	wgt  = (normH_? normH_->GetBinContent(1) : 1.0);
+	std::cout << "Debug: Norm weight is multiplied, current wt:" << wgt << std::endl;
+	
         // pu weight
         ht_->fill("puwgtctr",0,plotwgts);
         puWgts=lumi_->pileupWeight(ev_.g_pu,period);
+	
         std::vector<double>puPlotWgts(1,puWgts[0]);
         ht_->fill("puwgtctr",1,puPlotWgts);
 
         //L1 prefire probability
         l1prefireProb=l1PrefireWR_->getCorrection(jets,photons_);
-        wgt *= l1prefireProb.first;
+
+	
+	std::cout << "Debug: L1 Prefire weight is multiplied, current wt:" << wgt << std::endl;	
 
         // photon trigger*selection weights        
         if(chTag=="A")
@@ -625,11 +630,16 @@ void VBFVectorBoson::runAnalysis()
             selSF.first *= sel2SF.first;
             selSF.second = TMath::Sqrt( pow(selSF.second,2)+pow(sel2SF.second,2) );
           }
+        wgt *= l1prefireProb.first;
         wgt *= puWgts[0]*trigSF.first*selSF.first;
+	std::cout << "Debug: puWt*trigSF*selecionSF are  multiplied, current wt:" << wgt << std::endl;	
         
         // generator level weights
-        wgt *= (ev_.g_nw>0 ? ev_.g_w[0] : 1.0);
+	std::cout << "Generator level weight:" << ev_.g_w[0] << std::endl;
+	wgt *= (ev_.g_nw>0 ? ev_.g_w[0] : 1.0);//if condition is true ? calculate otherwise do : 
 
+	std::cout << "Debug:  gen level weight is multiplied, current wt:" << wgt << std::endl;
+	
         //update weight for plotter
         plotwgts[0]=wgt;
       }
@@ -653,21 +663,30 @@ void VBFVectorBoson::runAnalysis()
         genAPt_ = (genPhotons.size() ? genPhotons[0].Pt() : 0.);
         genMjj_ = (genJets.size()>1 ? (genJets[0]+genJets[1]).M() : 0.);        
       }
-      
-      //fill control histograms
-      for( auto c : chTags)
-	fillControlHistos( boson,  jets,  plotwgts[0], c, mults, fakeACR, tightACR);
 
-      //fill tree
+      std::cout << "Debug: Staring to fill control histograms, current wt:" << plotwgts[0] << std::endl;
+      //fill control histograms
+      for( auto c : chTags) {
+	std::cout << "Debug: Filling control histograms for tag:" << c << " with current wt:" << plotwgts[0] << std::endl;
+	
+	fillControlHistos( boson,  jets,  plotwgts[0], c, mults, fakeACR, tightACR);
+      }
+
+      //fill tree  weight for the training 
+      	
       if(skimtree_) {
+      
         evtWeight_ = plotwgts[0]*xsec_;
         training_ = useForTraining(); 	
 	if(!cat[2]) continue;
 	if(!cat[3] && !cat[4]) continue;
+	// avoid overtraining
 	if (float(iev) > nentries_*0.2) break;
         newTree_->Fill();
-      }
 
+
+      }
+    
       
       //experimental systs cycle: better not to do anything else after this...
       //final category selection is repeated ad nauseam with varied objects/weights and mva is re-evaluated several times
@@ -862,7 +881,7 @@ void VBFVectorBoson::runAnalysis()
         }
         
         //fill with new values/weights
-
+	double qgwgt=0;
         std::vector<double> eweights(1,iwgt*qgwgt);
 	for(unsigned int ic = 0; ic < myCat.size(); ic++){
 	  for(auto jr : tagJetResol) {
@@ -904,7 +923,8 @@ void VBFVectorBoson::runAnalysis()
 
 void VBFVectorBoson::saveHistos(){
   fOut_->cd();
-  for (auto& it : ht_->getPlots())  { 
+  for (auto& it : ht_->getPlots())  {
+    // std::cout << "Debug: Hname:" << it.first << "\t" << it.second->GetEntries() << std::endl;
     if(it.second->GetEntries()==0) continue;
     it.second->SetDirectory(fOut_); 
     it.second->Write(); 
@@ -1054,6 +1074,8 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("vbfmvaAcc",       new TH1F("vbfmvaAcc",      ";VBF MVA;Events",50,-1,1));  
   ht_->addHist("acdfvbfmva",     new TH1F("acdfvbfmva",    ";CDF^{-1}(VBF MVA);Events",50,0,1));  
   ht_->addHist("tagjetresol", new TH1F("tagjetresol",";#Delta p_{T}/p_{T};Jets",50,-0.5,0.5));
+  ht_->addHist("vbfmvaHVPt",          new TH1F("vbfmvaHVPt",         ";VBF MVA;Events",50,-1,1));
+  ht_->addHist("vbfmvaLVPt",          new TH1F("vbfmvaLVPt",         ";VBF MVA;Events",50,-1,1));
 
 
   TString expSystNames[]={"puup","pudn","trigup","trigdn","selup","seldn","l1prefireup","l1prefiredn",
@@ -1413,10 +1435,11 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
 
   //final analysis histograms
   ht_->fill("evcount",  0, cplotwgts, c);
-  ht_->fill("evcount",  0, cplotwgts, c);
+ 
 
   if(vbfmva_[c]>-1000)  {
     ht_->fill("vbfmva", vbfmva_[c], cplotwgts,c);
+   
     ht_->fill("acdfvbfmva", flat_vbfmva_[c], cplotwgts,c);
     std::vector<double> AccWeights(1,1);
     AccWeights[0]*=(ev_.g_nw>0 ? ev_.g_w[0] : 1.0);
@@ -1425,6 +1448,13 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
 
       ht_->fill("evcount",  1, cplotwgts, c);  
   }
+  // std::cout << "Debug: Filling HV and LV pt histograms with values>>>" << vbfmvaHVPt_ << "\t" << vbfmvaLVPt_ << std::endl;
+ 
+    ht_->fill("vbfmvaHVPt", vbfmvaHVPt_, cplotwgts,c);
+    ht_->fill("vbfmvaLVPt", vbfmvaLVPt_, cplotwgts,c);
+
+   std::cout << "Debug: normalization " << cplotwgts  << std::endl;
+ 
  
 
   //theory uncertainties are filled only for MC

@@ -28,6 +28,8 @@
 "MC13TeV_2017_IntZJJ"                : [0.1276,       0,  "", "EWK Zjj", "#f0027f", false, false, 1],
 "MC13TeV_2017_EWKAJJ"                : [4.74,    0,  "/GJets_Mjj-500_SM_5f_TuneCP5_EWK_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "EWK #gammajj", 633, false, false, 1],
 "MC13TeV_2017_IntAJJ"                : [0.7,     0,  "/GJets_Mjj-500_SM_5f_TuneCP5_INTERFERENCE_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "EWK #gammajj", 633, false, false, 1],
+    
+
 "Data13TeV_2017B_SinglePhoton"       : [1,       1, "/SinglePhoton/Run2017B-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017C_SinglePhoton"       : [1,       1, "/SinglePhoton/Run2017C-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017D_SinglePhoton"       : [1,       1, "/SinglePhoton/Run2017D-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],

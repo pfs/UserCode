@@ -20,6 +20,8 @@ from mixedEvent import *
 VALIDLHCXANGLES=[120,130,140,150]
 DIMUONS=13*13
 EMU=11*13
+DIELECTRONS=11*11
+SINGLEPHOTON=22
 
 def isValidRunLumi(run,lumi,runLumiList):
 
@@ -82,12 +84,16 @@ def getRandomEra():
     elif r<0.671 : return '2017E'
     return '2017F'
 
-def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
+def isSignalFile(inFile):
+    isSignal=True if 'gamma_m_X_' in inFile or 'Z_m_X_' in inFile else False
+    return isSignal
+
+def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile,maxEvents=-1):
     
     """event loop"""
 
     isData=True if 'Data' in inFile else False
-    isSignal=True if 'MC13TeV_ppxz_' in inFile else False
+    isSignal=isSignalFile(inFile)
 
     #bind main tree with pileup discrimination tree, if failed return
     tree=ROOT.TChain('analysis/data' if isSignal else 'tree')
@@ -152,19 +158,29 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
     ht=HistoTool()   
 
     #main analysis histograms
-    ht.add(ROOT.TH1F('mll',';Dilepton invariant mass [GeV];Events',50,20,250))
-    ht.add(ROOT.TH1F('yll',';Dilepton rapidity;Events',50,0,5))
-    ht.add(ROOT.TH1F('ptll',';Dilepton transverse momentum [GeV];Events',50,0,250))
-    ht.add(ROOT.TH1F('l1eta',';Lepton pseudo-rapidiy;Events',50,0,2.5))
-    ht.add(ROOT.TH1F('l1pt',';Lepton transverse momentum [GeV];Events',50,0,250))
-    ht.add(ROOT.TH1F('l2eta',';Lepton pseudo-rapidiy;Events',50,0,2.5))
-    ht.add(ROOT.TH1F('l2pt',';Lepton transverse momentum [GeV];Events',50,0,250))
+    ht.add(ROOT.TH1F('rawcount',';Selection step;Events',10,0,10))
+    ht.get('rawcount','inc').GetXaxis().SetBinLabel(1,'Initial')
+    ht.get('rawcount','inc').GetXaxis().SetBinLabel(2,'Trigger+boson')
+    ht.get('rawcount','inc').GetXaxis().SetBinLabel(3,'LHC angle')
+    ht.get('rawcount','inc').GetXaxis().SetBinLabel(4,'Valid run')
+    ht.get('rawcount','inc').GetXaxis().SetBinLabel(5,'Golden selection')
+
+    ht.add(ROOT.TH1F('mll',';Invariant mass [GeV];Events',50,76,106))
+    ht.add(ROOT.TH1F('yll',';Rapidity;Events',50,-3,3))
+    ht.add(ROOT.TH1F('etall',';Pseudo-rapidity;Events',50,-6,6))
+    ht.add(ROOT.TH1F('ptll',';Transverse momentum [GeV];Events',50,0,250))
+    ht.add(ROOT.TH1F('l1eta',';Pseudo-rapidiy;Events',50,0,2.5))
+    ht.add(ROOT.TH1F('l1pt',';Transverse momentum [GeV];Events',50,0,250))
+    ht.add(ROOT.TH1F('l2eta',';Pseudo-rapidiy;Events',50,0,2.5))
+    ht.add(ROOT.TH1F('l2pt',';LTransverse momentum [GeV];Events',50,0,250))
     ht.add(ROOT.TH1F('acopl',';A=1-|#Delta#phi|/#pi;Events',50,0,1))
+    ht.add(ROOT.TH1F('costhetacs',';cos#theta_{CS};Events',50,-1,1))
     ht.add(ROOT.TH1F('xangle',';LHC crossing angle [#murad];Events',4,120,160))
     ht.add(ROOT.TH1F('mpp',';Di-proton invariant mass [GeV];Events',50,0,3000))
     ht.add(ROOT.TH1F('ypp',';Di-proton rapidity;Events',50,0,2))
     ht.add(ROOT.TH2F('mpp2d',';Far di-proton invariant mass [GeV];Near di-proton invariant mass [GeV];Events',50,0,3000,50,0,3000))
     ht.add(ROOT.TH2F('ypp2d',';Far di-proton rapidity;Near di-proton rapidity;Events',50,0,2,50,0,2))
+    ht.add(ROOT.TH1F('mmass_full',';Missing mass [GeV];Events',50,-1000,3000))
     ht.add(ROOT.TH1F('mmass',';Missing mass [GeV];Events',50,0,3000))
     ht.add(ROOT.TH1F('ntk',';Track multiplicity;Events',5,0,5))
     ht.add(ROOT.TH1F('ppcount',';pp candidates;Events',3,0,3))
@@ -187,15 +203,20 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
     ht.add(ROOT.TH1F('extramupt',';Additional muon p_{T} [GeV] ;Events',10,0,50))
     ht.add(ROOT.TH1F('extramueta',';Additional muon pseudo-rapidty ;Events',10,0,2.5))
         
-    nEntries=tree.GetEntries()          
+    nEntries=tree.GetEntries()              
     print '....analysing',nEntries,'in',inFile,', with output @',outFileName
-    if mixedRP : print '    events mixed with',mixFile
+    if maxEvents>0:
+        nEntries=min(maxEvents,nEntries)
+        print '      will process',nEntries,'events'
+
+    if mixedRP : 
+        print '    events mixed with',mixFile
 
     #loop over events
     rpData={}
     selEvents=[]
     summaryVars='cat:wgt:xangle:'
-    summaryVars+='l1pt:l1eta:l2pt:l2eta:acopl:bosonpt:'
+    summaryVars+='l1pt:l1eta:l2pt:l2eta:acopl:bosonpt:bosoneta:bosony:costhetacs'
     summaryVars+='nch:nvtx:rho:PFMultSumHF:PFHtSumHF:PFPzSumHF:rfc:'
     summaryVars+='csi1:csi2:mpp:mmiss:'
     summaryVars+='mixcsi1:mixcsi2:mixmpp:mixmmiss:'
@@ -209,19 +230,22 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
         goldenSel=None
 
         if i%1000==0 : sys.stdout.write('\r [ %d/100 ] done' %(int(float(100.*i)/float(nEntries))))
+        
+        ht.fill((0,1),'rawcount', ['inc'],'')
     
         #base event selection
-        if tree.evcat==11*11 and not tree.isSS : evcat='ee'
-        elif tree.evcat==EMU and not tree.isSS : evcat='em'
-        elif tree.evcat==DIMUONS and not tree.isSS : evcat='mm'
-        elif tree.evcat==22 :
-            if isSignal: 
+        if tree.evcat==DIELECTRONS and not tree.isSS : evcat='ee'
+        elif tree.evcat==EMU       and not tree.isSS : evcat='em'
+        elif tree.evcat==DIMUONS   and not tree.isSS : evcat='mm'
+        elif tree.evcat==SINGLEPHOTON:
+            if isSignal or tree.hasATrigger : 
                 evcat="a" 
-            else:
-                if tree.hasATrigger : evcat="a"
-        elif tree.evcat==0  and tree.hasZBTrigger : evcat=='zbias'
+        elif tree.evcat==0  and tree.hasZBTrigger : 
+            evcat=='zbias'
         else : continue
         
+        ht.fill((1,1),'rawcount', ['inc'],'')
+
         #assign data-taking era and crossing angle
         evEra = era
         beamXangle = tree.beamXangle
@@ -237,23 +261,24 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
 
             #reject invalid beam crossing angles
             if not beamXangle in VALIDLHCXANGLES : continue
+            ht.fill((2,1),'rawcount', ['inc'],'')
 
             #check RPs are in
             if not isValidRunLumi(tree.run,tree.lumi,runLumiList): continue
-
-
-
+            ht.fill((3,1),'rawcount', ['inc'],'')
 
         #lepton kinematics
         l1p4=ROOT.TLorentzVector(0,0,0,0)
         l2p4=ROOT.TLorentzVector(0,0,0,0)        
         acopl=0
-        if tree.evcat!=22 and tree.evcat!=0:
+        if tree.evcat!=SINGLEPHOTON and tree.evcat!=0:
             acopl=1.0-abs(ROOT.TVector2.Phi_mpi_pi(tree.l1phi-tree.l2phi))/ROOT.TMath.Pi()
             l1p4.SetPtEtaPhiM(tree.l1pt,tree.l1eta,tree.l1phi,tree.ml1)
             l2p4.SetPtEtaPhiM(tree.l2pt,tree.l2eta,tree.l2phi,tree.ml2)
             if l1p4.Pt()<l2p4.Pt(): l1p4,l2p4=l2p4,l1p4
             #if abs(l1p4.Eta())>2.1 : continue
+
+        costhetacs=tree.llcosthetaCS
 
         #boson kinematics
         boson=ROOT.TLorentzVector(0,0,0,0)
@@ -359,9 +384,6 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
         hasAHighPurSelection=False
         for protons,near_protons, pfix in mon_tasks:
 
-            #no calibration, not worth it...
-            if not beamXangle in VALIDLHCXANGLES: continue
-    
             #high purity selection for proton tracks
             highPur = True if protons and len(protons[0])==1 and len(protons[1])==1 else False  
             if highPur:
@@ -371,29 +393,25 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
             #check if Z and di-proton combination is consistent with elastic scattering
             pp=buildDiproton(protons)
             near_pp=buildDiproton(near_protons) if near_protons else None
-            isElasticLike=False
-            mmass=0
+            mmass,isElasticLike=0,False
             if pp:
-                isElasticLike=(13000.-boson.E()-pp.E()>0)
                 inPP=ROOT.TLorentzVector(0,0,0,13000.)
-                if isElasticLike: 
-                    mmass=(pp-boson).M()
+                mmass=(pp-boson).M()
+                if mmass>0 : isElasticLike=True
 
             #categories to fill
             cats=[]            
             cats.append(evcat)
             if isZ : 
                 cats.append(evcat+'Z')
-                if isHighPtZ : cats.append(evcat+'hptZ')
-                if isLowPtZ  : cats.append(evcat+'lptZ')
-            if isElasticLike and highPur :
+            if mmass>0:
                 ppCats=[c+'hpur' for c in cats]
                 cats += ppCats
             beamAngleCats=[c+'%d'%beamXangle for c in cats]
             cats += beamAngleCats
                 
 
-            #save he basic info on golden events
+            #save the basic info on golden events
             saveGoldenSel=False
             if isSignal and pfix in ['','_mixem2']:
                 saveGoldenSel=True
@@ -402,15 +420,18 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
                     saveGoldenSel=True                
 
             if saveGoldenSel:                    
+           
+                #start the information to store
                 if not goldenSel:
                     goldenSel=[tree.evcat,wgt,beamXangle,
-                               l1p4.Pt(),l1p4.Eta(),l2p4.Pt(),l2p4.Eta(),acopl,boson.Pt(),
+                               l1p4.Pt(),l1p4.Eta(),l2p4.Pt(),l2p4.Eta(),acopl,boson.Pt(),boson.Eta(),boson.Rapidity(),costhetacs,
                                nch,nvtx,rho,PFMultSumHF,PFHtSumHF,PFPzSumHF,rfc]
+                
+                #add proton information
                 task_protonInfo=[0,0,0,0]
                 if isElasticLike and highPur:
                     hasAHighPurSelection=True
-                    task_protonInfo=[protons[0][0],protons[1][0],pp.M(),mmass]
-                        
+                    task_protonInfo=[protons[0][0],protons[1][0],pp.M(),mmass]                        
                 goldenSel += task_protonInfo
 
 
@@ -428,14 +449,16 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
             for pwgt,pcats in finalPlots:   
 
                 #boson kinematics
-                ht.fill((l1p4.Pt(),pwgt),             'l1pt',   pcats,pfix)
-                ht.fill((l2p4.Pt(),pwgt),             'l2pt',   pcats,pfix)
-                ht.fill((abs(l1p4.Eta()),pwgt),       'l1eta',  pcats,pfix)
-                ht.fill((abs(l2p4.Eta()),pwgt),       'l2eta',  pcats,pfix)
-                ht.fill((acopl,pwgt),                 'acopl',  pcats,pfix) 
-                ht.fill((boson.M(),pwgt),             'mll',    pcats,pfix)
-                ht.fill((abs(boson.Rapidity()),pwgt), 'yll',    pcats,pfix)
-                ht.fill((boson.Pt(),pwgt),            'ptll',   pcats,pfix)
+                ht.fill((l1p4.Pt(),pwgt),             'l1pt',         pcats,pfix)
+                ht.fill((l2p4.Pt(),pwgt),             'l2pt',         pcats,pfix)
+                ht.fill((abs(l1p4.Eta()),pwgt),       'l1eta',        pcats,pfix)
+                ht.fill((abs(l2p4.Eta()),pwgt),       'l2eta',        pcats,pfix)
+                ht.fill((acopl,pwgt),                 'acopl',        pcats,pfix) 
+                ht.fill((boson.M(),pwgt),             'mll',          pcats,pfix)
+                ht.fill((boson.Rapidity(),pwgt),      'yll',          pcats,pfix)
+                ht.fill((boson.Eta(),pwgt),           'etall',        pcats,pfix)
+                ht.fill((boson.Pt(),pwgt),            'ptll',         pcats,pfix)
+                ht.fill((costhetacs,pwgt),            'costhetacs',   pcats,pfix)
                 
                 #pileup related
                 ht.fill((beamXangle,pwgt),            'xangle', pcats,pfix)
@@ -482,11 +505,15 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
                     ht.fill((abs(pp.Rapidity()),abs(near_pp.Rapidity()),pwgt), 'ypp2d',   pcats, pfix)
 
                 #the final variable
-                ht.fill((mmass,pwgt),              'mmass',     pcats,pfix)                    
+                ht.fill((mmass,pwgt),              'mmass_full',     pcats,pfix)
+                if mmass>0:
+                    ht.fill((mmass,pwgt),              'mmass',     pcats,pfix)                    
+
 
         #select events
         if not hasAHighPurSelection: continue
         if not goldenSel: continue
+        ht.fill((4,1),'rawcount', ['inc'],'')
 
         #fill missing variables with 0.'s (signal)
         nVarsMissed=len(summaryVars)-len(goldenSel)
@@ -497,7 +524,7 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
             if isZ:
                 #add a copy for ee
                 eeGoldenSel=copy.copy(goldenSel)
-                eeGoldenSel[0]=11*11
+                eeGoldenSel[0]=DIELECTRONS
                 eeGoldenSel[1]=goldenSel[1]*mcEff['eez'].Eval(boson.Pt())/nEntries
                 selEvents.append(eeGoldenSel)
                 
@@ -511,7 +538,7 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,mixFile):
                 
                 #add a copy for the photon
                 aGoldenSel=copy.copy(goldenSel)
-                aGoldenSel[0]=22
+                aGoldenSel[0]=SINGLEPHOTON
                 aGoldenSel[1]=goldenSel[1]*mcEff['a'].Eval(boson.Pt())/nEntries
                 selEvents.append(aGoldenSel)
                     
@@ -564,10 +591,11 @@ def runAnalysisTasks(opt):
 
     #read samples to process
     task_dict={}    
-    with open(opt.json,'r') as cachefile:
-        samples=json.load(cachefile,  encoding='utf-8', object_pairs_hook=OrderedDict).items()
-        for x in samples:
-            task_dict[x[0]]=[]
+    for jsonF in opt.json.split(','):
+        with open(jsonF,'r') as cachefile:
+            samples=json.load(cachefile,  encoding='utf-8', object_pairs_hook=OrderedDict).items()
+            for x in samples:
+                task_dict[x[0]]=[]
 
     #group chunks matching the same name
     for file_path in os.listdir(opt.input):
@@ -578,8 +606,11 @@ def runAnalysisTasks(opt):
         if ext != '.root' : continue
         
         #check if file tag is already in the list of samples to process
-        lastTkn=file_name.rfind('_')
-        tag=file_name[0:lastTkn]
+        if isSignalFile(file_name):
+            tag=file_name
+        else:
+            lastTkn=file_name.rfind('_')
+            tag=file_name[0:lastTkn]
 
         if not tag in task_dict: continue
         task_dict[tag].append( os.path.join(opt.input,file_path) )
@@ -600,7 +631,7 @@ def runAnalysisTasks(opt):
         runLumiList=runLumi if isData else None
         for f in task_dict[x]:
             fOut='%s/Chunks/%s'%(opt.output,os.path.basename(f))
-            task_list.append( (f,fOut,runLumiList,opt.mix) )
+            task_list.append( (f,fOut,runLumiList,opt.mix,opt.maxEvents) )
 
     pool.map(runExclusiveAnalysisPacked,task_list)
 
@@ -617,6 +648,11 @@ def main():
                       default=8,
                       type=int,
                       help='# of jobs to process in parallel the trees [default: %default]')
+    parser.add_option('--maxEvents',
+                      dest='maxEvents', 
+                      default=-1,
+                      type=int,
+                      help='# of events to process [default: %default]')
     parser.add_option('--json',
                       dest='json', 
                       default='pps_samples.json',

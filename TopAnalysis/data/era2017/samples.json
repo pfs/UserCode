@@ -73,6 +73,7 @@
 "MC13TeV_2017_IntZJJ"                : [4,    0,  "", "EWK Zjj", 41, false, false, 1],
 "MC13TeV_2017_EWKAJJ"                : [4.74,    0,  "/GJets_Mjj-500_SM_5f_TuneCP5_EWK_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "EWK #gammajj", 41, false, false, 1],
 "MC13TeV_2017_IntAJJ"                : [0.7,     0,  "/GJets_Mjj-500_SM_5f_TuneCP5_INTERFERENCE_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "EWK #gammajj", 41, false, false, 1],
+"MC13TeV_2017_EWKAJJ_nlo"                : [4.74,    0,  "/AJJ_EWK_TuneCP5_13TeV_amcatnlo-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "EWK #gammajj (NLO)", 41, false, false, 1],
 "MC13TeV_2017_GGToMuMu_lpair"   : [0.7,     0,  "/GGToMuMu_Pt-50_Elastic_13TeV-lpair/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "#gamma#gamma#rightarrowll", 41, false, false, 1],
 "MC13TeV_2017_GGToEE_lpair"     : [0.7,     0,  "/GGToEE_Pt-50_Elastic_13TeV-lpair/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", "#gamma#gamma#rightarrowll", 41, false, false, 1],
 "Data13TeV_2017B_SinglePhoton"       : [1,       1, "/SinglePhoton/Run2017B-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],

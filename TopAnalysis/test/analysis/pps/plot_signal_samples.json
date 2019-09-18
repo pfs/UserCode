@@ -1,12 +1,12 @@
 {
-"MC13TeV_ppxz_m1200_x120"        : [0.269,   0,  "",  "pp#rightarrowZX(1200)",      "#9970ab", false, false, 1],
-"MC13TeV_ppxz_m1200_x130"        : [0.273,   0,  "",  "pp#rightarrowZX(1200)",      "#9970ab", false, false, 1],
-"MC13TeV_ppxz_m1200_x140"        : [0.143,   0,  "",  "pp#rightarrowZX(1200)",      "#9970ab", false, false, 1],
-"MC13TeV_ppxz_m1200_x150"        : [0.293,   0,  "",  "pp#rightarrowZX(1200)",      "#9970ab", false, false, 1],
-"MC13TeV_ppxz_gamma_m1200_x120"  : [0.269,   0,  "",  "pp#rightarrow#gammaX(1200)", "#762a83", false, false, 1],
-"MC13TeV_ppxz_gamma_m1200_x130"  : [0.273,   0,  "",  "pp#rightarrow#gammaX(1200)", "#762a83", false, false, 1],
-"MC13TeV_ppxz_gamma_m1200_x140"  : [0.143,   0,  "",  "pp#rightarrow#gammaX(1200)", "#762a83", false, false, 1],
-"MC13TeV_ppxz_gamma_m1200_x150"  : [0.293,   0,  "",  "pp#rightarrow#gammaX(1200)", "#762a83", false, false, 1]
+"Z_m_X_1200_xangle_120_2017_preTS2"        : [0.269,   0,  "",  "pp#rightarrowZX(1200)",      "#9970ab", false, false, 1],
+"Z_m_X_1200_xangle_130_2017_preTS2"        : [0.273,   0,  "",  "pp#rightarrowZX(1200)",      "#9970ab", false, false, 1],
+"Z_m_X_1200_xangle_140_2017_preTS2"        : [0.143,   0,  "",  "pp#rightarrowZX(1200)",      "#9970ab", false, false, 1],
+"Z_m_X_1200_xangle_150_2017_preTS2"        : [0.293,   0,  "",  "pp#rightarrowZX(1200)",      "#9970ab", false, false, 1],
+"gamma_m_X_1200_xangle_120_2017_preTS2"  : [0.269,   0,  "",  "pp#rightarrow#gammaX(1200)", "#762a83", false, false, 1],
+"gamma_m_X_1200_xangle_120_2017_preTS2"  : [0.273,   0,  "",  "pp#rightarrow#gammaX(1200)", "#762a83", false, false, 1],
+"gamma_m_X_1200_xangle_120_2017_preTS2"  : [0.143,   0,  "",  "pp#rightarrow#gammaX(1200)", "#762a83", false, false, 1],
+"gamma_m_X_1200_xangle_120_2017_preTS2"  : [0.293,   0,  "",  "pp#rightarrow#gammaX(1200)", "#762a83", false, false, 1]
 }
 
 

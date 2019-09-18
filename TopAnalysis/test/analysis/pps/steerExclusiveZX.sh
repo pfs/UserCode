@@ -22,6 +22,7 @@ fi
 queue=tomorrow
 githash=ab05162
 eosdir=/store/cmst3/group/top/RunIIReReco/${githash}
+signal_dir=/store/cmst3/group/top/RunIIReReco/2017/vxsimulations_19Aug
 outdir=/store/cmst3/user/psilva/ExclusiveAna/final/${githash}
 signal_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/signal_samples.json
 plot_signal_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/plot_signal_samples.json
@@ -30,7 +31,7 @@ jetht_samples_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/je
 zx_samples_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/zx_samples.json
 zbias_samples_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/zbias_samples.json
 RPout_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/golden_noRP.json
-wwwdir=~/www/ExclusiveAna
+wwwdir=/eos/user/p/psilva/www/ExclusiveAna
 inputfileTag=MC13TeV_2017_GGH2000toZZ2L2Nu
 inputfileTag=MC13TeV_2017_GGToEE_lpair
 inputfileTag=Data13TeV_2017F_MuonEG
@@ -86,12 +87,10 @@ case $WHAT in
         lumiSpecs="--lumiSpecs a:2642"
         kFactorList="--procSF #gamma+jets:1.33"
 	commonOpts="-i /eos/cms/${outdir} --puNormSF puwgtctr -l ${lumi} --mcUnc ${lumiUnc} ${kFactorList} ${lumiSpecs}"
-	python scripts/plotter.py ${commonOpts} -j ${samples_json}    -O plots/sel --only mboson,mtboson,pt,eta,met,jets,nvtx,ratevsrun --saveLog; 
-        python scripts/plotter.py ${commonOpts} -j ${samples_json}    --rawYields --silent --only gen -O plots/ -o bkg_plotter.root ; 
-	python scripts/plotter.py ${commonOpts} -j ${zx_samples_json} --rawYields --silent --only gen -O plots/;
-        python test/analysis/pps/computeDileptonSelEfficiency.py 
-        mv *.{png,pdf} plots/sel/
-        mv effsummary* plots/
+	python scripts/plotter.py ${commonOpts} -j ${samples_json}    -O plots/sel -o plotter.root --only mboson,mtboson,pt,eta,met,jets,nvtx,ratevsrun --saveLog; 
+        python scripts/plotter.py ${commonOpts} -j ${samples_json}    --rawYields --silent --only gen -O plots/ -o plots/bkg_gen_plotter.root; 
+	python scripts/plotter.py ${commonOpts} -j ${zx_samples_json} --rawYields --silent --only gen -O plots/ -o plots/zx_gen_plotter.root;
+        python test/analysis/pps/computeDileptonSelEfficiency.py         
 	;;
 
     WWWSEL )
@@ -145,6 +144,20 @@ case $WHAT in
         python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/collectEventsForMixing.py /eos/cms/${outdir}
         ;;
 
+
+    TESTANA )
+        predin=/eos/cms/${outdir}/Chunks
+        file=Data13TeV_2017B_DoubleMuon_0.root
+        predout=/eos/cms/${outdir}/analysis
+        mix_file=/eos/cms/${outdir}/mixing/mixbank.pck
+        
+        #run locally
+        python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/runExclusiveAnalysis.py --step 1 --jobs 1 \
+            --json ${samples_json} --RPout ${RPout_json} -o ${predout} --mix ${mix_file} -i ${predin} --only ${file} --maxEvents 10000;
+        
+        ;;
+
+
     ANA )
         step=1
         predin=/eos/cms/${outdir}/Chunks
@@ -166,12 +179,24 @@ case $WHAT in
         ;;
 
     ANASIG )
-        
-        python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/runExclusiveAnalysis.py --step 1 --jobs 8 \
-            --json ${signal_json} --RPout ${RPout_json} --mix /eos/cms/${outdir}/mixing/mixbank.pck \
-            -i /eos/cms/${outdir}/Chunks -o anasig/;
+        step=1
+        predin=/eos/cms/${signal_dir}
+        predout=/eos/cms/${outdir}/analysis
+        condor_prep=runanasig_condor.sub
+        mix_file=/eos/cms/${outdir}/mixing/mixbank.pck
+        echo "executable  = ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/wrapAnalysis.sh" > $condor_prep
+        echo "output      = ${condor_prep}.out" >> $condor_prep
+        echo "error       = ${condor_prep}.err" >> $condor_prep
+        echo "log         = ${condor_prep}.log" >> $condor_prep
+        echo "arguments   = ${step} ${predout} ${predin} \$(chunk)" ${mix_file} >> $condor_prep
+        echo "queue chunk matching (${predin}/*.root)" >> $condor_prep
+        condor_submit $condor_prep
 
-         cp -v anasig/Chunks/*.root /eos/cms/${outdir}/analysis/
+        #run locally
+        #python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/runExclusiveAnalysis.py --step 1 --jobs 8 \
+        #    --json ${signal_json} --RPout ${RPout_json} --mix /eos/cms/${outdir}/mixing/mixbank.pck \
+        #    -i /eos/cms/${signal_dir} -o anasig/;
+        # cp -v anasig/Chunks/*.root /eos/cms/${outdir}/analysis/
 
         ;;
 
@@ -188,14 +213,15 @@ case $WHAT in
 	baseOpts="-i /eos/cms/${outdir}/analysis --lumiSpecs ${lumiSpecs} --procSF #gamma+jets:1.33 -l ${ppsLumi} --mcUnc ${lumiUnc} ${lumiSpecs} ${kFactorList}"
         
         plots=xangle_eeZhpur,xangle_mmZhpur,xangle_emhpur,xangle_lptahpur
-        commonOpts="${baseOpts} -j ${samples_json} --signalJson ${plot_signal_json} -O plots/analysis/zx_yields" 
+        commonOpts="${baseOpts} -j ${samples_json} --signalJson ${plot_signal_json} -O /eos/cms/${outdir}/analysis/plots"
         python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/scripts/plotter.py ${commonOpts} --only ${plots} --strictOnly --saveTeX --rebin 4;
 
-        plots=""
+        plots="rawcount"
         for c in eeZ mmZ em lpta hpta eeZhpur mmZhpur emhpur lptahpur hptahpur; do         
-            for d in acopl ptll yll l1pt l2pt l1eta l2eta; do
+            for d in acopl ptll yll l1pt l2pt l1eta l2eta mll etall costhetacs nvtx; do
                 plots="${plots},${d}_${c}"                
             done            
+            continue
             for d in xangle ntk; do
                 for s in pos neg; do                    
                     plots="${plots},${d}_${c}${s}"
@@ -210,7 +236,7 @@ case $WHAT in
             done
             
             for x in 120 130 140 150; do
-                for d in rho mpp ypp mmass nextramu ptll yll; do
+                for d in rho mpp ypp mmass nextramu ptll etall yll mmass_full; do
                     plots="${plots},${d}_${c}${x}"
                 done
                 for r in HF HE EB EE; do
@@ -225,7 +251,8 @@ case $WHAT in
                 done
             done
         done
-        #python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/scripts/plotter.py ${commonOpts} --only ${plots} --strictOnly --signalJson ${plot_signal_json} --saveLog; # --normToData;
+
+        python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/scripts/plotter.py ${commonOpts} --only ${plots} --strictOnly --signalJson ${plot_signal_json} --saveLog; # --normToData;
         ;;
 
     WWWANA )

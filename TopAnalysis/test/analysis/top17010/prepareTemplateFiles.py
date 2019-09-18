@@ -154,8 +154,8 @@ def getBinByBinUncertaintiesForSysts(h,hvars,method=2):
     """
     loops over the bins of a template and build the bin-by-bin stat unc associated to systs
     method=0 max. relative uncertainty is used
-    method=1 rel. uncertainties are added in quadrature
-    method=2 rel. uncertainties are added linearly
+    method=1 rel. uncertainties are added linearly
+    method=2 rel. uncertainties are added in quadrature
     """
     
     #init the up and down variations
@@ -175,12 +175,12 @@ def getBinByBinUncertaintiesForSysts(h,hvars,method=2):
             if method==0:
                 unc = max(unc,relUnc)
             elif method==1:
-                unc += relUnc**2
-            else:
                 unc += relUnc
+            else:
+                unc += relUnc**2
 
         #if adding in quadrature take the sqrt in the end
-        if method==1: 
+        if method==2: 
             unc=ROOT.TMath.Sqrt(unc)
 
         #scale central yields up/down

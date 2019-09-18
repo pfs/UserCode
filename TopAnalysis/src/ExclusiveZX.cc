@@ -301,13 +301,16 @@ void RunExclusiveZX(const TString in_fname,
       hasZBTrigger=((ev.addTriggerBits>>20)&0x1);
       hasATrigger=selector.hasTriggerBit("HLT_Photon90_R9Id90_HE10_IsoM_v", ev.triggerBits);
       hasMTrigger=(selector.hasTriggerBit("HLT_IsoMu27_v",     ev.triggerBits) );     
-      hasMMTrigger=selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v",        ev.triggerBits);
-      hasEETrigger=selector.hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",             ev.triggerBits);
+      hasMMTrigger=(selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v",        ev.triggerBits) ||
+                    selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",                  ev.triggerBits) ||
+                    selector.hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8_v",          ev.triggerBits));
+      hasEETrigger=(selector.hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",             ev.triggerBits) ||
+                    selector.hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",          ev.triggerBits) );
       hasEMTrigger=(selector.hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",    ev.triggerBits) ||
                     selector.hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v", ev.triggerBits) ||
                     selector.hasTriggerBit("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",  ev.triggerBits) );
       
-  
+      
       //trigger efficiency
       for(auto gen_cat : gen_cats) {
         if( (gen_cat.Contains("gena") && hasATrigger) || 
@@ -337,7 +340,7 @@ void RunExclusiveZX(const TString in_fname,
 
       //jets
       std::vector<Jet> allJets = selector.getGoodJets(ev,30.,4.7,leptons,photons);
-
+     
       //met
       TLorentzVector met(0,0,0,0);
       met.SetPtEtaPhiM(ev.met_pt,0,ev.met_phi,0.);
@@ -373,7 +376,7 @@ void RunExclusiveZX(const TString in_fname,
       int selCode(0);
       if(!selector.isZeroBiasPD()){
         if(leptons.size()<2 && photons.size()==0) continue;
-        if(!passMediumSel) continue;
+        if(!passMediumSel) continue;        
       }
 
       //set kinematics
@@ -414,7 +417,7 @@ void RunExclusiveZX(const TString in_fname,
         if(vetoPromptPhotons)
           if(ev.gamma_isPromptFinalState[ photons[0].originalReference() ] ) continue;
       }
-    
+
       //further selection for dileptons
       if(!selector.isZeroBiasPD()) {
         if(selCode!=22 && mass<20) continue;
@@ -432,23 +435,30 @@ void RunExclusiveZX(const TString in_fname,
           if( !selector.isPhotonPD() ) continue;
           if( !hasATrigger) continue;
         }
-        if(selCode==11*11) {
-          if( !selector.isDoubleEGPD()      && !selector.isSingleElectronPD()) continue;
-          if( selector.isDoubleEGPD()       && !hasEETrigger ) continue;
-          if( selector.isSingleElectronPD()) continue;
+        else if(selCode==11*11) {
+          if(!selector.isDoubleEGPD()) continue;
+          if(!hasEETrigger) continue;
         }
-        if(selCode==13*13) {
-          if( !selector.isDoubleMuonPD() && !selector.isSingleMuonPD()) continue;
+        else if(selCode==13*13) {
+          if( !(selector.isDoubleMuonPD() || selector.isSingleMuonPD()) ) continue;
           if( selector.isDoubleMuonPD()  && !hasMMTrigger ) continue;
-          if( selector.isSingleMuonPD()  && !(hasMTrigger && !hasMMTrigger) ) continue;
+          if( selector.isSingleMuonPD()){
+            if(!hasMTrigger) continue;
+            if(hasMMTrigger) continue;
+          }
         }
-        if(selCode==11*13) {
-          if( !selector.isMuonEGPD()        && !selector.isSingleElectronPD() && !selector.isSingleMuonPD()) continue;
-          if( selector.isMuonEGPD()         && !hasEMTrigger ) continue;
-          if( selector.isSingleElectronPD()) continue; 
-          if( selector.isSingleMuonPD()     && !(hasMTrigger && !hasEMTrigger) ) continue;
+        else if(selCode==11*13) {
+          if( !(selector.isMuonEGPD() || selector.isSingleMuonPD()) ) continue;
+          if( selector.isMuonEGPD() && !hasEMTrigger ) continue;
+          if( selector.isSingleMuonPD()) {
+            if(!hasMTrigger) continue;
+            if(hasEMTrigger) continue;
+          }
         }
-        
+        else {
+          continue;
+        }
+
         //check trigger rates and final channel assignment
         std::map<Int_t,Float_t>::iterator rIt=lumiPerRun.find(ev.run);
         if(rIt!=lumiPerRun.end()){
@@ -457,9 +467,9 @@ void RunExclusiveZX(const TString in_fname,
           ht.fill("ratevsrun",runBin,lumi,selCat);
         }else{
           cout << "[Warning] Unable to find run=" << ev.run << endl;
-        }
+        }   
       }
-
+    
       //jets (require PU jet id)
       int njets(0);
       std::vector<Jet> bJets,lightJets,jets;
@@ -513,7 +523,7 @@ void RunExclusiveZX(const TString in_fname,
         //update weight for plotter
         plotwgts[0]=wgt;
       }
-      
+
       //baseline categories and additional stuff produced with the dilepton
       std::vector<TString> cats(1,selCat);
         
@@ -639,7 +649,7 @@ void RunExclusiveZX(const TString in_fname,
       outVars["j3eta"]=jets.size()>2 ? jets[2].Eta() : 0.;
       outVars["j3phi"]=jets.size()>2 ? jets[2].Phi() : 0.;
       outVars["j3m"]=jets.size()>2 ? jets[2].M() : 0.;
-      
+            
       //flux variables
       if(!isA) {
         ev.nchPV -=2;
@@ -728,7 +738,7 @@ void RunExclusiveZX(const TString in_fname,
       outVars["PFChHtDiffEE"]   = fabs(ev.sumPFChHt[2]-ev.sumPFChHt[5]);   
       outVars["PFChHtDiffHE"]   = fabs(ev.sumPFChHt[1]-ev.sumPFChHt[6]);    
       outVars["PFChHtDiffHF"]   = fabs(ev.sumPFChHt[0]-ev.sumPFChHt[7]); 
-
+     
       //fill data with roman pot information
       nRPtk=0;
       if (ev.isData) {
@@ -825,7 +835,6 @@ void RunExclusiveZX(const TString in_fname,
           debug_out << RPid[irp] << " " << RPfarcsi[irp] << " ";
         debug_out << endl;
       }
-
 
       outT->Fill();
     }

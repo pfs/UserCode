@@ -18,10 +18,12 @@
 //
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenLumiInfoHeader.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/LuminosityBlock.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -105,10 +107,11 @@ class MiniAnalyzer : public edm::EDAnalyzer {
 public:
   explicit MiniAnalyzer(const edm::ParameterSet&);
   ~MiniAnalyzer();  
-  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);  
   virtual void endRun(const edm::Run&,const edm::EventSetup&);  
 private:
   virtual void beginJob() override;
+  void beginLuminosityBlock(edm::LuminosityBlock const& iLumi, edm::EventSetup const& iSetup);
   void genAnalysis(const edm::Event& iEvent, const edm::EventSetup& iSetup);
   void recAnalysis(const edm::Event& iEvent, const edm::EventSetup& iSetup);
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
@@ -126,6 +129,8 @@ private:
   edm::EDGetTokenT<GenEventInfoProduct> generatorevtToken_;
   edm::EDGetTokenT<LHEEventProduct> generatorlheToken_;
   edm::EDGetTokenT<LHERunInfoProduct> generatorRunInfoToken_;
+  edm::EDGetTokenT<GenLumiInfoHeader> generatorLumiHeaderToken_;
+  edm::EDGetTokenT<GenEventInfoProduct> generatorEventInfoToken_;
   edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puToken_;
   edm::EDGetTokenT<std::vector<reco::GenParticle>  > genPhotonsToken_;
   edm::EDGetTokenT<std::vector<reco::GenJet>  > genLeptonsToken_, genJetsToken_;
@@ -192,6 +197,8 @@ MiniAnalyzer::MiniAnalyzer(const edm::ParameterSet& iConfig) :
   generatorevtToken_(consumes<GenEventInfoProduct>(edm::InputTag("generator",""))),
   generatorlheToken_(consumes<LHEEventProduct>(edm::InputTag("externalLHEProducer",""))),
   generatorRunInfoToken_(consumes<LHERunInfoProduct,edm::InRun>({"externalLHEProducer"})),
+  generatorLumiHeaderToken_(consumes<GenLumiInfoHeader,edm::InLumi>(edm::InputTag("generator"))),
+  generatorEventInfoToken_(consumes<GenEventInfoProduct>(edm::InputTag("generator"))),
   puToken_(consumes<std::vector<PileupSummaryInfo>>(edm::InputTag("slimmedAddPileupInfo"))),  
   genPhotonsToken_(consumes<std::vector<reco::GenParticle> >(edm::InputTag("particleLevel:photons"))),
   genLeptonsToken_(consumes<std::vector<reco::GenJet> >(edm::InputTag("particleLevel:leptons"))),
@@ -284,7 +291,7 @@ void MiniAnalyzer::genAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
   //
   // GENERATOR WEIGHTS
   //
-  ev_.g_nw=0; ev_.g_w[0]=1.0;
+  ev_.g_nw=0; ev_.g_npsw=0; ev_.g_w[0]=1.0;
   edm::Handle<GenEventInfoProduct> evt;
   iEvent.getByToken( generatorToken_,evt);
   if(evt.isValid())
@@ -312,7 +319,19 @@ void MiniAnalyzer::genAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
 	ev_.g_w[ev_.g_nw]=ev_.g_w[0]*asdde/asdd;
 	ev_.g_nw++;
       }
+      const auto & hepeup = evet->hepeup();
+      ev_.g_nup=hepeup.NUP;
     }
+
+  //parton shower weights
+  edm::Handle<GenEventInfoProduct> genEventInfoProduct;
+  iEvent.getByToken(generatorEventInfoToken_, genEventInfoProduct);      
+  if(genEventInfoProduct.isValid()){    
+    for(unsigned int i=0; i< genEventInfoProduct->weights().size(); i++){
+      ev_.g_psw[ev_.g_npsw]=genEventInfoProduct->weights().at(i);
+      ev_.g_npsw++;
+    }
+  }
      
   //
   // GENERATOR LEVEL EVENT
@@ -1199,7 +1218,7 @@ void MiniAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   ngleptons_=0;   ngphotons_=0;
   nrecleptons_=0; nrecphotons_=0;
-  ev_.g_nw=0; ev_.ng=0; ev_.ngtop=0;
+  ev_.g_nw=0; ev_.g_npsw=0; ev_.ng=0; ev_.ngtop=0;
   ev_.nl=0; ev_.ngamma=0; ev_.nj=0; ev_.nfwdtrk=0; ev_.nrawmu=0;
   
   //analyze the event
@@ -1220,6 +1239,31 @@ void MiniAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 // ------------ method called once each job just before starting event loop  ------------
 void 
 MiniAnalyzer::beginJob(){
+}
+
+void MiniAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const& iLumi, edm::EventSetup const& iSetup)
+{
+
+  if(histContainer_.find("genlumiwgts")!=histContainer_.end()) return;
+  try{
+    cout << "[MiniAnalyzer::beginLuminosityBlock]" << endl;
+    edm::Handle<GenLumiInfoHeader> gen_header;
+    iLumi.getByToken(generatorLumiHeaderToken_, gen_header);
+    
+    unsigned int nwgts(gen_header->weightNames().size());
+    cout << nwgts << " weights are found" << endl;
+    histContainer_["genlumiwgts"]=fs->make<TH1F>("genlumiwgts",";Weight name;",nwgts,0,nwgts);
+    int i=1;
+    for(auto it : gen_header->weightNames() ) {
+      histContainer_["genlumiwgts"]->GetXaxis()->SetBinLabel(i,it.c_str());
+      i++;
+    }
+  }
+  catch(std::exception &e){
+    std::cout << e.what() << endl
+	      << "Failed to retrieve GenLumiInfoHeader" << std::endl;
+  }
+
 }
 
 //
@@ -1261,6 +1305,7 @@ MiniAnalyzer::endRun(const edm::Run& iRun,
 	for (unsigned int iLine = 0; iLine<prunedLines.size(); iLine++) 
 	  histContainer_[tag]->GetXaxis()->SetBinLabel(iLine+1,prunedLines.at(iLine).c_str());  
       }
+
   }
   catch(std::exception &e){
     std::cout << e.what() << endl

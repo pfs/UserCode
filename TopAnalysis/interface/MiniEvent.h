@@ -7,7 +7,7 @@ struct MiniEvent_t
 {
   MiniEvent_t()
   {
-    g_nw=0; ng=0; ngtop=0; 
+    g_nw=0; g_npsw=0; ng=0; ngtop=0; 
     ngamma=0; nl=0; nj=0; 
   }
 
@@ -19,8 +19,8 @@ struct MiniEvent_t
   Int_t g_id1, g_id2;
   Float_t g_x1, g_x2, g_qscale;
   Int_t g_pu,g_putrue;
-  Int_t g_nw;
-  Float_t g_w[500];
+  Int_t g_nw,g_npsw,g_nup;
+  Float_t g_w[500],g_psw[500];
   Int_t ng,ngtop;
   Int_t g_id[500],g_bid[500],g_tagCtrs[500];
   Bool_t g_isSemiLepBhad[500];

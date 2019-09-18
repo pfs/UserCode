@@ -143,8 +143,8 @@ def showEfficiencyPlot(grColl,xtit,ytit,logx,logy,yran,legPos,outName):
     c.Modified()
     c.Update()   
     c.RedrawAxis()
-    c.SaveAs('{0}.png'.format(outName))
-    c.SaveAs('{0}.pdf'.format(outName))
+    c.SaveAs('plots/sel/{0}.png'.format(outName))
+    c.SaveAs('plots/sel/{0}.pdf'.format(outName))
 
 def showSimpleDistribution(hColl,doLogx,doDivideByBinWidth,outName):
 
@@ -182,13 +182,13 @@ def showSimpleDistribution(hColl,doLogx,doDivideByBinWidth,outName):
     c.Modified()
     c.Update()
     c.RedrawAxis()
-    c.SaveAs('%s.png'%outName)
-    c.SaveAs('%s.pdf'%outName)
+    c.SaveAs('plots/sel/%s.png'%outName)
+    c.SaveAs('plots/sel/%s.pdf'%outName)
 
 def runSelectionEfficiencyFor(ch,d):
 
-    bkgROOT=ROOT.TFile.Open('plots/bkg_plotter.root')
-    zxROOT=ROOT.TFile.Open('plots/plotter.root')
+    bkgROOT=ROOT.TFile.Open('plots/bkg_gen_plotter.root')
+    zxROOT=ROOT.TFile.Open('plots/zx_gen_plotter.root')
 
     procList  =[('DY','#000000',1001,20,bkgROOT),
                 ("EWK Zjj",'#f0027f',0,26,zxROOT),
@@ -242,7 +242,7 @@ def runSelectionEfficiencyFor(ch,d):
     showSimpleDistribution(genSummary['rec'],doLogx=False,doDivideByBinWidth=doDivideByBinWidth,outName='gen_%s_%s'%(ch,d))
 
     #save results 
-    fOut=ROOT.TFile.Open('effsummary_%s_%s.root'%(ch,d),'RECREATE')
+    fOut=ROOT.TFile.Open('plots/effsummary_%s_%s.root'%(ch,d),'RECREATE')
     for gr in effSummary['rec']: gr.Write()
     fOut.Close()
 

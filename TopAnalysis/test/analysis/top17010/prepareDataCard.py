@@ -4,6 +4,7 @@ import os
 import sys
 import optparse
 import json
+import pickle
 from time import time
 from datetime import datetime
 from collections import OrderedDict
@@ -58,14 +59,34 @@ def customizeData(binName,dataDef,bkgList,templDir,outDir):
 
     """ customizes data to use as observation """
     dataDef=dataDef.replace("\"","")
-    dataType,dataF,dataHisto=dataDef.split(',')
+    tkns=dataDef.split(',')
+    dataType,dataF,dataHisto=tkns[0:3]
     
     #get the data
     inF=ROOT.TFile.Open(dataF)
     dataH=inF.Get(dataHisto)
     dataH.SetDirectory(0)
     inF.Close()
-    
+
+    #use a scenario as pseudo-data
+    if len(tkns)==5:
+        
+        #reset current histogram
+        ndata=dataH.Integral()
+        dataH.Reset('ICE')
+
+        #scale scenario to the current number of entries
+        scenario,scenarioHisto=tkns[3:5]
+        scenarioF=os.path.dirname(os.path.dirname(dataF))
+        scenarioF=os.path.join(scenarioF,scenario)
+        print 'Using a scenario as pseudo-data',scenarioF,scenarioHisto
+        inF=ROOT.TFile.Open(scenarioF)
+        dataH.Add(inF.Get(scenarioHisto))
+        dataH.Scale(ndata/dataH.Integral())
+        inF.Close()
+        dataH.SetTitle(dataH.GetTitle()+os.path.dirname(scenario))
+        print 'Scaled',scenario,'to',ndata,'new title=',dataH.GetTitle()
+
     #specific for pseudo-data
     #sum up signal to background expectations when dataType is 'sig' type
     #round each bin to an integer
@@ -226,15 +247,45 @@ def printBinByBinUncs(dc,binName,procList,shapeFiles):
                 dc.write(sline+'\n')
                 break
 
-def printRateSysts(dc,binName,procList):
-    """ this dumps to the datacard a series of hardcoded rate systematics """
+def printRateSysts(dc,binName,procList,templDir=None,sigRateSystsKey=None,minSigRateVar=0.005):
+
+    """ 
+    dumps to the datacard a series of hardcoded rate systematics 
+    if found a pickle file for the signal with rate systematics will also add them
+    """
  
     rateSysts=[
-        ('lumi_13TeV',                  1.025,  None,     ['dy']),
-        ('dynorm_{0}'.format(binName),  1.30,   ['dy'],   None),
-        ('twnorm_th',                   1.15,   ['tw'],   None),
-        ('vvnorm_th',                   1.20,   ['vv'],   None),
+        ('lumi_13TeV',                  (1.025,0.975),  None,     ['dy']),
+        ('dynorm_{0}'.format(binName),  (1.30,0.70),   ['dy'],   None),
+        ('twnorm_th',                   (1.15,0.85),   ['tw'],   None),
+        ('vvnorm_th',                   (1.20,0.80),   ['vv'],   None),
         ]
+
+
+    #open pickle files with rate syst variations for signal
+    #and add to systematics list, if relevant
+    if templDir:
+        pckIn=os.path.join(templDir,'normvars_ttbar.pck')
+        if os.path.isfile(pckIn) : 
+            nSigSystsAdded=0
+            try:
+                with open(pckIn,'r') as cache:
+                    ttRateSysts=pickle.load(cache)[sigRateSystsKey]
+                for key,varVals in ttRateSysts:
+                    if 'trig' in key : continue # this affects similarly all channels
+                    if 'bfrag' in key or 'slepbr' in key : continue # this is a shape only syst
+                    if 'pileup' in key : continue # the change of rate is a weighting artifact
+                    if max([abs(x) for x in varVals])<minSigRateVar : continue
+                    rateSysts.append( (key+'Rate',(1+varVals[0],1+varVals[1]), ['ttbar'], None) )        
+                    nSigSystsAdded+=1
+            except Exception as e:
+                print '<'*50
+                print 'Failed to read signal-specific rate systematics for',binName
+                print e
+                print '<'*50
+            if nSigSystsAdded>0:
+                print nSigSystsAdded,'signal rate systematics have been included'
+            
 
     for uncName,uncVal,whiteList,blackList in rateSysts:
         sline='%30s  lnN     '%uncName
@@ -242,29 +293,8 @@ def printRateSysts(dc,binName,procList):
             hasSyst=True
             if whiteList and not p in whiteList: hasSyst=False
             if blackList and p in blackList: hasSyst=False
-            sline+='%15s'%('%3.3f'%uncVal if hasSyst else '-')
+            sline+='%15s'%('%3.3f/%3.3f'%uncVal if hasSyst else '-')
         dc.write(sline+'\n')
-            
-
-def printNuisanceGroups(dc):
-
-    """ useful to fix nuisances a posteriori """
-
-    nuisGroups={#'trigsel'  : ['eetrig','emtrig','mmtrig','esel','msel','l1prefire'],
-                #'lepen'    : ["messtat","meszpt","mesewk","mesdm","eesstat","eesgain","eessyst","eessigma","eessphi","eessrho","eesscalet"],
-                'btag'     : ["beff","leff"],
-                'jer'      : ['JER',"JERstat","JERJEC","JERPU","JERPLI","JERptCut","JERtrunc","JERpTdep","JERSTmFE"],
-                'bfrag'    : ["bfrag","slepbr"],
-                'toppt'    : ['toppt'],
-                'jes'      : ['pileup',"AbsoluteStatJEC","AbsoluteScaleJEC","AbsoluteMPFBiasJEC","FragmentationJEC","SinglePionECALJEC","SinglePionHCALJEC","FlavorPureGluonJEC","FlavorPureQuarkJEC","FlavorPureCharmJEC","FlavorPureBottomJEC","TimePtEtaJEC","RelativeJEREC1JEC","RelativeJEREC2JEC","RelativeJERHFJEC","RelativePtBBJEC","RelativePtEC1JEC","RelativePtEC2JEC","RelativePtHFJEC","RelativeBalJEC","RelativeFSRJEC","RelativeStatFSRJEC","RelativeStatECJEC","RelativeStatHFJEC","PileUpDataMCJEC","PileUpPtRefJEC","PileUpPtBBJEC","PileUpPtEC1JEC","PileUpPtEC2JEC","PileUpPtHFJEC"],
-                'qcdscale' : ["muR","muF","combMuRmuF"],
-                'pdf'      : ["PDFenv"], #"PDFaS",
-                'isrfsr'   : ['ISR','FSR'],
-                'hdamp'    : ['hdamp'],
-                'softqcd'  : ['UE','CRerd','CRqcd','CRgmove'],
-                'tw'       : ['mtoptw','drdstw']}
-    for key in nuisGroups:
-        dc.write('{0} group = {1}\n'.format(key,' '.join(nuisGroups[key])))
     
 
 def main():
@@ -304,9 +334,12 @@ def main():
     #signal to use in the fit
     sigName,sigFile=opt.signal.split(',')
 
-    #prepare output directory (append category and signal name
+    #the final output directory
     opt.outDir='%s/%s/%s'%(opt.outDir,cat,sigName)
-    os.system('mkdir -p %s'%opt.outDir)
+
+    #run in a local output directory
+    localOutDir='%s_%s'%(cat,sigName)
+    os.system('mkdir -p %s'%localOutDir)
 
     #decode process and systs needed from the json file
     with open(opt.systs,'r') as cache:
@@ -320,44 +353,62 @@ def main():
                           sigName=sigName,
                           sigF=sigFile,
                           baseSigF=os.path.join(opt.templ,'templates_%s.root'%sigName),
-                          outDir=opt.outDir)
+                          outDir=localOutDir)
 
     #customize data
     dataFiles=[customizeData(binName=cat,
                              dataDef=dataDef.split("=")[1],
                              bkgList=procList[1:],
                              templDir=opt.templ,
-                             outDir=opt.outDir)
+                             outDir=localOutDir)
                for dataDef in args]
         
     #dump the template datacard
-    dcTemplURL=os.path.join(opt.outDir,'datacard.dat.templ')
+    dcTemplURL=os.path.join(localOutDir,'datacard.dat.templ')
     with open(dcTemplURL,'w') as dc:
         shapeFiles=printHeader(dc=dc,
                                binName=cat,
                                procList=procList,
                                templDir=opt.templ,
                                outDir=os.path.abspath(opt.outDir))
+
+        #use local directory in which the contents are being prepared
+        localShapeFiles={}
+        for key in shapeFiles:
+            url=shapeFiles[key]
+            if 'datacards' in url:
+                url=os.path.join(localOutDir,os.path.basename(url))
+            localShapeFiles[key]=url
         printShapeSysts(dc=dc,
                         syst_dict=syst_dict,
                         binName=cat,
-                        shapeFiles=shapeFiles)
+                        shapeFiles=localShapeFiles)
         printBinByBinUncs(dc=dc,
                           procList=procList,
                           binName=cat,
-                          shapeFiles=shapeFiles)    
+                          shapeFiles=localShapeFiles)    
         printRateSysts(dc=dc,
                        binName=cat,
-                       procList=procList)
-        printNuisanceGroups(dc=dc)
+                       procList=procList,
+                       templDir=opt.templ,
+                       sigRateSystsKey=opt.dist)
 
     #customize for the different data
     for dataURL in dataFiles: 
         fname=os.path.basename(dataURL)
         tag=fname.split('.')[1]
         if tag=='shapes' : tag='data'
-        dcURL=os.path.join(opt.outDir,'%s.datacard.dat'%tag)
+        dcURL=os.path.join(localOutDir,'%s.datacard.dat'%tag)
         os.system("sed s/_DATAOBSSHAPES_/%s/g < %s > %s"%(fname,dcTemplURL,dcURL))
+
+    #prepare the output directory and move results there
+    os.system('mkdir -p %s'%opt.outDir)
+    os.system('cp -v %s/* %s/'%(localOutDir,opt.outDir))
+    os.system('rm -rf %s'%localOutDir)
+
+
+
+
 
 if __name__ == "__main__":
     sys.exit(main())

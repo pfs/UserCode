@@ -88,7 +88,7 @@ private:
 
   //list of systematics
   std::vector<TString> expSysts_;
-  std::vector<WeightSysts_t> weightSysts_;
+  std::vector<WeightSysts_t> weightSysts_,psWeightSysts_;
 
   //corrections
   LumiTools * lumi_;

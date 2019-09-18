@@ -10,10 +10,21 @@ COLORS={
     "Data":1
 }
 
+def transformToCount(h):
 
-"""
-"""
-def doPlot(plotName,chList,extraText,url,outpName):
+    """ transform an histogram to a single bin counting experiment """
+
+    hcount=ROOT.TH1F(h.GetName()+'_count','',1,0,1)
+    hcount.Sumw2()
+    err=ROOT.Double(0)    
+    hcount.SetBinContent(1,h.IntegralAndError(1,h.GetNbinsX(),err))
+    hcount.SetBinError(1,err)
+    return hcount
+  
+
+def doPlot(plotName,chList,extraText,url,outpName,countOnly=False):
+
+    """ do plot """
 
     ROOT.gStyle.SetOptTitle(0)
     ROOT.gStyle.SetOptStat(0)
@@ -26,14 +37,14 @@ def doPlot(plotName,chList,extraText,url,outpName):
     systList={'toppt':False,
               'l1prefire':True,
               'pu':True,
-              'btagjes':True,
+              #'btagjes':True,
               'btaghf':True,
               'btaglf':True,
-              'btaghfstats1':True,
-              'btaghfstats2':True,
-              'btaglfstats1':True,
-              'btaglfstats2':True,
-              'btagcferr':True,
+              #'btaghfstats1':True,
+              #'btaghfstats2':True,
+              #'btaglfstats1':True,
+              #'btaglfstats2':True,
+              #'btagcferr':True,
               'JER':True,
               'bfrag':False,
               'slbr':False,
@@ -87,10 +98,11 @@ def doPlot(plotName,chList,extraText,url,outpName):
                 h.GetXaxis().SetRangeUser(20,h.GetXaxis().GetXmax())
             if 'drlb' in plotName:
                 h.GetXaxis().SetRangeUser(0.4,5.0)
+            if countOnly:  h=transformToCount(h)
 
             #do systs, if available
             if keyName==pName+'_t#bar{t}':                
-                for syst in ['gen','exp']:
+                for syst in ['th','exp']:
                     systH=inF.Get('{0}_{1}/{0}_{1}_t#bar{{t}}'.format(pName,syst))
                     try:
                         for ybin in xrange(1,systH.GetNbinsY()+1):
@@ -104,6 +116,7 @@ def doPlot(plotName,chList,extraText,url,outpName):
                                     break
                             if keep is None: continue
                             py=systH.ProjectionX('px',ybin,ybin)
+                            if countOnly: py=transformToCount(py)
 
                             #store effect on normalization
                             totalS=py.Integral()
@@ -195,13 +208,15 @@ def doPlot(plotName,chList,extraText,url,outpName):
             np=relShapeGr.GetN()
             relShapeGr.SetPoint(np,xcen,1)
             relShapeGr.SetPointError(np,0.5*xwid,r)
-        relShapeGr.SetFillStyle(3001)
-        relShapeGr.SetFillColor(ROOT.kRed)
+        relShapeGr.SetFillStyle(3354) #3001)
+        relShapeGr.SetFillColor(ROOT.kGray+3) #ROOT.kRed)
         relShapeGr.SetLineWidth(2)
         totalMCShape.Delete()
     
     #show
-    plot=Plot(outpName)
+    finalOutpName=outpName
+    if countOnly : finalOutpName += '_count'
+    plot=Plot(finalOutpName)
     plot.savelog=True
     plot.wideCanvas=False
     plot.doMCOverData = False
@@ -211,7 +226,7 @@ def doPlot(plotName,chList,extraText,url,outpName):
     doDivideByBinWidth=False
     if 'mlb' in outpName or 'ptlb' in outpName : doDivideByBinWidth=True
     if relShapeGr : plot.relShapeGr=relShapeGr
-    plot.plotformats=['root','pdf','png']
+    plot.plotformats=['pdf','png']
     for key in ['Data','t#bar{t}','Single top','W','DY','Multiboson']:
         if not key in plotsPerProc : continue
         isData=True if 'Data' in plotsPerProc[key].GetTitle() else False
@@ -232,14 +247,14 @@ def doPlot(plotName,chList,extraText,url,outpName):
     totalMC.Reset('ICE')
     for h in plot.mc: totalMC.Add(plot.mc[h])
     plot.normUncGr=ROOT.TGraphErrors(totalMC)
-    plot.normUncGr.SetFillStyle(3444)
-    plot.normUncGr.SetFillColor(1)
+    plot.normUncGr.SetFillStyle(3354)
+    plot.normUncGr.SetFillColor(ROOT.kGray+3)
     plot.normUncGr.SetMarkerStyle(1)
     plot.normUncGr.SetLineColor(1)
     plot.normUncGr.SetName("normuncgr")
-    plot.normUncGr.SetTitle('Stat #oplus norm')
+    plot.normUncGr.SetTitle('Stat #oplus syst')
     totalMC.Delete()
-    plot.show(outDir="plots/",lumi=35922,extraText=extraText)
+    plot.show(outDir="plots/",lumi=35882,extraText=extraText,saveTeX=countOnly)
 
 def main():
 
@@ -250,9 +265,12 @@ def main():
     chList+=",mmhighpt1b,mmhighpt2b,mmlowpt1b,mmlowpt2b"
     chList+=",emhighpt1b,emhighpt2b,emlowpt1b,emlowpt2b"
     if len(sys.argv)>2: chList=sys.argv[2]
-
+    
     plotter='root://eoscms//eos/cms/store/cmst3/group/top/TOP17010/final/0c522df/plots/plotter.root'
     if len(sys.argv)>3: plotter=sys.argv[3]
+
+    countOnly=False
+    if len(sys.argv)>4: countOnly=True if sys.argv[4]=="True" else False
 
     for poutp in plots:
         p,outp=poutp.split(':')
@@ -262,15 +280,13 @@ def main():
         if 'ee' in chList : extraText+='ee, '
         if 'mm' in chList : extraText+='#mu#mu, '
         extraText=extraText[0:-2]+'\\'
-        if 'lowpt' in chList and not 'highpt' in chList:  extraText += 'p_{T}(lepton,jet)<100 GeV\\'
-        if 'highpt' in chList and not 'lowpt' in chList: extraText += 'p_{T}(lepton,jet)#geq 100 GeV\\'
+        if 'lowpt' in chList  and not 'highpt' in chList: extraText += 'p_{T}(lepton,jet)<100 GeV\\'
+        if 'highpt' in chList and not 'lowpt'  in chList: extraText += 'p_{T}(lepton,jet)#geq 100 GeV\\'
         if '1b' in chList and not '2b' in chList : extraText += '=1b-tag'
         if '2b' in chList and not '1b' in chList : extraText += '#geq2 b-tags'
         if '1b' in chList and     '2b' in chList : extraText += '#geq1 b-tags'
-        doPlot(p,chList.split(','),extraText,plotter,outp)
+        doPlot(p,chList.split(','),extraText,plotter,outp,countOnly=countOnly)
+        
 
-"""
-for execution from another script
-"""
 if __name__ == "__main__":
     sys.exit(main())

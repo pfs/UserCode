@@ -726,7 +726,6 @@ void VBFVectorBoson::runAnalysis()
         else if(sname=="quarkqg")     iwgt *= qgWgt_q*puWgts[0]*trigSF.first*selSF.first*(l1prefireProb.first-l1prefireProb.second);
         else                          iwgt = wgt;           
         
-
         if(sname.Contains("aes") && chTag=="A")  {
           reSelect=true;
           iBoson *= (1+(isUpVar?1:-1)*bosonScaleUnc); 
@@ -881,7 +880,9 @@ void VBFVectorBoson::runAnalysis()
         }
         
         //fill with new values/weights
-	double qgwgt=0;
+
+        double qgwgt(qgWgt_q*qgWgt_g);
+
         std::vector<double> eweights(1,iwgt*qgwgt);
 	for(unsigned int ic = 0; ic < myCat.size(); ic++){
 	  for(auto jr : tagJetResol) {
@@ -1453,7 +1454,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
     ht_->fill("vbfmvaHVPt", vbfmvaHVPt_, cplotwgts,c);
     ht_->fill("vbfmvaLVPt", vbfmvaLVPt_, cplotwgts,c);
 
-   std::cout << "Debug: normalization " << cplotwgts  << std::endl;
+    // std::cout << "Debug: normalization " << cplotwgts  << std::endl;
  
  
 

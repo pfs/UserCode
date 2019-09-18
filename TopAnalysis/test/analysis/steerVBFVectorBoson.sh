@@ -42,10 +42,12 @@ echo "Selection adapted to YEAR=${ERA}"
 #to run locally use local as queue + can add "--njobs 8" to use 8 parallel jobs
 queue=longlunch 
 outdir=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/VBFVectorBoson
-wwwdir=~/www/VBFVectorBoson
+wwwdir=/eos/user/p/psilva/www/SMP-19-005
 
 #k-factors for gamma+jets
-kFactors="--procSF MC13TeV_${ERA}_QCDEM_15to20:1.26,MC13TeV_${ERA}_QCDEM_20to30:1.26,MC13TeV_${ERA}_QCDEM_30to50:1.26,MC13TeV_${ERA}_QCDEM_50to80:1.26,MC13TeV_${ERA}_QCDEM_80to120:1.26,MC13TeV_${ERA}_QCDEM_120to170:1.26,MC13TeV_${ERA}_QCDEM_170to300:1.26,MC13TeV_${ERA}_QCDEM_300toInf:1.26,MC13TeV_${ERA}_GJets_HT40to100:1.26,MC13TeV_${ERA}_GJets_HT100to200:1.26,MC13TeV_${ERA}_GJets_HT200to400:1.26,MC13TeV_${ERA}_GJets_HT400to600:1.26,MC13TeV_${ERA}_GJets_HT600toInf:1.26"
+kFactors="--procSF MC13TeV_era${ERA}_QCDEM_15to20:1.26,MC13TeV_era${ERA}_QCDEM_20to30:1.26,MC13TeV_era${ERA}_QCDEM_30to50:1.26,MC13TeV_era${ERA}_QCDEM_50to80:1.26,MC13TeV_era${ERA}_QCDEM_80to120:1.26,MC13TeV_era${ERA}_QCDEM_120to170:1.26,MC13TeV_era${ERA}_QCDEM_170to300:1.26,MC13TeV_era${ERA}_QCDEM_300toInf:1.26,MC13TeV_era${ERA}_GJets_HT40to100:1.26,MC13TeV_era${ERA}_GJets_HT100to200:1.26,MC13TeV_era${ERA}_GJets_HT200to400:1.26,MC13TeV_era${ERA}_GJets_HT400to600:1.26,MC13TeV_era${ERA}_GJets_HT600toInf:1.26"
+#kFactors="--procSF #gamma+jets:1.26,QCD:1.26"
+
 
 #Fake raw list
 fake="--rawList MC13TeV_${ERA}_Fake --skip MC13TeV_${ERA}_QCDEM"
@@ -56,14 +58,17 @@ case $WHAT in
 
     TESTSEL )
                
+
         json=data/era${ERA}/vbf_DY_FXFX_mlm.json
 
         #tag=MC13TeV_2016_DY50toInf_1J_mlm
         tag=MC13TeV_2017_DY50toInf_2J_fxfx
+
         if [[ ${ERA} == "2016" ]]; then
            tag=MC13TeV_2016_DY50toInf_2J_fxfx
           # tag=MC13TeV_2016_DY50toInf_2J_mlm
         fi
+
         input=${eosdir}/${tag}/Chunk_1_ext0.root        
         output=testsel.root    #${tag}.root 
        # input=${eosdir}
@@ -76,7 +81,7 @@ case $WHAT in
             --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch 0 --runSysts --debug ;
 
         #--debug --mvatree \
-        ./scripts/mergeOutputs.py ${output};
+        #./scripts/mergeOutputs.py ${output};
         ;;
 
 
@@ -127,7 +132,15 @@ case $WHAT in
 
 	;;
 
+<<<<<<< HEAD
     
+=======
+    CHECKSELINTEG )
+        python scripts/checkLocalAnalysisInteg.py ../../../FARM${EXTRA}${githash}/ ${outdir}/${githash}/${EXTRA} 
+        ;;
+
+
+>>>>>>> c809f17d90fcdcedf547609d370d2c6abe568636
     SELTRIGEFF )
 	python scripts/runLocalAnalysis.py \
 	    -i ${eosdir} --only SinglePhoton,EWKAJJ\
@@ -180,6 +193,7 @@ case $WHAT in
 	fake_json=data/era${ERA}/vbf_fake_samples.json;
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
 	commonOpts="-i ${outdir}/${githash}/${EXTRA} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi}"
+<<<<<<< HEAD
 #        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --silent --only A_gen
         #python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
 
@@ -192,6 +206,14 @@ case $WHAT in
 #	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighVPtA,LowVPtA,HighVPtMM,LowVPtMM,HighVPtEE,LowVPtEE  --silent -o syst_plotter.root
 #	python scripts/plotter.py ${commonOpts} -j ${json},${fake_json} --only HighMJJ,LowMJJ ${kFactors} ${fake} -o fake_plotter.root
 
+=======
+        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --silent --only A_gen
+        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
+	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors}
+	python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
+	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
+	python scripts/plotter.py ${commonOpts} -j ${json},${fake_json} --only HighMJJ,LowMJJ ${kFactors} ${fake} -o fake_plotter.root
+>>>>>>> c809f17d90fcdcedf547609d370d2c6abe568636
         ;;
 
     

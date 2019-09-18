@@ -18,16 +18,23 @@
 class BTagSFUtil{
 
  public:
+
+  enum SFWeightMethod { METHOD1A, CSVREWEIGHT };
     
   BTagSFUtil(TString era="era2017", BTagEntry::OperatingPoint btagOp=BTagEntry::OperatingPoint::OP_MEDIUM, TString btagExp="", int seed=0 );
   void setMC2MCCorrection(BTagEntry::JetFlavor flav,TGraphErrors *gr) { mc2mcCorr_[flav]=gr; }
   ~BTagSFUtil();
 
   void addBTagDecisions(MiniEvent_t &ev,float wp=0.4941,float wpl=0.4941);
+
+  double getBtagWeight(std::vector<Jet> &jetColl, MiniEvent_t &ev,TString sys,SFWeightMethod method=METHOD1A);
+
   void updateBTagDecisions(MiniEvent_t &ev, std::string optionbc = "central", std::string optionlight = "central");
-  double getBtagWeightMethod1a(std::vector<Jet> &jetColl, MiniEvent_t &ev,TString sys);
   void modifyBTagsWithSF( bool& isBTagged, float Btag_SF = 0.98, float Btag_eff = 1.0);  
   bool applySF(bool& isBTagged, float Btag_SF = 0.98, float Btag_eff = 1.0);
+
+
+
   
  private:
   

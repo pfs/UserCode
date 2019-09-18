@@ -64,6 +64,8 @@ class Plot(object):
         self.plotformats = ['pdf','png']
         self.savelog = False
         self.doChi2 = False
+        self.normUncGr  = None #external input for normalization uncertainty
+        self.relShapeGr = None #external input for relative shape
         self.range=None
         self.ratiorange = [0.4,1.6]
         self.xtit=None
@@ -198,7 +200,7 @@ class Plot(object):
             except:
                 pass
 
-    def show(self, outDir,lumi,noStack=False,saveTeX=False,extraText=None,noRatio=False):
+    def show(self, outDir,lumi,noStack=False,saveTeX=False,extraText=None,noRatio=False,overlay=None):
         if len(self.mc)<1 and self.dataH is None and len(self.spimpose)<1:
             print '%s has 0 or 1 MC!' % self.name
             return
@@ -432,13 +434,16 @@ class Plot(object):
                 if (len(self.mcsyst)>0):
                     totalMCUnc.Draw('e2 same')
                     totalMCUncShape.Draw('e2 same')
+                elif self.normUncGr:
+                    self.normUncGr.Draw('2')
+                    leg.AddEntry(self.normUncGr,self.normUncGr.GetTitle(),'f')
                 else:
                     uncBand=totalMC.Clone('totalmcuncband')
                     self._garbageList.append(uncBand)
                     uncBand.SetFillStyle(3254)
                     ci=ROOT.TColor.GetColor('#99d8c9')
                     uncBand.SetMarkerColor(ci)
-                    uncBand.SetFillColor(ci)
+                    uncBand.SetFillColor(1) #ci)
                     uncBand.Draw('e2 same')
                     #uncBand.SetTitle('Syst. unc.')
                     #leg.AddEntry(uncBand,uncBand.GetTitle(),'f')
@@ -454,6 +459,10 @@ class Plot(object):
                     self.spimpose[m].Draw('histsame')
 
         if self.data is not None : self.data.Draw('p')
+
+        if overlay: 
+            for x in overlay: 
+                x.Draw('same')
 
         if (totalMC is not None and totalMC.GetMaximumBin() > totalMC.GetNbinsX()/2.):
             inix = 0.15
@@ -516,7 +525,7 @@ class Plot(object):
             ratioframe.GetXaxis().SetTitleSize(0.2)
             ratioframe.GetXaxis().SetTitleOffset(0.8)
             ratioframe.SetFillStyle(3254)
-            ratioframe.SetFillColor(ROOT.TColor.GetColor('#99d8c9'))
+            ratioframe.SetFillColor(1) #ROOT.TColor.GetColor('#99d8c9'))
 
 
             #in case we didn't stack compare each distribution
@@ -541,11 +550,14 @@ class Plot(object):
                     
             #in case we stacked compare only the total
             else:
-                if (len(self.mcsyst)>0):
+                if self.relShapeGr:
+                    self.relShapeGr.Draw('2')
+                elif (len(self.mcsyst)>0):
                     ratioframeshape=ratioframe.Clone('ratioframeshape')
                     self._garbageList.append(ratioframeshape)
                     ratioframeshape.SetFillColor(ROOT.TColor.GetColor('#d73027'))            
-                
+
+
                 totalMCnoUnc=totalMC.Clone('totalMCnounc')
                 self._garbageList.append(totalMCnoUnc)
                 for xbin in xrange(1,totalMC.GetNbinsX()+1):

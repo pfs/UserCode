@@ -21,7 +21,7 @@ def main():
     parser.add_option('-o', '--output',      dest='cache',       help='output file',                  default='data/era2016/genweights.root',                      type='string')
     (opt, args) = parser.parse_args()
 
-    baseEOS='/eos/cms/'
+    baseEOS='root://eoscms' #/eos/cms/'
     #eos_cmd = '/afs/cern.ch/project/eos/installation/0.3.15/bin/eos.select'
     #if opt.mount:
     #    baseEOS='eos/cms'
@@ -30,56 +30,61 @@ def main():
     #loop over samples available
     genweights={}
     puprofile={}
-    for sample in os.listdir('%s/%s' % (baseEOS,opt.inDir)):
+    for sample in os.listdir('/eos/cms/%s' % opt.inDir):
 
         #sum weight generator level weights
         wgtCounter=None
         putrue=None
         labelH=None
-        for f in os.listdir('%s/%s/%s' % (baseEOS,opt.inDir,sample ) ):
-            print f
-            fIn=ROOT.TFile.Open('%s/%s/%s/%s' % (baseEOS,opt.inDir,sample,f ) )
-            if not fIn:
-                print "Wanring!!! Can't open chunk file:", f, " skipping this file!"
-                continue
-            if not opt.HiForest:
-                if wgtCounter is None:
-                    try:
-                        wgtCounter=fIn.Get('analysis/fidcounter').ProjectionX('genwgts',1,1) # get the nominal one 
-                        wgtCounter.SetDirectory(0)
-                        wgtCounter.Reset('ICE')
-                        putrue=fIn.Get('analysis/putrue').Clone()
-                        putrue.SetDirectory(0)
-                        putrue.Reset('ICE')
-                    except:
-                        print 'Check %s/%s/%s/%s probably corrupted?' % (baseEOS,opt.inDir,sample,f )
-                        continue
+
+        for f in os.listdir('/eos/cms/%s/%s' % (opt.inDir,sample ) ):
+            
+            try:
+                fIn=ROOT.TFile.Open('%s/%s/%s/%s' % (baseEOS,opt.inDir,sample,f ) )
+               # if not fIn:
+                 #   print "Wanring!!! Can't open chunk file:", f, " skipping this file!"
+                  #  continue
+                if not opt.HiForest:
+                    if wgtCounter is None:
+                        try:
+                            wgtCounter=fIn.Get('analysis/fidcounter').ProjectionX('genwgts',1,1)
+                            wgtCounter.SetDirectory(0)
+                            wgtCounter.Reset('ICE')
+                            putrue=fIn.Get('analysis/putrue').Clone()
+                            putrue.SetDirectory(0)
+                            putrue.Reset('ICE')
+                        except:
+                            print 'Check %s/%s/%s/%s probably corrupted?' % (baseEOS,opt.inDir,sample,f )
+                            continue
+
                     
-                labelH=fIn.Get('analysis/generator_initrwgt')
-                if labelH : labelH.SetDirectory(0)                             
-                try:
-                    px=fIn.Get('analysis/fidcounter').ProjectionX('px',1,1)
-                    wgtCounter.Add(px)
-                    px.Delete()
-                    putrue.Add( fIn.Get('analysis/putrue') )
-                except:
-                    print 'Check eos/cms/%s/%s/%s probably corrupted?' % (opt.inDir,sample,f )
-                    continue
-            else:
-                if wgtCounter is None:
-                    wgtCounter=ROOT.TH1F('genwgts','genwgts',1500,0,1500)
-                    wgtCounter.SetDirectory(0)
-                hiTree=fIn.Get('hiEvtAnalyzer/HiTree')
-                for i in xrange(0,hiTree.GetEntriesFast()):
-                    hiTree.GetEntry(i)
+                    labelH=fIn.Get('analysis/generator_initrwgt')
+                    if labelH : labelH.SetDirectory(0)                             
                     try:
-                        ttbar_w=getattr(hiTree,'ttbar_w')
-                        for ibin in xrange(0,ttbar_w.size()):
-                            wgtCounter.Fill(ibin,ttbar_w[ibin])
-                        if ttbar_w.size()==0: raise ValueError('simple count required')
+                        px=fIn.Get('analysis/fidcounter').ProjectionX('px',1,1)
+                        wgtCounter.Add(px)
+                        px.Delete()
+                        putrue.Add( fIn.Get('analysis/putrue') )
                     except:
-                        wgtCounter.Fill(0,1)
-            fIn.Close()
+                        print 'Check eos/cms/%s/%s/%s probably corrupted?' % (opt.inDir,sample,f )
+                        continue
+                else:
+                    if wgtCounter is None:
+                        wgtCounter=ROOT.TH1F('genwgts','genwgts',1500,0,1500)
+                        wgtCounter.SetDirectory(0)
+                    hiTree=fIn.Get('hiEvtAnalyzer/HiTree')
+                    for i in xrange(0,hiTree.GetEntriesFast()):
+                        hiTree.GetEntry(i)
+                        try:
+                            ttbar_w=getattr(hiTree,'ttbar_w')
+                            for ibin in xrange(0,ttbar_w.size()):
+                                wgtCounter.Fill(ibin,ttbar_w[ibin])
+                            if ttbar_w.size()==0: raise ValueError('simple count required')
+                        except:
+                            wgtCounter.Fill(0,1)
+                fIn.Close()
+            except:
+                print 'Failed to get weights for','%s/%s/%s/%s' % (baseEOS,opt.inDir,sample,f )
 
         if wgtCounter is None: continue
         if labelH:

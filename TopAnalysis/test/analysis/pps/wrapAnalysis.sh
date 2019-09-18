@@ -2,7 +2,7 @@
 HOME=`pwd`
 CMSSW=/afs/cern.ch/user/p/psilva/work/CMSSW_9_4_11
 PPS=${CMSSW}/src/TopLJets2015/TopAnalysis/test/analysis/pps
-samples_json=${PPS}/samples.json
+samples_json=${PPS}/samples.json,${PPS}/signal_samples.json
 RPout_json=${PPS}/golden_noRP.json
 cd ${CMSSW}/src
 eval `scram r -sh`

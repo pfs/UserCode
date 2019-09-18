@@ -96,9 +96,10 @@ def transferDYestimate(h,tf):
 def estimateDY(srCat,crCat,dist,fIn,outDir):
     """sums up the ee and mm channels and compares with the results under the Z peak"""
                 
+
     cr=getPlots(crCat+'_'+dist, fIn, chList=['zee','zmm'], sig='DY', subtractBkg=True)                
     sr=getPlots(srCat+'_'+dist, fIn, chList=['ee','mm'],   sig='DY', subtractBkg=True)
-
+    
     
     #transfer factor (smoothed)
     tf_kfactor=cr['sig'].Integral()/sr['sig'].Integral()
@@ -123,26 +124,43 @@ def estimateDY(srCat,crCat,dist,fIn,outDir):
     c.SetBottomMargin(0.1)
     c.SetLeftMargin(0.12)
     c.SetRightMargin(0.04)
-    drawOpt='hist'
-    for key in mcdy_sr:
-        mcdy_sr[key].GetYaxis().SetRangeUser(0,sr['sig'].GetMaximum()*1.3)
-        mcdy_sr[key].SetLineWidth(2)
-        mcdy_sr[key].SetFillStyle(0)
-        mcdy_sr[key].SetLineColor(ROOT.kGray)
-        mcdy_sr[key].Draw(drawOpt)
-        drawOpt='histsame'
+    
+    frame=mcdy_sr['nom'].Clone('frame')
+    frame.GetYaxis().SetRangeUser(0,sr['sig'].GetMaximum()*1.3)
+    frame.Reset('ICE')
+    frame.Draw()
+
+    gr=ROOT.TGraphAsymmErrors()
+    for xbin in range(frame.GetNbinsX()):
+        vals=[mcdy_sr[key].GetBinContent(xbin+1) for key in ['nom','dn','up']]
+        gr.SetPoint(xbin,frame.GetXaxis().GetBinCenter(xbin+1),vals[0])
+        errDn=min(abs(vals[1]-vals[0]),abs(vals[2]-vals[0]))
+        errUp=max(abs(vals[1]-vals[0]),abs(vals[2]-vals[0]))
+        ex=0.5*frame.GetXaxis().GetBinWidth(xbin+1)
+        gr.SetPointError(xbin,ex,ex,errDn,errUp)
+    gr.SetFillStyle(1001)
+    gr.SetFillColor(ROOT.kGray)
+    gr.SetLineColor(ROOT.kGray)
+    gr.Draw('e2')
+
     sr['sig'].SetFillStyle(0)
     sr['sig'].SetLineColor(1)
     sr['sig'].SetMarkerStyle(20)
     sr['sig'].SetMarkerColor(1)
     sr['sig'].Draw('e1same')
-    leg=ROOT.TLegend(0.15,0.9,0.4,0.8)
+    leg=ROOT.TLegend(0.15,0.9,0.4,0.75)
     leg.SetBorderSize(0)
     leg.SetTextSize(0.04)
     leg.SetFillStyle(0)
-    leg.SetHeader(srCat)
-    leg.AddEntry(mcdy_sr['nom'],'extrapolation from CR','l')
-    leg.AddEntry(sr['sig'],'expectation in SR','l')
+    
+    srCatTitle=''
+    if 'lowpt' in srCat: srCatTitle='low p_{T}'
+    if 'highpt' in srCat: srCatTitle='high p_{T}'
+    if '1b' in srCat : srCatTitle += ' =1b'
+    if '2b' in srCat : srCatTitle += ' #geq2b'
+    leg.SetHeader(srCatTitle)
+    leg.AddEntry(gr,'extrapolation from CR','f')
+    leg.AddEntry(sr['sig'],'expectation in SR','ep')
     leg.Draw()
     tex=ROOT.TLatex()
     tex.SetTextFont(42)

@@ -3,6 +3,12 @@ import sys
 import optparse
 import ROOT
 
+def getScenario(mt,gt):
+    mask=int('0xffff',16)
+    scenario=(int((gt-0.7)/0.01) & mask)
+    scenario |= ((int((mt-169)/0.25) & mask) << 16)
+    return scenario
+
 def getScanAnchors(opt):
 
     """ checks the directories available for likelihood scan anchors """
@@ -26,6 +32,10 @@ def getSignals(opt):
 
     """opens the nominal and syst plotter and finds all t#bar{t} plots available"""
 
+    addSignals=['169.5','171.5','173.5','175.5',
+                '0.5w', '4w',
+                'fsr','gluonmove','erdon','qcdBased']
+
     signals=[]
     plotDir=os.path.join(os.path.dirname(opt.templ),'plots')
     plotters=['plotter.root','syst_plotter.root']
@@ -42,10 +52,27 @@ def getSignals(opt):
             keyname=key.GetName()
             pos=keyname.find('t#bar{t}')
             if pos<0: continue            
-            #use only FSR, mass and width variations
-            if 't#bar{t}fsr' in keyname or 't#bar{t}1' in keyname or 't#bar{t}0.5w' in keyname or 't#bar{t}4w' in keyname:
-                keyname=keyname[pos:]
+
+            keyname=keyname[pos:]
+            isNom=True if keyname=='t#bar{t}' else False
+
+            isAddSignal=False
+            for x in addSignals:
+                if not x in keyname: continue
+                isAddSignal=True
+                break
+
+            #signals which are interesting to use as pseudo-data
+            if isNom or isAddSignal:
                 signals.append( 'sig,%s,$(dist)/$(dist)_%s'%(f,keyname) )
+
+            if isNom:
+                for mt,gt in [(171.5,1.28), (172.0,1.3), (173.0,1.32), (173.5,1.34) ]:
+                    sigStr  = 'sig,%s,$(dist)/$(dist)_%s,'%(f,keyname)
+                    sigStr += 'scenario%d/MC13TeV_2016_TTJets_psweights.root,$(dist)'%getScenario(mt,gt)
+                    signals.append(sigStr)
+
+    print signals
     return signals
     
 def generateJobs(scanAnchors,signals,opt):

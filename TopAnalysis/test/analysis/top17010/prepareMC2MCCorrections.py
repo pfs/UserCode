@@ -29,10 +29,10 @@ def getRatio(num,den,name):
     r.Sort()
     return r
 
-PROCLIST=['MC13TeV_2016_TTJets',
-          'MC13TeV_2016_TTJets_fsrdn',   'MC13TeV_2016_TTJets_fsrup',
-          'MC13TeV_2016_TTJets_hdampup', 'MC13TeV_2016_TTJets_hdampdn',
-          'MC13TeV_2016_TTJets_uedn',    'MC13TeV_2016_TTJets_ueup',  
+PROCLIST=['MC13TeV_2016_TTJets_psweights', 'MC13TeV_2016_TTJetsTo2L2Nu_psweights',
+          'MC13TeV_2016_TTJets_fsrdn',     'MC13TeV_2016_TTJets_fsrup',
+          'MC13TeV_2016_TTJets_hdampup',   'MC13TeV_2016_TTJets_hdampdn',
+          'MC13TeV_2016_TTJets_uedn',      'MC13TeV_2016_TTJets_ueup',  
           'MC13TeV_2016_TTJets_erdon', 
           'MC13TeV_2016_TTJets_qcdbased',
           'MC13TeV_2016_TTJets_gluonmove'

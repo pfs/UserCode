@@ -5,13 +5,13 @@ from optparse import OptionParser
 from collections import defaultdict
 import numpy as np
 
-COLORS=[1, ROOT.kOrange,  ROOT.kRed+1, ROOT.kMagenta-9, ROOT.kBlue-7]
+COLORS=[1, ROOT.kOrange,  ROOT.kRed+1, ROOT.kMagenta-9, ROOT.kBlue-7, ROOT.kGreen+3]
 
 def doNuisanceReport(args,outdir,onlyList,skipList):
 
     """compare postfit nuisances"""
 
-    blackList=['seed','itoy','status','errstatus','scanidx','edmval','nllval','nllvalfull','dnllval','chisq','chisqpartial','ndof','ndofpartial']
+    blackList=['seed','itoy','status','errstatus','scanidx','edmval','nllval','nllvalfull','dnllval','chisq','chisqpartial','ndof','ndofpartial','taureg']
     
     results=[]
     varsMaxConstr={}
@@ -162,7 +162,6 @@ def doNuisanceReport(args,outdir,onlyList,skipList):
 
         nuisGrs={}
         dy=1.0/float(len(results)+1)
-
         
         for iv in range(len(varList)):
             v=varList[iv]
@@ -191,8 +190,9 @@ def doNuisanceReport(args,outdir,onlyList,skipList):
         leg.SetFillStyle(0)
         for ir in range(len(results)):
             title,_=results[ir]
-            nuisGrs[title].Draw('p')
-            leg.AddEntry(nuisGrs[title],title,'p')
+            if title in nuisGrs:
+                nuisGrs[title].Draw('p')
+                leg.AddEntry(nuisGrs[title],title,'p')
         leg.Draw()
 
         c.RedrawAxis()

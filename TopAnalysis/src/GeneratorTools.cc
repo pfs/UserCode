@@ -5,6 +5,23 @@
 using namespace std;
 
 //
+std::vector< WeightSysts_t > getPartonShowerWeightSysts(TFile *f){
+  std::vector< WeightSysts_t > systsOfInterest;
+
+  TH1 *h=(TH1 *) f->Get("analysis/genlumiwgts");
+  if(h==0) return systsOfInterest;
+
+  for(Int_t xbin=1; xbin<=h->GetNbinsX(); xbin++){
+    TString label=h->GetXaxis()->GetBinLabel(xbin);
+    if(label.Length()==0) continue;
+    if(label=="nominal" || label=="Baseline") continue;
+    systsOfInterest.push_back( WeightSysts_t(label,xbin-1) );
+  }
+
+  return systsOfInterest;
+}
+
+//
 std::vector< WeightSysts_t > getWeightSysts(TFile *f,TString sample){
   std::vector< WeightSysts_t > systsOfInterest;
 

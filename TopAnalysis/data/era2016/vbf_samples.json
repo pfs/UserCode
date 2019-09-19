@@ -57,13 +57,6 @@
 "Data13TeV_2016E_DoubleEG"           : [1,       1, "/DoubleEG/Run2016E-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2016F_DoubleEG"           : [1,       1, "/DoubleEG/Run2016F-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2016G_DoubleEG"           : [1,       1, "/DoubleEG/Run2016G-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2016H_DoubleEG"           : [1,       1, "/DoubleEG/Run2016H-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2016B_JetHT"              : [1,       1, "/JetHT/Run2016B-17Jul2018_ver2-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2016C_JetHT"              : [1,       1, "/JetHT/Run2016C-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2016D_JetHT"              : [1,       1, "/JetHT/Run2016D-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2016E_JetHT"              : [1,       1, "/JetHT/Run2016E-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2016F_JetHT"              : [1,       1, "/JetHT/Run2016F-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2016G_JetHT"              : [1,       1, "/JetHT/Run2016G-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2016H_JetHT"              : [1,       1, "/JetHT/Run2016H-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0]
+"Data13TeV_2016H_DoubleEG"           : [1,       1, "/DoubleEG/Run2016H-17Jul2018-v1/MINIAOD", "Data", 1, false, false, 0]
 }
 

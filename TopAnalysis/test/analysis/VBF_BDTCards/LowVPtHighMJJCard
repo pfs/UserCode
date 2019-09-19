@@ -1,0 +1,10 @@
+ystar,            			 ystar
+mjj,              			 mjj
+dphijj,           			 dphijj
+j_qg[0],          			 leadjet_qg
+dphibjj,          			 dphibjj
+dphivj0,          			 dphivj0
+j_qg[1],          			 subleadjet_qg
+C,                			 C
+jjpt,						 jjpt
+j_pt[0]+j_pt[1]+gamma_pt[0], syspt

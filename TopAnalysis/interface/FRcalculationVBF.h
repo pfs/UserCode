@@ -63,6 +63,8 @@ TH1D*  rawFRMaker(TH1D& Num1, TH1D& Den1, TString fname = "Data13TeV_SinglePhoto
   }
   
   Num1 = *((TH1D*)Num->ProjectionY("rawNum"));
+  //temporary fix for tight definition vs relaxed tight
+  //if(catName.Contains("LowVPt")) Num1.Scale(5042.000000/4536.000000);
   Den1 = *((TH1D*)Den->ProjectionY("Den"));
   TH1D * ratio = (TH1D*)Num1.Clone("rawFR");
   ratio->Divide(&Den1);
@@ -94,7 +96,7 @@ void makeFile(TString binvar){
   f->Close();
 }
 
-void promptEstimator(TString binvar= "Mjj", TString dataname = "Data13TeV_SinglePhoton_2017.root", TString catName = "LowMJJA", TString det = "EB", TString pname = "MC13TeV_GJets.root", TString qcd = "Data13TeV_JetHTQCD_2017.root"){
+void promptEstimator(TString binvar= "Mjj", TString dataname = "Data13TeV_SinglePhoton_2017.root", TString catName = "LowMJJA", TString det = "EB", TString pname = "MC13TeV_GJets.root", TString qcd = "Data13TeV_JetHTQCD_2017.root", float oer = 1.){
   double pHigh = 0.00996;
   if (det == "EE")
     pHigh = 0.0271;
@@ -148,7 +150,6 @@ void promptEstimator(TString binvar= "Mjj", TString dataname = "Data13TeV_Single
   TH1D * QCD = (TH1D*)QCD2->ProjectionX("QCD");
   QCD->Scale(1/QCD->Integral());
   double fFrac = QCD->Integral(1,QCD->GetXaxis()->FindBin(pHigh)); 
-
   QCD->Rebin(4);
   QCD->Scale(1/QCD->Integral());
   RooDataHist dQ("dQ","dQ",sihih,Import(*QCD));
@@ -168,7 +169,7 @@ void promptEstimator(TString binvar= "Mjj", TString dataname = "Data13TeV_Single
     RooDataHist dh(name.str().c_str(),name.str().c_str(),sihih,Import(*dataSihih[i]));
     name.str("");
     name <<"frac_"+binvar+"bin"<<i+1;
-    RooRealVar frac(name.str().c_str(),name.str().c_str(),0.8,0,1) ;
+    RooRealVar frac(name.str().c_str(),name.str().c_str(),0.8,0,1.) ;
     name.str("");
     name <<"norm_"+binvar+"bin"<<i+1;
     RooRealVar norm(name.str().c_str(),name.str().c_str(),0.9*dataSihih[i]->GetEntries(),0,dataSihih[i]->GetEntries()) ;
@@ -183,12 +184,14 @@ void promptEstimator(TString binvar= "Mjj", TString dataname = "Data13TeV_Single
 
 
     nPrompt->SetBinContent(i+1,pFrac*dataSihih[i]->GetEntries()*frac.getVal());
-    nFake->SetBinContent(i+1,fFrac*(1-frac.getVal())*dataSihih[i]->GetEntries());
+    nFake->SetBinContent(i+1,oer*fFrac*(1-frac.getVal())*dataSihih[i]->GetEntries());
 
-    fakeFraction->SetBinContent(i+1,fFrac*(1-frac.getVal()));
-    fakeFraction->SetBinError(i+1,fFrac*frac.getError());
+    fakeFraction->SetBinContent(i+1,oer*fFrac*(1-frac.getVal()));
+    //    if(catName.Contains("LowVPt")) fakeFraction->SetBinContent(i+1,oer*(1-(pFrac*frac.getVal())));
+    fakeFraction->SetBinError(i+1,oer*fFrac*frac.getError());
+    //    if(catName.Contains("LowVPt")) fakeFraction->SetBinError(i+1,oer*pFrac*frac.getError());
 
-    cout<<pFrac<<" "<<fFrac<<endl;
+    cout<<pFrac<<" "<<fFrac<<" "<<frac.getVal()<<endl;
     RooPlot* mesframe = sihih.frame() ;
     dh.plotOn(mesframe);
     model.plotOn(mesframe);

@@ -36,6 +36,7 @@ std::pair<TH1F*,TH1F*> convert1SDto2SD(TH1F* nominal, TH1F* systematic){
   TH1F * down = (TH1F*)nominal->Clone(sysName+"Down");
   for(int i = 0; i < nominal->GetXaxis()->GetNbins(); i++){
     double diff = 0.5*fabs(nominal->GetBinContent(i+1) - systematic->GetBinContent(i+1));
+    if(diff/(1+nominal->GetBinContent(i+1))> 100) diff = 0.;
     up->SetBinContent(i+1, nominal->GetBinContent(i+1) + diff);
     down->SetBinContent(i+1, nominal->GetBinContent(i+1) - diff);    
   }
@@ -66,6 +67,12 @@ std::vector<TH1F*> correctBkgLinearFitNLO(TF1 * f, TH1F * hin){
   //hd->Scale(hin->Integral()/hd->Integral());
   delete fDown;
   ret.push_back(hd);
+  if(TString(hin->GetName()).Contains("RelativeJEREC1JEC")){
+    cout << "func = "<<f->GetParameter(1) <<" . X + "<<f->GetParameter(0)<< endl;
+    for(int b = 0; b < hin->GetXaxis()->GetNbins(); b++){
+      cout<< hin->GetBinContent(b+1) << "\t"<< h->GetBinContent(b+1) << "\t" << ret[0]->GetBinContent(b+1)<<endl;
+    }
+  }
   return ret;
 }
 
@@ -78,6 +85,7 @@ std::vector<TH1F*> correctBackground(TH1F* hin, TH1F* tf, TF1 * fit, bool doLin 
     float binVal = hin->GetBinCenter(i+1);
     int iBin     = tf->GetXaxis()->FindBin(binVal);
     float cf     = tf->GetBinContent(iBin);
+    if(fabs(cf) < 0.0001) cf = 1.;
     hout->SetBinContent(i+1,cf* hin->GetBinContent(i+1));
     hout->SetBinError(i+1,cf* hin->GetBinError(i+1));
   } 
@@ -93,9 +101,10 @@ std::vector<TH2F*> correctBkg2D(TH2F * hin, TH1F * tf, TF1 * fit){
   TH2F * ret = (TH2F*)hin->Clone(TString("tmp2D")+hin->GetName());
   TH2F * ret2 = (TH2F*)hin->Clone(TString("tmp2DLin")+hin->GetName());
   stringstream s("");
+  
   for(int y = 0; y < hin->GetYaxis()->GetNbins(); y++){
     s.str("");
-    s << "tmp1D" << hin->GetName() << y+1;
+    s << "tmp1D" << hin->GetName() << y+1 <<hin->GetYaxis()->GetBinLabel(y+1);
     TH1F * tmp = (TH1F*)hin->ProjectionX(s.str().c_str(),y+1,y+1);
     std::vector<TH1F*> rw = correctBackground(tmp, tf, fit);
     for(int x = 0; x < rw[0]->GetXaxis()->GetNbins(); x++){

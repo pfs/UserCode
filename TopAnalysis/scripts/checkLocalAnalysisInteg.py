@@ -83,7 +83,7 @@ with open(os.path.join(FARMDIR,'localanalysis_integ_report.dat'),'w') as r:
                 toRun += [shScript]
 
 print 'Report in localanalysis_integ_report.dat'
-if not runLocal and len(shScript)>0:
+if not runLocal and len(toRun)>0:
     
     print 'Resubmitting',len(toRun),'jobs for',FARMDIR
     OpSysAndVer = str(os.system('cat /etc/redhat-release'))

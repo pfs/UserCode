@@ -29,6 +29,22 @@ class VbfFitRegion{
  VbfFitRegion(TString channel, TString v, TString Hist, TString year_, int bin, bool SR, bool onlyShape=false, bool NLODefult_ = false):chan(channel),boson(v),hist(Hist),year(year_),nBin(bin),isSR(SR),NLODefault(NLODefult_){
     TFile * f_ = TFile::Open("tf_plotter_"+year+".root");
     tf_ = (TH1F*) f_->Get(chan+"MM_"+hist+"/"+chan+"_"+hist+"_Z_data2lo");//nlo2lo");  
+    
+    /* int nonZero(0); */
+    /* for(int b = tf_->GetXaxis()->GetNbins()-1; b > 0; b--){ */
+    /*   if(fabs(tf_->GetBinContent(b+1)) > 0.0001) { */
+    /* 	nonZero = b+1; */
+    /* 	break; */
+    /*   } */
+    /* } */
+    /* bool blind(nonZero > int(0.5*tf_->GetXaxis()->GetNbins()) && nonZero < int(tf_->GetXaxis()->GetNbins()-2)); */
+    /* if(blind){ */
+    /*   cout <<"last value: "<<tf_->GetXaxis()->GetBinLowEdge(nonZero+1)<<endl; */
+    /*   fit_ = new TF1("pol1","pol1",-1.0,tf_->GetXaxis()->GetBinLowEdge(nonZero+1)); */
+    /*   tf_->Fit(fit_,"R"); */
+    /*   fit_->SetRange(-1.,1.); */
+    /*   cout<<fit_->Eval(0.9)<<endl; */
+    /* } else tf_->Fit("pol1"); */
     tf_->Fit("pol1");
     fit_ = (TF1*)tf_->GetListOfFunctions()->FindObject("pol1");
     Exp = new systematics("exp", onlyShape, year);
@@ -78,11 +94,11 @@ class VbfFitRegion{
      Theo->shapeSystBkg.push_back(updownI.second);
      Theo->shapeSystMap["NLO"]=make_pair(0,1);
 
-     TH1F* tmp = (TH1F*)hBkgCorrLin[1]->Clone("BkgNLO_NLOLinUp");
+     TH1F* tmp = (TH1F*)hBkgCorrLin[1]->Clone("BkgNLO_NLOLin"+chan+year+"Up");
      Theo->shapeSystBkgNLO.push_back(tmp);
-     tmp = (TH1F*)hBkgCorrLin[2]->Clone("BkgNLO_NLOLinDown");
+     tmp = (TH1F*)hBkgCorrLin[2]->Clone("BkgNLO_NLOLin"+chan+year+"Down");
      Theo->shapeSystBkgNLO.push_back(tmp);
-     Theo->shapeSystMap["NLOLin"]=make_pair(0,1);
+     Theo->shapeSystMap["NLOLin"+chan+year]=make_pair(0,1);
      std::pair<TH1F*,TH1F*> updown = convert1SDto2SD(hBkgCorr,hBkg);
      updown.first->SetName("BkgNLOBinned_NLOBinnedUp");
      Theo->shapeSystBkgNLOBinned.push_back(updown.first);

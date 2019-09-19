@@ -1,0 +1,9 @@
+ystar,                       ystar
+mjj,              			 mjj
+j_qg[0],          			 leadjet_qg
+circularity,           		 circularity
+sphericity,           		 sphericity
+j_qg[1],           			 subleadj_qg
+jjpt,           			 jjpt
+dphijj,           			 dphijj
+j_pt[0]+j_pt[1]+gamma_pt[0], syspt

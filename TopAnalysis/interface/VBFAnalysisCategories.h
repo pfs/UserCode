@@ -1,6 +1,7 @@
 #ifndef vbfanalysiscategories_h
 #define vbfanalysiscategories_h
-
+#include <iostream>
+using namespace std;
 namespace vbf {
   TString categoryNames[]={"LowVPtLowMJJ","LowVPtHighMJJ","HighVPtLowMJJ","HighVPtHighMJJ","HighVPt","LowVPt"};
   struct Category{
@@ -33,12 +34,12 @@ namespace vbf {
       if(A>0)  chTag="A";
       if(chTag=="") return chTags;
       chTags.push_back(chTag);
-      if(LowVPt>0  && LowMJJ>0)                  chTags.push_back(categoryNames[0]+chTag);
-      if(LowVPt>0  && HighMJJ>0)                 chTags.push_back(categoryNames[1]+chTag);
-      if(HighVPt>0 && LowMJJ>0)                  chTags.push_back(categoryNames[2]+chTag);
-      if(HighVPt>0 && HighMJJ>0)                 chTags.push_back(categoryNames[3]+chTag);
-      if(HighVPt>0 && AllMJJ>0)                  chTags.push_back(categoryNames[4]+chTag);
-      if(LowVPt>0 && AllMJJ>0)                   chTags.push_back(categoryNames[5]+chTag);
+      if(LowVPt>0  && LowMJJ>0)                  {chTags.push_back(categoryNames[0]+chTag); }//cout<<categoryNames[0]<<endl;}
+      if(LowVPt>0  && HighMJJ>0)                 {chTags.push_back(categoryNames[1]+chTag); }//cout<<categoryNames[1]<<endl;}
+      if(HighVPt>0 && LowMJJ>0)                  {chTags.push_back(categoryNames[2]+chTag); }//cout<<categoryNames[2]<<endl;}
+      if(HighVPt>0 && HighMJJ>0)                 {chTags.push_back(categoryNames[3]+chTag); }//cout<<categoryNames[3]<<endl;}
+      if(HighVPt>0 && AllMJJ>0)                  {chTags.push_back(categoryNames[4]+chTag); }//cout<<categoryNames[4]<<endl;}
+      if(LowVPt>0 && AllMJJ>0)                   {chTags.push_back(categoryNames[5]+chTag); }//cout<<categoryNames[5]<<endl;}
       return chTags;
     }
   };

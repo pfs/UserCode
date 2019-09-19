@@ -19,6 +19,7 @@ def main():
     parser.add_option(     '--mcUnc',        dest='mcUnc'  ,     help='common MC related uncertainty (e.g. lumi)',        default=0,              type=float)
     parser.add_option(     '--com',          dest='com'  ,       help='center of mass energy',                            default='13 TeV',       type='string')
     parser.add_option(     '--rawYields',    dest='rawYields',   help='do not scale by lumi, xsec, etc.',                 default=False, action='store_true')
+    parser.add_option(     '--blined',       dest='blined',      help='make blind plotting',                              default=False, action='store_true')
     parser.add_option('-j', '--json',        dest='json'  ,      help='json with list of files',        default=None,              type='string')
     parser.add_option( '--systJson',         dest='systJson',    help='json with list of systematics', default=None, type='string')
     parser.add_option(      '--signalJson',  dest='signalJson',  help='signal json list',               default=None,              type='string')
@@ -114,7 +115,7 @@ def main():
         if slist is None: continue
         for tag,sample in slist:
             print "tag: %s, sample: %s" %(tag,sample)
-            if isSyst and not 't#bar{t}' in sample[3] : continue
+#            if isSyst and not 't#bar{t}' in sample[3] : continue
             if tag in skipList:
                 print("SKIPPED "+tag)
                 continue
@@ -196,7 +197,9 @@ def main():
                             histos[-1].SetTitle(sp[1])
 
                         for hist in histos:
-                            if "vbfmva" and "vbfmav1" in hist.GetName() and isData:
+
+                            if "vbfmva" in hist.GetName() and isData and opt.blined:
+
                                 tmpBin = hist.GetXaxis().FindBin(0.2)
                                 for iBin in range(tmpBin,hist.GetXaxis().GetNbins()):
                                     hist.SetBinContent(iBin, 0.0000001)

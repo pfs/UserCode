@@ -106,7 +106,7 @@ case $WHAT in
         ### --SRfake : gives the distributions of fakes, normalised based on fake rates
 
 
-        json=data/era${ERA}/vbf_DY_FXFX_mlm.json  #,data/era${ERA}/vbf_syst_samples.json
+        json=data/era${ERA}/vbf_samples.json,data/era${ERA}/vbf_syst_samples.json
 	#json=data/era${ERA}/vbf_syst_samples.json
 
 	if [[ -z ${EXTRA} ]]; then
@@ -132,15 +132,13 @@ case $WHAT in
 
 	;;
 
-<<<<<<< HEAD
-    
-=======
+
     CHECKSELINTEG )
         python scripts/checkLocalAnalysisInteg.py ../../../FARM${EXTRA}${githash}/ ${outdir}/${githash}/${EXTRA} 
         ;;
 
 
->>>>>>> c809f17d90fcdcedf547609d370d2c6abe568636
+
     SELTRIGEFF )
 	python scripts/runLocalAnalysis.py \
 	    -i ${eosdir} --only SinglePhoton,EWKAJJ\
@@ -193,7 +191,7 @@ case $WHAT in
 	fake_json=data/era${ERA}/vbf_fake_samples.json;
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
 	commonOpts="-i ${outdir}/${githash}/${EXTRA} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi}"
-<<<<<<< HEAD
+
 #        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --silent --only A_gen
         #python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
 
@@ -206,14 +204,7 @@ case $WHAT in
 #	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighVPtA,LowVPtA,HighVPtMM,LowVPtMM,HighVPtEE,LowVPtEE  --silent -o syst_plotter.root
 #	python scripts/plotter.py ${commonOpts} -j ${json},${fake_json} --only HighMJJ,LowMJJ ${kFactors} ${fake} -o fake_plotter.root
 
-=======
-        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --silent --only A_gen
-        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
-	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors}
-	python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
-	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighMJJ,LowMJJ --silent -o syst_plotter.root
-	python scripts/plotter.py ${commonOpts} -j ${json},${fake_json} --only HighMJJ,LowMJJ ${kFactors} ${fake} -o fake_plotter.root
->>>>>>> c809f17d90fcdcedf547609d370d2c6abe568636
+
         ;;
 
     

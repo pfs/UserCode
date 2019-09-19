@@ -196,7 +196,7 @@ def main():
                             histos[-1].SetTitle(sp[1])
 
                         for hist in histos:
-                            if "vbfmva" in hist.GetName() and isData:
+                            if "vbfmva" and "vbfmav1" in hist.GetName() and isData:
                                 tmpBin = hist.GetXaxis().FindBin(0.2)
                                 for iBin in range(tmpBin,hist.GetXaxis().GetNbins()):
                                     hist.SetBinContent(iBin, 0.0000001)
@@ -219,7 +219,9 @@ def main():
                                     lumi=lumiSpecs[lSpec]
                                     break
                                 if not opt.rawYields and not tag in rawList:
-                                    hist.Scale(xsec*lumi*puNormSF*sfVal)       
+                                    hist.Scale(xsec*lumi*puNormSF*sfVal)
+                                    print (xsec*lumi)
+                                    print xsec
              
                             #rebin if needed
                             if opt.rebin>1:  hist.Rebin(opt.rebin)

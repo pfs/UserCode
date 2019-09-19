@@ -107,7 +107,7 @@ class VBFVectorBoson{
 
     lowMJJCut_  = 500.;
     highMJJCut_ = 1000.;        
-
+    lowVPtMinMJJCut_ = 300.;
     applyTrigSafePhoton_=true;
   } 
 
@@ -175,8 +175,8 @@ private:
   //Variables to be added to the MVA Tree and additional variables
   vbf::DiscriminatorInputs vbfVars_;
 
-  float vbfmvaHVPt_, vbfmvaLVPt_ ;
-  std::map<TString,float> vbfmva_, flat_vbfmva_ ;
+  float vbfmvaHVPt_, vbfmvaLVPt_ , vbfmva1_;
+  std::map<TString,float> vbfmva_, flat_vbfmva_  ;
   float evtWeight_;
   float sihih_,chiso_,r9_,hoe_,mindrl_,mindrj_;
   int training_;

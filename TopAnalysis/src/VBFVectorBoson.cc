@@ -444,11 +444,8 @@ void VBFVectorBoson::runAnalysis()
       }
 
 
-      //vbfmvaLoose_ = -1000;
-      // flat_vbfmvaLoos_ = -1000;
-      // bool is_newcatLooszz(false);
-      // flat_vbfmva_ =flat0_vbfmva_= flat1_vbfmva_= flat2_vbfmva_=  -1000;
-       vbfmvaHVPt_ = vbfmvaLVPt_= -1000;
+     
+         vbfmvaHVPt_ = vbfmvaLVPt_= -1000;
       
       if( chTag=="MM" || chTag=="EE" ){
 
@@ -460,8 +457,25 @@ void VBFVectorBoson::runAnalysis()
 	  vbfmvaLVPt_ = readers[key2]->EvaluateMVA(key2);
 	  // std::cout << "Debug Inside the if: vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;
 	}
-      }
-      // std::cout << "Debug:outside the if vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;      
+	}
+      // std::cout << "Debug:outside the if vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;
+
+
+      /*   for(unsigned int icat = 0; icat<chTags.size(); icat++){
+	
+       //	if( chTag=="MM" || chTag=="EE" ){
+	  
+	  if( vbfVars_.leadj_pt >50 &&  vbfVars_.mjj > 200 &&  vbfVars_.mjj <500 ){
+	   
+	    int pos(chTags[icat].EndsWith("A")? chTags[icat].Sizeof()-1 : chTags[icat].Sizeof()-2);
+	    chTags.push_back(chTag+"newcatLooseZ");
+	    std::string s(chTags[icat]);
+	    TString key("BDT_VBF0"+s.substr(0,pos-1));
+	    vbfmva_[chTags[icat]]      = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
+	  }
+	  //	}
+	  }*/
+     
       if(chTags.size()==0) continue;
      
     
@@ -484,7 +498,8 @@ void VBFVectorBoson::runAnalysis()
 	if(mvaCDFinv[key]) flat_vbfmva_[chTags[icat]]=max(0.,mvaCDFinv[key]->Eval(vbfmva_[icat]));
 	  if(doBlindAnalysis_ && ev_.isData && flat_vbfmva_[chTags[icat]]>0.8) flat_vbfmva_[chTags[icat]]=-1000;
 	  if(doBlindAnalysis_ && ev_.isData && vbfmva_[chTags[icat]]>0.8) vbfmva_[chTags[icat]]=-1000;
-      }
+	 
+       }
 
       //Add new categories
 
@@ -642,6 +657,8 @@ void VBFVectorBoson::runAnalysis()
 	
         //update weight for plotter
         plotwgts[0]=wgt;
+
+	std::cout << "Debug:  gen level weight is multiplied with wgt, current wt:" <<  plotwgts[0] << std::endl;
       }
       
       //fake rate
@@ -1450,12 +1467,12 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
       ht_->fill("evcount",  1, cplotwgts, c);  
   }
   // std::cout << "Debug: Filling HV and LV pt histograms with values>>>" << vbfmvaHVPt_ << "\t" << vbfmvaLVPt_ << std::endl;
- 
-    ht_->fill("vbfmvaHVPt", vbfmvaHVPt_, cplotwgts,c);
-    ht_->fill("vbfmvaLVPt", vbfmvaLVPt_, cplotwgts,c);
+  if (vbfmva1_ >-1000){
+   ht_->fill("vbfmvaHVPt", vbfmvaHVPt_, cplotwgts,c);
+   ht_->fill("vbfmvaLVPt", vbfmvaLVPt_, cplotwgts,c);
+  }
 
-    // std::cout << "Debug: normalization " << cplotwgts  << std::endl;
- 
+    // std::cout << "Debug:Filling HV and LV pt histograms with weight :" <<  cplotwgts << std::endl;
  
 
   //theory uncertainties are filled only for MC

@@ -55,6 +55,7 @@ def main():
     usage = 'usage: %prog [options]'
     parser = optparse.OptionParser(usage)
     parser.add_option(''  , '--Hist',        dest='hist',        help='variable name [%default]',                                         default='vbfmva',                       type='string')
+     parser.add_option(''  , '--Hist',        dest='hist',        help='variable name [%default]',                                         default='vbfmva1',                       type='float')
     parser.add_option('-C', '--Chan',        dest='channel',     help='selection category [%default]',                                    default=None,                           type='string')
     parser.add_option('-v', '--V',           dest='boson',       help='vector boson  [%default]',                                         default='A',                            type='string')
     parser.add_option('-y', '--YieldErr',    dest='YEs',         help='nuisance for signal yields: name,down,up  [%default]',             default='lumi_13TeV,1.024,1.024',       type='string')

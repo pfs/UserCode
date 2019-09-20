@@ -129,8 +129,8 @@ case $WHAT in
         echo ${json}
 	python scripts/runLocalAnalysis.py \
 	    -i ${eosdir} --only ${json}\
-            -o ${outdir}/${githash}/${EXTRA} \
-            --farmappendix ${githash} \
+            -o ${outdir}/${githash}/${EXTRA}${QCD} \
+            --farmappendix ${githash}${QCD} \
             -q ${queue} --genWeights genweights_${githash}.root \
             --era era${ERA} -m VBFVectorBoson::RunVBFVectorBoson --ch  0  --runSysts ${extraOpts}; #  --CR --skipexisting
 
@@ -178,7 +178,7 @@ case $WHAT in
 
 
     MERGE )
-	./scripts/mergeOutputs.py ${outdir}/${githash}/${EXTRA};
+	./scripts/mergeOutputs.py ${outdir}/${githash}/${EXTRA}${QCD};
 	;;
 
 
@@ -202,7 +202,7 @@ case $WHAT in
 #        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --silent --only A_gen
         #python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
 
-	echo "python scripts/plotter.py ${commonOpts} -j ${json} ${kFactors}  --only newcat,HighVPtA,LowVPtA,HighVPtMM,LowVPtMM,HighVPtEE,LowVPtEE"
+#	echo "python scripts/plotter.py ${commonOpts} -j ${json} ${kFactors}  --only newcat,HighVPtA,LowVPtA,HighVPtMM,LowVPtMM,HighVPtEE,LowVPtEE"
 	python scripts/plotter.py ${commonOpts} -j ${json}  ${kFactors}  --only newcat,HighVPtA,LowVPtA,HighVPtMM,LowVPtMM,HighVPtEE,LowVPtEE
 
 

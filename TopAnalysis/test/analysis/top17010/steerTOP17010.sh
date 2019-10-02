@@ -174,6 +174,14 @@ case $WHAT in
         python test/analysis/top17010/estimateLocalSensitivity.py -i /eos/cms/${outdir}/${githash} -o /eos/cms/${outdir}/${githash}/localsens/
 	;;
 
+
+    BKG )
+	commonOpts="-i /eos/cms/${outdir}/${githash} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc}"
+        commonOpts="${commonOpts} --procSF t#bar{t}:0.965"
+	python scripts/plotter.py ${commonOpts} -j ${json} --only mll,mlb --silent -o dy_plotter.root;
+        python test/analysis/top17010/estimateDY.py -i /eos/cms/${outdir}/${githash}/plots/dy_plotter.root -o /eos/cms/${outdir}/${githash}/plots/;
+        ;;
+
     PLOT )
 	commonOpts="-i /eos/cms/${outdir}/${githash} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc}"
         commonOpts="${commonOpts} --procSF t#bar{t}:0.965"
@@ -183,10 +191,6 @@ case $WHAT in
         python scripts/plotter.py ${commonOpts} -j ${syst_json} --only mlb,evcount --silent  -o syst_plotter.root;
         ;;
 
-
-    BKG )
-        python test/analysis/top17010/estimateDY.py -i /eos/cms/${outdir}/${githash}/plots/plotter.root -o /eos/cms/${outdir}/${githash}/plots/;
-        ;;
 
     COMBPLOT )
         #combined plots

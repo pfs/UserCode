@@ -29,7 +29,7 @@ def showResults(plotColl,title,name):
         h,_=plotColl[i]
         h.SetBarWidth(wid)
         h.SetBarOffset(i*wid)
-        h.GetYaxis().SetRangeUser(0,5 if 'sig' in name else 3)
+        h.GetYaxis().SetRangeUser(0,5 if 'sig' in name else 5)
         h.GetYaxis().SetTitleOffset(1)
         h.GetXaxis().SetTitleOffset(1)
         h.Draw(drawOpt)

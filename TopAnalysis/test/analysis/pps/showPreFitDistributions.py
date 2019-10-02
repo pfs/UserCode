@@ -26,10 +26,10 @@ for key in fIn.GetListOfKeys():
     proc='sig' if 'sig' in name else 'bkg'
 
     ci=ROOT.kRed if proc=='sig' else 1
-    lw=1 if 'Shape' in name else 2
+    lw=1 if 'Shape' in name or 'Calib' in name else 2
+    if 'Calib' in name : ci=9
     tit='Signal' if proc=='sig' else 'Background'
     
-
     histos[cat][proc].append( key.ReadObj() )
     histos[cat][proc][-1].SetTitle(tit)
     histos[cat][proc][-1].SetLineColor(ci)
@@ -64,7 +64,7 @@ for cat in histos:
                 leg.AddEntry(histos[cat][proc][i],histos[cat][proc][i].GetTitle(),'l')
             histos[cat][proc][i].Draw('histsame')
             maxY=max(maxY,histos[cat][proc][i].GetMaximum())
-    frame.GetYaxis().SetRangeUser(0,1.2*maxY)
+    frame.GetYaxis().SetRangeUser(0.01,1.2*maxY)
     frame.GetYaxis().SetTitle('Events')
     frame.GetXaxis().SetTitle('Missing mass [GeV]')
     leg.Draw()
@@ -76,7 +76,7 @@ for cat in histos:
     tex.SetTextAlign(31)
     tex.DrawLatex(0.97,0.96,'13 TeV')  
     tex.DrawLatex(0.95,0.9,title)
-
+    #c.SetLogy()
     c.Modified()
     c.Update()
     c.RedrawAxis()

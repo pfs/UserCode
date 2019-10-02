@@ -8,6 +8,7 @@ from TopLJets2015.TopAnalysis.roofitTools import showFitResult,shushRooFit
 #sigma=1pb distributed accross crossing angles 
 #NB this does not sum to 1 as we don't use all crossing angles in the analysis
 SIGNALXSECS={120:0.269,130:0.273,140:0.143,150:0.293}
+PHOTONSIGNALXSECS={120:0.372,130:0.295,140:0.162,150:0.171}
 VALIDLHCXANGLES=[120,130,140,150]
 
 def defineCsiAcceptanceAndBinning(url,mass):
@@ -24,12 +25,12 @@ def defineCsiAcceptanceAndBinning(url,mass):
     for xangle in VALIDLHCXANGLES:
         csiacc[xangle]=[]
         for rp in [23,123]:
-            a,b=csiaccParam[(xangle,rp)]
+            a,b=csiaccParam[(xangle,'pre',rp)]
             csiacc[xangle].append( (a+b*mass/1000.,0.18) )
     return csiacc,resolParam
 
 
-def defineProcessTemplates(histos):
+def defineProcessTemplates(histos,norm=False):
 
     """defines the nominal template and the variations and checks fo 0's in the histograms"""
 
@@ -43,13 +44,27 @@ def defineProcessTemplates(histos):
     #if Up/Down already in the name store directly updating the name
     #if not, mirror the variation given 
     for i in xrange(1,len(histos)):        
+
         templates.append( histos[i] )
+        if norm : templates[-1].Scale(nomStats/histos[i].Integral())
+        
         key=templates[-1].GetName()
         if not 'Up' in key and not 'Down' in key :
+
             templates[-1].SetName(key+'Up')
             templates.append( histos[i].Clone(key+'Down') )
+            
+            ratio=templates[-1].Clone('ratio')
+            ratio.Divide(histos[0])
+
             for xbin in range(templates[0].GetNbinsX()):
-                templates[-1].SetBinContent(xbin+1,2*templates[0].GetBinContent(xbin+1)-templates[-2].GetBinContent(xbin+1))
+                ratioVal=ratio.GetBinContent(xbin+1)
+                if ratioVal==0 : continue
+                #templates[-1].SetBinContent(xbin+1,2*templates[0].GetBinContent(xbin+1)-templates[-2].GetBinContent(xbin+1))
+                templates[-1].SetBinContent(xbin+1,histos[0].GetBinContent(xbin+1)/ratioVal)
+            
+            ratio.Delete()
+            if norm : templates[-1].Scale(nomStats/histos[i].Integral())
     
     #don't leave bins with 0's
     for h in templates:
@@ -138,6 +153,9 @@ def fillSignalTemplates(opt):
     data=ROOT.TChain('data')
     data.AddFile(os.path.join(opt.input,opt.sig))
 
+    dataAlt=ROOT.TChain('data')
+    dataAlt.AddFile(os.path.join(opt.input,opt.sig).replace('preTS2','postTS2'))
+
     #define final preselection cuts
     cuts='xangle==%d'%opt.xangle
     if len(opt.presel) : cuts += ' && ' + opt.presel
@@ -158,15 +176,18 @@ def fillSignalTemplates(opt):
 
         #signal modelling histograms
         histos=[]
-        for name,pfix in [('sig_'+catName,''),('sig_%s_sigShape'%catName,'mix')]:
+        for name,pfix in [('sig_'+catName,'mix'),('sig_%s_sigShape'%catName,'mixem'),('sig_%s_sigCalib'%catName,'mix')]:
 
             templCuts=categCut.replace('csi1',pfix+'csi1')
             templCuts=templCuts.replace('csi2',pfix+'csi2')
-            wgtExpr='wgt*%f'%(SIGNALXSECS[opt.xangle]*opt.lumi)
-            data.Draw('{0}mmiss >> h({1},{2},{3})'.format(pfix,opt.nbins,opt.mMin,opt.mMax),
-                      '{0}*({1})'.format(wgtExpr,templCuts),
-                      'goff')
-            h=data.GetHistogram()
+            wgtExpr='wgt*{xsec}*{lumi}'.format(xsec=SIGNALXSECS[opt.xangle] if 'z' in catName else PHOTONSIGNALXSECS[opt.xangle],
+                                               lumi=opt.lumi)
+
+            chain=dataAlt if 'sigCalib' in name else data
+            chain.Draw('{0}mmiss >> h({1},{2},{3})'.format(pfix,opt.nbins,opt.mMin,opt.mMax),
+                       '{0}*({1})'.format(wgtExpr,templCuts),
+                       'goff')
+            h=chain.GetHistogram()
             histos.append( h.Clone(name) )         
             histos[-1].SetDirectory(0)
 
@@ -218,6 +239,7 @@ def writeDataCards(opt,sigExp,bkgExp,shapesURL):
             #uncertainties
             dc.write('lumi %8s %15s %15s\n'%('lnN','1.027','-'))
             dc.write('%s_sigShape %8s %15s %15s\n'%(cat,'shape','1','-'))
+            dc.write('%s_sigCalib %8s %15s %15s\n'%(cat,'shape','1','-'))
             dc.write('%s_bkgShape %8s %15s %15s\n'%(cat,'shape','-','1'))
             dc.write('{0} autoMCStats 0.0 1\n'.format(cat))
         
@@ -230,16 +252,16 @@ def main(args):
     parser = argparse.ArgumentParser(description='usage: %prog [options]')
     parser.add_argument('-i', '--input',
                         dest='input',   
-                        default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/ab05162/analysis/',
+                        default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/final/ab05162/analysis/',
                         help='input directory with the files [default: %default]')
     parser.add_argument('--xangle',
                         dest='xangle',
-                        default=150,
+                        default=120,
                         type=int,
                         help='signal point [%default]')
     parser.add_argument('--sig',
                         dest='sig',
-                        default='MC13TeV_ppxz_m800_x150.root',
+                        default='Z_m_X_1200_xangle_120_2017_preTS2_opt_v1_simu_reco.root',
                         help='signal point [%default]')
     parser.add_argument('--presel',
                         dest='presel', 
@@ -247,7 +269,7 @@ def main(args):
                         help='preselection [default: %default]')
     parser.add_argument('--csiacc',
                         dest='csiacc', 
-                        default='test/analysis/pps/signal_resol_acc.pck',
+                        default=None,
                         help='parametrization of the csi acceptance cuts and mass resolution [default: %default]')
     parser.add_argument('--categs',
                         dest='categs',
@@ -303,13 +325,17 @@ def main(args):
         return
     opt.categs=opt.categs.split(',')
     if len(opt.categs)==0 : opt.categs=[]
-    midx=3 if 'gamma' in opt.sig else 2
-    opt.mass=int(opt.sig.split('_')[midx].replace('m','')) #hardcoded...
+    opt.mass=int(opt.sig.split('_')[3])
 
     if opt.csiacc: 
         opt.csiacc,resolParam=defineCsiAcceptanceAndBinning(opt.csiacc,opt.mass)
-        setattr(opt,'massResol',resolParam[opt.xangle].Eval(800)) #opt.mass))
+        setattr(opt,'massResol',resolParam[(opt.xangle,'pre')].Eval(opt.mass))
         setattr(opt,'nbins', ROOT.TMath.FloorNint( (opt.mMax-opt.mMin)/(opt.massResol)) )
+    else:
+        opt.csiacc={}
+        for a in VALIDLHCXANGLES : opt.csiacc[a]=[(0.02,0.18),(0.02,0.18)]
+        setattr(opt,'massResol',50)
+        setattr(opt,'nbins',ROOT.TMath.FloorNint( (opt.mMax-opt.mMin)/(opt.massResol)) )
 
     print '[generateWorkspace]'
     print '\t signal from',opt.sig,'mass=',opt.mass

@@ -31,7 +31,7 @@ def main():
     parser.add_option(      '--binWid',      dest='binWid',      help='divide by bin width',            default=False,             action='store_true')
     parser.add_option(      '--saveLog',     dest='saveLog' ,    help='save log versions of the plots', default=False,             action='store_true')
     parser.add_option(      '--silent',      dest='silent' ,     help='only dump to ROOT file',         default=False,             action='store_true')
-    parser.add_option(      '--ratioRange',  dest='ratioRange' , help='ratio range',                    default="0.4,1.6",         type='string')
+    parser.add_option(      '--ratioRange',  dest='ratioRange' , help='ratio range',                    default="0.46,1.54",         type='string')
     parser.add_option(      '--onlyData',    dest='onlyData' ,   help='only plots containing data',     default=False,             action='store_true')
     parser.add_option(      '--saveTeX',     dest='saveTeX' ,    help='save as tex file as well',       default=False,             action='store_true')
     parser.add_option(      '--rebin',       dest='rebin',       help='rebin factor',                   default=1,                 type=int)
@@ -69,8 +69,10 @@ def main():
     try:
         jsonFile = open(opt.signalJson,'r')
         signalSamplesList=json.load(jsonFile, encoding='utf-8', object_pairs_hook=OrderedDict).items()
+        print signalSamplesList
         jsonFile.close()
-    except:
+    except Exception as e:
+        print e
         pass
     
     skipList=opt.skip.split(',')

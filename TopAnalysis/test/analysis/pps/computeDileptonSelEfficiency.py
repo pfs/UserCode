@@ -1,5 +1,8 @@
 import ROOT
+import sys
 from TopLJets2015.TopAnalysis.Plot import fixExtremities, scaleTo, divideByBinWidth
+
+baseDir=sys.argv[1]
 
 def getPassGenDistributions(pName,gName,plotter,ci,fill=0,marker=20):
 
@@ -143,8 +146,9 @@ def showEfficiencyPlot(grColl,xtit,ytit,logx,logy,yran,legPos,outName):
     c.Modified()
     c.Update()   
     c.RedrawAxis()
-    c.SaveAs('plots/sel/{0}.png'.format(outName))
-    c.SaveAs('plots/sel/{0}.pdf'.format(outName))
+    for ext in ['png','pdf']:
+        c.SaveAs('{0}/sel/{1}.{2}'.format(baseDir,outName,ext))
+
 
 def showSimpleDistribution(hColl,doLogx,doDivideByBinWidth,outName):
 
@@ -182,13 +186,14 @@ def showSimpleDistribution(hColl,doLogx,doDivideByBinWidth,outName):
     c.Modified()
     c.Update()
     c.RedrawAxis()
-    c.SaveAs('plots/sel/%s.png'%outName)
-    c.SaveAs('plots/sel/%s.pdf'%outName)
+    for ext in ['png','pdf']:
+        c.SaveAs('{0}/sel/{1}.{2}'.format(baseDir,outName,ext))
+
 
 def runSelectionEfficiencyFor(ch,d):
 
-    bkgROOT=ROOT.TFile.Open('plots/bkg_gen_plotter.root')
-    zxROOT=ROOT.TFile.Open('plots/zx_gen_plotter.root')
+    bkgROOT=ROOT.TFile.Open('%s/bkg_gen_plotter.root'%baseDir)
+    zxROOT=ROOT.TFile.Open('%s/zx_gen_plotter.root'%baseDir)
 
     procList  =[('DY','#000000',1001,20,bkgROOT),
                 ("EWK Zjj",'#f0027f',0,26,zxROOT),
@@ -242,7 +247,7 @@ def runSelectionEfficiencyFor(ch,d):
     showSimpleDistribution(genSummary['rec'],doLogx=False,doDivideByBinWidth=doDivideByBinWidth,outName='gen_%s_%s'%(ch,d))
 
     #save results 
-    fOut=ROOT.TFile.Open('plots/effsummary_%s_%s.root'%(ch,d),'RECREATE')
+    fOut=ROOT.TFile.Open('%s/effsummary_%s_%s.root'%(baseDir,ch,d),'RECREATE')
     for gr in effSummary['rec']: gr.Write()
     fOut.Close()
 

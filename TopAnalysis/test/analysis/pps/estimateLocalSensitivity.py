@@ -21,7 +21,7 @@ def estimateLocalSensitivity(opt):
 
     cuts='xangle==%d && cat==169 && l1pt>30 && l2pt>20 && bosonpt>40 && nvtx<20 && PFPzSumHF<12000'%opt.xangle
     finalCut=cuts+' && mixcsi1>0.025 && mixcsi2>0.025'
-    data.Draw('mixmmiss >> (50,0,2500)',finalCut,'goff')
+    data.Draw('mixmmiss >> (50,0,2000)',finalCut,'goff')
     h=data.GetHistogram()    
     h.SetDirectory(0)
 
@@ -38,9 +38,10 @@ def estimateLocalSensitivity(opt):
     gfunc=ROOT.TF1('grad','[0]*x+[1]',-100,100)
 
     #scan in csi
+    print 'Scanning csi in',CSILIST
     for csi in CSILIST:
         finalCut='%s && mixcsi1>%f && mixcsi2>%f'%(cuts,csi,csi)
-        data.Draw('mixmmiss >> (50,0,2500)',finalCut,'goff')
+        data.Draw('mixmmiss >> (50,0,2000)',finalCut,'goff')
         hvar=data.GetHistogram()
         for xbin in range(h.GetNbinsX()):
             nomCts=h.GetBinContent(xbin+1)
@@ -49,10 +50,11 @@ def estimateLocalSensitivity(opt):
             csiEvol[xbin].SetPoint(csiEvol[xbin].GetN(),100*(csi/0.025-1),rel_diff)
 
     #scan in ptll
+    print 'Scanning ptll in',PTLIST
     cuts='xangle==%d && cat==169 && l1pt>30 && l2pt>20 && mixcsi1>0.025 && mixcsi2>0.025 && nvtx<20 && PFPzSumHF<12000'%opt.xangle
     for pt in PTLIST:
         finalCut='%s && bosonpt>%f'%(cuts,pt)
-        data.Draw('mixmmiss >> (50,0,2500)',finalCut,'goff')
+        data.Draw('mixmmiss >> (50,0,2000)',finalCut,'goff')
         hvar=data.GetHistogram()
         for xbin in range(h.GetNbinsX()):
             nomCts=h.GetBinContent(xbin+1)
@@ -61,10 +63,11 @@ def estimateLocalSensitivity(opt):
             ptllEvol[xbin].SetPoint(ptllEvol[xbin].GetN(),100*(pt/40.-1),rel_diff)
 
     #scan in vertices
+    print 'Scanning nvtx in',NVTXLIST
     cuts='xangle==%d && cat==169 && l1pt>30 && l2pt>20 && mixcsi1>0.025 && mixcsi2>0.025 && bosonpt>40 && PFPzSumHF<12000'%opt.xangle
     for n in NVTXLIST:
         finalCut='%s && nvtx<%f'%(cuts,n)
-        data.Draw('mixmmiss >> (50,0,2500)',finalCut,'goff')
+        data.Draw('mixmmiss >> (50,0,2000)',finalCut,'goff')
         hvar=data.GetHistogram()
         for xbin in range(h.GetNbinsX()):
             nomCts=h.GetBinContent(xbin+1)
@@ -73,11 +76,11 @@ def estimateLocalSensitivity(opt):
             vtxEvol[xbin].SetPoint(vtxEvol[xbin].GetN(),100*(n/20.-1),rel_diff)
 
     #scan in HF
+    print 'Scanning PFSumPz in',PFSUMPZLIST
     cuts='xangle==%d && cat==169 && l1pt>30 && l2pt>20 && mixcsi1>0.025 && mixcsi2>0.025 && bosonpt>40 && nvtx<20'%opt.xangle
     for hf in PFSUMPZLIST:
         finalCut='%s && PFPzSumHF<%f'%(cuts,hf)
-        print finalCut
-        data.Draw('mixmmiss >> (50,0,2500)',finalCut,'goff')
+        data.Draw('mixmmiss >> (50,0,2000)',finalCut,'goff')
         hvar=data.GetHistogram()
         for xbin in range(h.GetNbinsX()):
             nomCts=h.GetBinContent(xbin+1)
@@ -123,9 +126,6 @@ def estimateLocalSensitivity(opt):
             hfls.SetBinContent(xbin+1,grad)
 
     #display results
-    #ROOT.gROOT.SetBatch(True)
-    ROOT.gStyle.SetOptStat(0)
-    ROOT.gStyle.SetOptTitle(0)
     c=ROOT.TCanvas('c','c',500,500)
     c.SetTopMargin(0.05)
     c.SetBottomMargin(0.1)
@@ -139,6 +139,7 @@ def estimateLocalSensitivity(opt):
     h.SetMarkerColor(ROOT.kGray)
     h.SetTitle('PDF')
     h.GetYaxis().SetTitle('d(N/N_{0}) / d(x/x_{0}) [%]')
+    h.GetXaxis().SetTitle('Missing mass [GeV]')
     h.Draw('hist')
     h.GetYaxis().SetRangeUser(-10,10)
     h.GetYaxis().SetTitleOffset(1.2)
@@ -162,15 +163,15 @@ def estimateLocalSensitivity(opt):
     tex.SetTextSize(0.04)
     tex.SetNDC()
     tex.DrawLatex(0.15,0.96,'#bf{CMS} #it{preliminary}')
+    tex.DrawLatex(0.17,0.92,'[%d#murad]'%opt.xangle)
     tex.SetTextAlign(31)
     tex.DrawLatex(0.97,0.96,'13 TeV')  
 
-    raw_input()
     c.Modified()
     c.Update()
     c.RedrawAxis()
     for ext in ['png','pdf']:
-        c.SaveAs('localsens.%s'%ext)
+        c.SaveAs('%s/localsens_%d.%s'%(opt.output,opt.xangle,ext))
 
 def main():
 
@@ -179,7 +180,12 @@ def main():
     parser.add_option('-i', '--in',          
                       dest='input',       
                       help='input directory [%default]',  
-                      default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/ab05162/analysis/',
+                      default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/final/ab05162/analysis/',
+                      type='string')
+    parser.add_option('-o', '--out',          
+                      dest='output',       
+                      help='output directory [%default]',  
+                      default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/final/ab05162/analysis/plots',
                       type='string')
     parser.add_option('--xangle',
                       dest='xangle',
@@ -188,6 +194,9 @@ def main():
                       help='crossing angle [%default]')
     (opt, args) = parser.parse_args()
 
+    ROOT.gROOT.SetBatch(True)
+    ROOT.gStyle.SetOptStat(0)
+    ROOT.gStyle.SetOptTitle(0)
     estimateLocalSensitivity(opt)
 
 

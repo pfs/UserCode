@@ -12,11 +12,11 @@ def runWorkspacePacked(args):
     itask,m,l1pt,l2pt,bosonpt,categs,baseDir=args
     for xangle in generateBinnedWorkspace.VALIDLHCXANGLES:
         generateBinnedWorkspace.main(['--xangle', '%d'%xangle,
-                                      '--sig',    'MC13TeV_ppxz_m{0}_x{1}.root'.format(m,xangle),
+                                      '--sig',    'Z_m_X_{0}_xangle_{1}_2017_preTS2_opt_v1_simu_reco.root'.format(m,xangle),
                                       '--presel', 'cat==169 && l1pt>{0} && l2pt>{1} && bosonpt>{2}'.format(l1pt,l2pt,bosonpt),
                                       '--categs', categs,
                                       '-o',       '%s/optim_task%d'%(baseDir,itask)
-                                      ])
+                                  ])
 
 #generate a grid search in the parameters/categories of interest
 m=int(sys.argv[1])

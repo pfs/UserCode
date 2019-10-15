@@ -488,7 +488,7 @@ void VBFVectorBoson::runAnalysis()
 
 
        for(unsigned int icat = 0; icat<chTags.size(); icat++){
-	        if(   vbfVars_.leadj_pt > leadJetPt_  &&   vbfVars_.mjj > 200  && vbfVars_.mjj < lowMJJCut_ ){  
+	       
 	int pos(chTags[icat].EndsWith("MM")? chTags[icat].Sizeof() : chTags[icat].Sizeof()-2);
 	std::string s(chTags[icat]);
 	TString key("BDT_VBF0"+s.substr(0,pos-1));
@@ -502,7 +502,7 @@ void VBFVectorBoson::runAnalysis()
 	  if(doBlindAnalysis_ && ev_.isData && chTags[icat].EndsWith("EE") && vbfmva_[chTags[icat]]>0.8) vbfmva_[chTags[icat]]=-1000;
 
       }
-       }
+     
 
 
 

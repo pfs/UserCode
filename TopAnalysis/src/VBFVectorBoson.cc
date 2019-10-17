@@ -161,7 +161,7 @@ void VBFVectorBoson::runAnalysis()
   // LOOP OVER EVENTS //
   /////////////////////
    for (Int_t iev=0;iev<nentries_;iev++)
-  // for (Int_t iev=0;iev<10;iev++)    
+  // for (Int_t iev=0;iev<1000;iev++)    
     {
       t_->GetEntry(iev);
       if(debug_) cout << "Number of event: "<<iev<<endl;      
@@ -463,20 +463,7 @@ void VBFVectorBoson::runAnalysis()
       // std::cout << "Debug:outside the if vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;
 
 
-      /*   for(unsigned int icat = 0; icat<chTags.size(); icat++){
-	
-       //	if( chTag=="MM" || chTag=="EE" ){
-	  
-	  if( vbfVars_.leadj_pt >50 &&  vbfVars_.mjj > 200 &&  vbfVars_.mjj <500 ){
-	   
-	    int pos(chTags[icat].EndsWith("A")? chTags[icat].Sizeof()-1 : chTags[icat].Sizeof()-2);
-	    chTags.push_back(chTag+"newcatLooseZ");
-	    std::string s(chTags[icat]);
-	    TString key("BDT_VBF0"+s.substr(0,pos-1));
-	    vbfmva_[chTags[icat]]      = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
-	  }
-	  //	}
-	  }*/
+     
      
       if(chTags.size()==0) continue;
 
@@ -490,6 +477,7 @@ void VBFVectorBoson::runAnalysis()
        for(unsigned int icat = 0; icat<chTags.size(); icat++){
 	int pos(chTags[icat].EndsWith("A")? chTags[icat].Sizeof()-1 : chTags[icat].Sizeof()-2);
 	std::string s(chTags[icat]);
+	std::cout << "Debug:=category " << pos << "  "  << s << "  "  << s.substr(0,pos-1) << std::endl;
 	TString key("BDT_VBF0"+s.substr(0,pos-1));
 	vbfmva_[chTags[icat]]      = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
 	flat_vbfmva_[chTags[icat]] = (readers[key]?readers[key]->EvaluateMVA(key):-1000);

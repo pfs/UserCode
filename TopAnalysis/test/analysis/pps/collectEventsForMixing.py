@@ -4,17 +4,13 @@ import sys
 from random import shuffle
 from collections import defaultdict
 
-def runLocalPacked(args):
-    baseDir,f=args
-    os.system('sh test/analysis/pps/wrapAnalysis.sh 0 /tmp/ {0}/Chunks {1}'.format(baseDir,f.replace('.pck','.root')))
-    os.system('mv -v /tmp/Chunks/{1} {0}/mixing/Chunks/{1}'.format(baseDir,f))
-
 rpData = defaultdict(list)
 
 baseDir=sys.argv[1]
-fList=[f.replace('.root','.pck') for f in os.listdir(baseDir+'/Chunks') if 'Data' in f]
+fList=[f for f in os.listdir(baseDir+'/mixing/Chunks') if 'Data' in f]
 
 toCheck=[]
+print 'Checking and merging',len(fList),'files'
 for f in fList:
 
     if 'ZeroBias' in f : continue
@@ -22,11 +18,6 @@ for f in fList:
     if 'Photon' in f : continue
 
     fullf=os.path.join(baseDir+'/mixing/Chunks',f)
-
-    #check if file was produced
-    if not os.path.isfile(fullf):
-        toCheck.append(f)
-        continue
 
     try:
         with open(fullf,'r') as cache:
@@ -41,13 +32,14 @@ print 'Total number of events for mixing'
 for key in rpData:
     print key,len(rpData[key])
 
+print 'Writing mixing bank @ %s/mixing/mixbank.pck'%baseDir
 with open('mixbank.pck','w') as cache:
     pickle.dump(rpData,cache)
 os.system('mv -v mixbank.pck %s/mixing/mixbank.pck'%baseDir)
 
-if len(toCheck)>0:
-    print 'Re-running locally',len(toCheck),'jobs'
-    import multiprocessing as MP
-    pool = MP.Pool(8)
-    pool.map( runLocalPacked,[ (baseDir,x) for x in toCheck ])
 
+if len(toCheck)>0:
+    print '-'*50
+    print 'Found these files with errors'
+    print toCheck
+    print '-'*50

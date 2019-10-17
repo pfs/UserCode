@@ -15,8 +15,8 @@ NUISGROUPS={'trigsel'    : ['eetrig','emtrig','mmtrig','esel','msel','l1prefire'
             'jes'        : ['pileup',"AbsoluteStatJEC","AbsoluteScaleJEC","AbsoluteMPFBiasJEC","FragmentationJEC","SinglePionECALJEC","SinglePionHCALJEC","FlavorPureGluonJEC","FlavorPureQuarkJEC","FlavorPureCharmJEC","FlavorPureBottomJEC","TimePtEtaJEC","RelativeJEREC1JEC","RelativeJEREC2JEC","RelativeJERHFJEC","RelativePtBBJEC","RelativePtEC1JEC","RelativePtEC2JEC","RelativePtHFJEC","RelativeBalJEC","RelativeFSRJEC","RelativeStatFSRJEC","RelativeStatECJEC","RelativeStatHFJEC","PileUpDataMCJEC","PileUpPtRefJEC","PileUpPtBBJEC","PileUpPtEC1JEC","PileUpPtEC2JEC","PileUpPtHFJEC"],
             'qcdscale'   : ["muR","muF","combMuRmuF"],
             'pdf'        : ["PDFenv","PDFaS"],
-            'fsr'        : ['fsrg2ggmuR',"fsrg2qqmuR","fsrq2qgmuR","fsrx2xgmuR",'fsrg2ggcNS',"fsrg2qqcNS","fsrq2qgcNS","fsrx2xgcNS"]
-            'isr'        : ['isrg2ggmuR',"isrg2qqmuR","isrq2qgmuR","isrx2xgmuR",'isrg2ggcNS',"isrg2qqcNS","isrq2qgcNS","isrx2xgcNS"]
+            'fsr'        : ['fsrg2ggmuR',"fsrg2qqmuR","fsrq2qgmuR","fsrx2xgmuR",'fsrg2ggcNS',"fsrg2qqcNS","fsrq2qgcNS","fsrx2xgcNS"],
+            'isr'        : ['isrg2ggmuR',"isrg2qqmuR","isrq2qgmuR","isrx2xgmuR",'isrg2ggcNS',"isrg2qqcNS","isrq2qgcNS","isrx2xgcNS"],
             'hdamp'      : ['hdamp'],
             'cr'         : ['UE','CRerd','CRqcd','CRgmove'],
             'tw'         : ['mtoptw','drdstw'],

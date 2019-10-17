@@ -4,7 +4,7 @@ import sys
 import optparse
 import numpy as np
 
-CSILIST=np.arange(0.02,0.03,0.001)
+CSILIST=np.arange(0.05,0.06,0.001)
 PTLIST=np.arange(20,60,5)
 NVTXLIST=np.arange(10,40,5)
 PFSUMPZLIST=np.arange(4000,12000,1000)
@@ -19,9 +19,9 @@ def estimateLocalSensitivity(opt):
         if 'MuonEG' in f : continue
         data.AddFile(f)
 
-    cuts='xangle==%d && cat==169 && l1pt>30 && l2pt>20 && bosonpt>40 && nvtx<20 && PFPzSumHF<12000'%opt.xangle
-    finalCut=cuts+' && mixcsi1>0.025 && mixcsi2>0.025'
-    data.Draw('mixmmiss >> (50,0,2000)',finalCut,'goff')
+    cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && bosonpt>40 && nvtx<20 && PFPzSumHF<12000'%opt.xangle
+    finalCut=cuts+' && csi1>0.5 && csi2>0.5'
+    data.Draw('mmiss >> (50,0,2500)',finalCut,'goff')
     h=data.GetHistogram()    
     h.SetDirectory(0)
 
@@ -40,21 +40,21 @@ def estimateLocalSensitivity(opt):
     #scan in csi
     print 'Scanning csi in',CSILIST
     for csi in CSILIST:
-        finalCut='%s && mixcsi1>%f && mixcsi2>%f'%(cuts,csi,csi)
-        data.Draw('mixmmiss >> (50,0,2000)',finalCut,'goff')
+        finalCut='%s && csi1>%f && csi2>%f'%(cuts,csi,csi)
+        data.Draw('mmiss >> (50,0,2500)',finalCut,'goff')
         hvar=data.GetHistogram()
         for xbin in range(h.GetNbinsX()):
             nomCts=h.GetBinContent(xbin+1)
             if nomCts==0: continue
             rel_diff=100.*(hvar.GetBinContent(xbin+1)/nomCts)
-            csiEvol[xbin].SetPoint(csiEvol[xbin].GetN(),100*(csi/0.025-1),rel_diff)
+            csiEvol[xbin].SetPoint(csiEvol[xbin].GetN(),100*(csi/0.5-1),rel_diff)
 
     #scan in ptll
     print 'Scanning ptll in',PTLIST
-    cuts='xangle==%d && cat==169 && l1pt>30 && l2pt>20 && mixcsi1>0.025 && mixcsi2>0.025 && nvtx<20 && PFPzSumHF<12000'%opt.xangle
+    cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && csi1>0.05 && csi2>0.05 && nvtx<20 && PFPzSumHF<12000'%opt.xangle
     for pt in PTLIST:
         finalCut='%s && bosonpt>%f'%(cuts,pt)
-        data.Draw('mixmmiss >> (50,0,2000)',finalCut,'goff')
+        data.Draw('mmiss >> (50,0,2500)',finalCut,'goff')
         hvar=data.GetHistogram()
         for xbin in range(h.GetNbinsX()):
             nomCts=h.GetBinContent(xbin+1)
@@ -64,10 +64,10 @@ def estimateLocalSensitivity(opt):
 
     #scan in vertices
     print 'Scanning nvtx in',NVTXLIST
-    cuts='xangle==%d && cat==169 && l1pt>30 && l2pt>20 && mixcsi1>0.025 && mixcsi2>0.025 && bosonpt>40 && PFPzSumHF<12000'%opt.xangle
+    cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && csi1>0.05 && csi2>0.05 && bosonpt>40 && PFPzSumHF<12000'%opt.xangle
     for n in NVTXLIST:
         finalCut='%s && nvtx<%f'%(cuts,n)
-        data.Draw('mixmmiss >> (50,0,2000)',finalCut,'goff')
+        data.Draw('mmiss >> (50,0,2500)',finalCut,'goff')
         hvar=data.GetHistogram()
         for xbin in range(h.GetNbinsX()):
             nomCts=h.GetBinContent(xbin+1)
@@ -77,17 +77,16 @@ def estimateLocalSensitivity(opt):
 
     #scan in HF
     print 'Scanning PFSumPz in',PFSUMPZLIST
-    cuts='xangle==%d && cat==169 && l1pt>30 && l2pt>20 && mixcsi1>0.025 && mixcsi2>0.025 && bosonpt>40 && nvtx<20'%opt.xangle
+    cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && csi1>0.05 && csi2>0.05 && bosonpt>40 && nvtx<20'%opt.xangle
     for hf in PFSUMPZLIST:
         finalCut='%s && PFPzSumHF<%f'%(cuts,hf)
-        data.Draw('mixmmiss >> (50,0,2000)',finalCut,'goff')
+        data.Draw('mmiss >> (50,0,2500)',finalCut,'goff')
         hvar=data.GetHistogram()
         for xbin in range(h.GetNbinsX()):
             nomCts=h.GetBinContent(xbin+1)
             if nomCts==0: continue
             rel_diff=100.*(hvar.GetBinContent(xbin+1)/nomCts)
             hfEvol[xbin].SetPoint(hfEvol[xbin].GetN(),100*(hf/12000.-1),rel_diff)
-
 
     #local sensitivities
     csils=h.Clone('csils')

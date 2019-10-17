@@ -81,8 +81,10 @@ def customizeData(binName,dataDef,bkgList,templDir,outDir):
         scenarioF=os.path.join(scenarioF,scenario)
         print 'Using a scenario as pseudo-data',scenarioF,scenarioHisto
         inF=ROOT.TFile.Open(scenarioF)
-        dataH.Add(inF.Get(scenarioHisto))
-        dataH.Scale(ndata/dataH.Integral())
+        hscen=inF.Get(scenarioHisto)
+        fixExtremities(hscen)   # this needs to be done as the signal is the raw output of TOP-17-010.cc 
+        hscen.Scale(ndata/hscen.Integral())
+        dataH.Add(hscen)
         inF.Close()
         dataH.SetTitle(dataH.GetTitle()+os.path.dirname(scenario))
         print 'Scaled',scenario,'to',ndata,'new title=',dataH.GetTitle()

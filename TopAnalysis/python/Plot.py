@@ -73,6 +73,7 @@ class Plot(object):
         self.frameMin=0.01
         self.frameMax=1.45
         self.mcUnc=0
+        self.noErrorsOnRatio=False
         ROOT.TGaxis.SetMaxDigits(4)
 
     def normToData(self):
@@ -280,8 +281,9 @@ class Plot(object):
             nlegCols += 1
 
         for m in self.spimpose:
-            leg.AddEntry(self.spimpose[m],self.spimpose[m].GetTitle(),'l')
-            nlegCols += 1
+            if not m in self.mc:
+                leg.AddEntry(self.spimpose[m],self.spimpose[m].GetTitle(),'l')
+                nlegCols += 1
 
         if nlegCols ==0 :
             print '%s is empty'%self.name
@@ -329,9 +331,9 @@ class Plot(object):
             totalMCUnc = totalMC.Clone('totalmcunc')
             self._garbageList.append(totalMCUnc)
             totalMCUnc.SetDirectory(0)
-            totalMCUnc.SetFillColor(ROOT.TColor.GetColor('#99d8c9'))
+            totalMCUnc.SetFillColor(1) #ROOT.TColor.GetColor('#99d8c9'))
             ROOT.gStyle.SetHatchesLineWidth(1)
-            totalMCUnc.SetFillStyle(3254)
+            totalMCUnc.SetFillStyle(3344) #3254)
             for xbin in xrange(1,nominalTTbar.GetNbinsX()+1):
                 totalMCUnc.SetBinContent(xbin, totalMCUnc.GetBinContent(xbin) + (systUp[xbin]-systDown[xbin])/2.)
                 totalMCUnc.SetBinError(xbin, math.sqrt(totalMCUnc.GetBinError(xbin)**2 + ((systUp[xbin]+systDown[xbin])/2.)**2))
@@ -531,7 +533,7 @@ class Plot(object):
             #in case we didn't stack compare each distribution
             ratioGrs=[]
             if noStack:
-
+                
                 ratioframe.Draw('e2')
 
                 for title in self.mc:
@@ -546,7 +548,7 @@ class Plot(object):
                     ratioGrs[-1].SetMarkerColor(ci)
                     ratioGrs[-1].SetLineColor(ci)
                     ratioGrs[-1].SetLineWidth(self.data.GetLineWidth())
-                    ratioGrs[-1].Draw('p')
+                    ratioGrs[-1].Draw('lX' if self.noErrorsOnRatio  else 'p')
                     
             #in case we stacked compare only the total
             else:

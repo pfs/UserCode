@@ -17,25 +17,19 @@ def getEntries(url,tname):
 
     return n
 
-def runAnaPacked(args):
-    url,tag,step,stepDir,mix_file=args
 
-    os.system('sh test/analysis/pps/wrapAnalysis.sh {step} {url}/{stepDir} {url}/Chunks {tag} {mix_file}'.format(step=step,
-                                                                                                                 url=url,
-                                                                                                                 tag=tag,
-                                                                                                                 stepDir=stepDir,
-                                                                                                                 mix_file=mix_file))
-
-
-url=sys.argv[1]
-runMode=int(sys.argv[2])
-step=int(sys.argv[3])
+inurl=sys.argv[1]
+outurl=sys.argv[2]
+runMode=int(sys.argv[3])
+step=int(sys.argv[4])
+mix_file=''
+if len(sys.argv)>5:
+    mix_file=sys.argv[5]
 stepDir='analysis' if step==1 else 'mixing'
-mix_file=url+'/mixing/mixbank.pck' if step==1 else ''
 
 toCheck=[]
 nTot=0
-for f in os.listdir(url+'/Chunks'):
+for f in os.listdir(inurl):
 
     #if not 'Data' in f : continue
     if step==0 :
@@ -44,10 +38,11 @@ for f in os.listdir(url+'/Chunks'):
             
     nTot+=1
 
-    fullf=os.path.join(url+'/%s/Chunks'%stepDir,f)
+    fullf=os.path.join(outurl,f)
 
     if step==0:
-        if not os.path.isfile(fullf.replace('.root','.pck')): 
+        fullf=fullf.replace('.root','.pck')
+        if not os.path.isfile(fullf): 
             print 'Missing in action',fullf
             toCheck.append(f)
     else:
@@ -61,14 +56,24 @@ for f in os.listdir(url+'/Chunks'):
                 print 'Corrupted or empty file for',f,e
                 toCheck.append(f)
 
-if runMode==0:
-    for x in toCheck:
-        print x
-elif runMode==1:
+
+print '-'*50
+print 'These outputs are missing'
+print [x.replace('.root','') for x in toCheck]
+print '-'*50
+
+
+outurl=outurl.replace('/Chunks','')
+if runMode==1:
     print 'Running locally',len(toCheck),'/',nTot,'jobs'
-    import multiprocessing as MP
-    pool = MP.Pool(8)
-    pool.map( runAnaPacked,[ (url,x,step,stepDir,mix_file) for x in toCheck ])
+    os.system('sh test/analysis/pps/wrapAnalysis.sh {cmssw} {step} {outurl} {inurl} {tag} {mix_file}'.format(cmssw=os.environ['CMSSW_BASE'],
+                                                                                                             step=step,
+                                                                                                             outurl=outurl,
+                                                                                                             inurl=inurl,
+                                                                                                             tag=','.join(toCheck),
+                                                                                                             stepDir=stepDir,
+                                                                                                             mix_file=mix_file))
+
 elif runMode==2:
     print 'Submitting',len(toCheck),'/',nTot,'jobs'
     cmssw_base=os.environ['CMSSW_BASE']
@@ -77,11 +82,14 @@ elif runMode==2:
         cache.write("output      = zxana_recover.out\n")
         cache.write("error       = zxana_recover.err\n")
         cache.write("log         = zxana_recover.log\n")
+        cache.write("+JobFlavour = \"tomorrow\"\n")
+        cache.write("request_cpus = 4\n")
         for x in toCheck:
-            cache.write("arguments   = {step} {predout} {predin} {filein} {mix_file}\n".format(step=step,
-                                                                                               predout=url+'/'+stepDir,
-                                                                                               predin=url+'/Chunks',
-                                                                                               filein=x,
-                                                                                               mix_file=mix_file))
+            cache.write("arguments   = {cmssw} {step} {predout} {predin} {filein} {mix_file}\n".format(cmssw=os.environ['CMSSW_BASE'],
+                                                                                                       step=step,
+                                                                                                       predout=outurl,
+                                                                                                       predin=inurl,
+                                                                                                       filein=x,
+                                                                                                       mix_file=mix_file))
             cache.write("queue 1\n")
         os.system('condor_submit zxana_recover.sub')

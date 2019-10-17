@@ -3,31 +3,16 @@ import os
 import sys
 import argparse
 import pickle
+import copy
 from TopLJets2015.TopAnalysis.roofitTools import showFitResult,shushRooFit
 
 #sigma=1pb distributed accross crossing angles 
 #NB this does not sum to 1 as we don't use all crossing angles in the analysis
-SIGNALXSECS={120:0.269,130:0.273,140:0.143,150:0.293}
-PHOTONSIGNALXSECS={120:0.372,130:0.295,140:0.162,150:0.171}
-VALIDLHCXANGLES=[120,130,140,150]
-
-def defineCsiAcceptanceAndBinning(url,mass):
-
-    """reads the pickle file with the linear parameterization of the csi acceptances from simulation
-    computes the acceptance at a given mass for each crossing angle"""
-
-    if not url : return {}
-    with open(url,'r') as f:
-        csiaccParam=pickle.load(f)
-        resolParam=pickle.load(f)
-
-    csiacc={}
-    for xangle in VALIDLHCXANGLES:
-        csiacc[xangle]=[]
-        for rp in [23,123]:
-            a,b=csiaccParam[(xangle,'pre',rp)]
-            csiacc[xangle].append( (a+b*mass/1000.,0.18) )
-    return csiacc,resolParam
+SIGNALXSECS       = {120:0.269,130:0.273,140:0.143,150:0.293}
+PHOTONSIGNALXSECS = {120:0.372,130:0.295,140:0.162,150:0.171}
+VALIDLHCXANGLES   = [120,130,140,150]
+CH_DICT           = {'169':'zmm','121':'zee','22':'g'}
+CH_TITLE_DICT     = {'169':'Z#rightarrow#mu#mu','121':'Z#rightarrowee','22':'#gamma'}
 
 
 def defineProcessTemplates(histos,norm=False):
@@ -59,9 +44,12 @@ def defineProcessTemplates(histos,norm=False):
 
             for xbin in range(templates[0].GetNbinsX()):
                 ratioVal=ratio.GetBinContent(xbin+1)
-                if ratioVal==0 : continue
-                #templates[-1].SetBinContent(xbin+1,2*templates[0].GetBinContent(xbin+1)-templates[-2].GetBinContent(xbin+1))
-                templates[-1].SetBinContent(xbin+1,histos[0].GetBinContent(xbin+1)/ratioVal)
+                if ratioVal==0: continue
+                relUnc=abs(ratio.GetBinError(xbin+1)/ratioVal)
+                if  relUnc> 0.5:
+                    templates[-1].SetBinContent(xbin+1,histos[0].GetBinContent(xbin+1)) #keep nominal if relative uncertainty is too large
+                else:
+                    templates[-1].SetBinContent(xbin+1,histos[0].GetBinContent(xbin+1)/ratioVal)
             
             ratio.Delete()
             if norm : templates[-1].Scale(nomStats/histos[i].Integral())
@@ -84,20 +72,25 @@ def fillBackgroundTemplates(opt):
 
     totalBkg={}
     templates=[]
+    data_templates=[]
 
     #import signal events
     data=ROOT.TChain('data')
     for f in [os.path.join(opt.input,x) for x in os.listdir(opt.input) if 'Data13TeV' in x]:
         if 'MuonEG' in f : continue
+        if opt.chTag.find('zmm')==0:
+            if 'Photon' in f or 'DoubleEG' in f : 
+                continue
+        if opt.chTag.find('zee')==0:
+            if 'Muon' in f or 'Photon' in f : 
+                continue
+        if opt.chTag.find('g_')==0:
+            if not 'Photon' in f : 
+                continue
         data.AddFile(f)
 
     #define final preselection cuts
-    cuts='xangle==%d'%opt.xangle
-    if len(opt.presel) : cuts += ' && ' + opt.presel    
-    if opt.csiacc:
-        csiCuts ='csi1>%f && csi1<%f && '%opt.csiacc[opt.xangle][0]
-        csiCuts+='csi2>%f && csi2<%f'%opt.csiacc[opt.xangle][1]
-        cuts=csiCuts if len(cuts)==0 else '{0} && {1}'.format(cuts,csiCuts)
+    cuts=opt.presel
 
     #loop over categories build templates
     for icat in range(len(opt.categs)):
@@ -105,110 +98,138 @@ def fillBackgroundTemplates(opt):
         #apply category cuts
         categCut=opt.categs[icat]
         categCut=cuts if len(categCut)==0 else '%s && %s'%(categCut,cuts)
-        catName='%s_a%d_%d'%(opt.chTag,opt.xangle,icat)
+        catName='%s_%d'%(opt.chTag,icat)
 
-        print '\t',catName,categCut
+        print '\t\t',catName,categCut
 
         #background modelling histos
         histos=[]
         data_obs=None
-        for name,pfix in [('bkg_'+catName,'mix'),('bkg_%s_bkgShape'%catName,'mixem')]:
+
+        data.Draw('mmiss >> h({0},{1},{2})'.format(opt.nbins,opt.mMin,opt.mMax),
+                  '{0} && mmiss>0 && mixType==0'.format(categCut),
+                  'goff')
+        h=data.GetHistogram()
+        totalBkg[icat]=h.Integral()
+        if opt.unblind:
+            data_obs=h.GetHistogram().Clone('data_obs_'+catName)
+            data_obs.SetDirectory(0)
+        h.Reset('ICE')
+
+        for name,mixType,pfix in [('bkg_'+catName,                      1, ''),
+                                  ('bkg_%s_bkgShape'%catName,           1, 'syst'),
+                                  ('bkg_%s_bkgShapeSingleDiff'%catName, 2, ''),
+                              ]:
 
             templCuts=categCut.replace('csi1',pfix+'csi1')
             templCuts=templCuts.replace('csi2',pfix+'csi2')
-            data.Draw('{0}mmiss >> h({1},{2},{3})'.format(pfix,opt.nbins,opt.mMin,opt.mMax),templCuts,'goff')
+            data.Draw('{0}mmiss >> h({1},{2},{3})'.format(pfix,opt.nbins,opt.mMin,opt.mMax),
+                      'wgt*({0} && {1}mmiss>0 && mixType=={2})'.format(templCuts,pfix,mixType),
+                      'goff')
             h=data.GetHistogram()
+            print name,mixType,pfix,totalBkg[icat],h.Integral()
+            h.Scale(totalBkg[icat]/h.Integral())
             histos.append(h.Clone(name))
             histos[-1].SetDirectory(0)
 
-            if len(histos)==1:
-                totalBkg[icat]=h.Integral()
-                if not opt.unblind :
-                    data_obs=h.Clone('data_obs_'+catName)
-                    data_obs.SetDirectory(0)
+            #use first histogram in a category as pseudo-data in case we're blinded
+            if len(histos)==1 and not opt.unblind :
+                data_obs=h.Clone('data_obs_'+catName)
+                data_obs.SetDirectory(0)
 
             h.Reset('ICE')
+
+        #finalize templates
         templates += defineProcessTemplates(histos)
-
-        #observed data in this category if unblinding
-        if opt.unblind:
-            data.Draw('mmiss >> h({1},{2},{3})'.format(opt.nbins,opt.mMin,opt.mMax),categCut,'goff')
-            data_obs=data.GetHistogram().Clone('data_obs_'+catName)
-            data_obs.SetDirectory(0)
-
-        templates.append(data_obs)
+        data_templates.append(data_obs)
 
     print '\t total background:',totalBkg
-    return totalBkg,templates
+    return totalBkg,templates,data_templates
 
 
-def fillSignalTemplates(opt):
+def fillSignalTemplates(mass,signalFile,xsec,opt,fiducialCuts='gencsi1>0.03 & gencsi1<0.13 && gencsi2>0.03 && gencsi2<0.16'):
 
     """fills the signal histograms"""
 
-    totalSig={}
-    templates=[]
+    totalSig={'fid':{},'outfid':{}}
+    templates={'fid':[],'outfid':[]}
+    nom_templates={'fid':[],'outfid':[]}
 
     #import signal events
     data=ROOT.TChain('data')
-    data.AddFile(os.path.join(opt.input,opt.sig))
+    data.AddFile(os.path.join(opt.input,signalFile))
 
     dataAlt=ROOT.TChain('data')
-    dataAlt.AddFile(os.path.join(opt.input,opt.sig).replace('preTS2','postTS2'))
+    dataAlt.AddFile(os.path.join(opt.input,signalFile).replace('preTS2','postTS2'))
 
-    #define final preselection cuts
-    cuts='xangle==%d'%opt.xangle
-    if len(opt.presel) : cuts += ' && ' + opt.presel
-    if opt.csiacc:
-        csiCuts ='csi1>%f && csi1<%f && '%opt.csiacc[opt.xangle][0]
-        csiCuts+='csi2>%f && csi2<%f'%opt.csiacc[opt.xangle][1]
-        cuts=csiCuts if len(cuts)==0 else '{0} && {1}'.format(cuts,csiCuts)
+    #common weight exppression
+    wgtExpr='wgt*{xsec}*{lumi}'.format(xsec=xsec,lumi=opt.lumi)
 
     #loop over categories build templates
     for icat in range(len(opt.categs)):
 
         #apply category cuts
-        categCut=opt.categs[icat]
-        categCut=cuts if len(categCut)==0 else '%s && %s'%(categCut,cuts)
+        catName='%s_%d'%(opt.chTag,icat)
+        categCut=opt.presel
+        if len(opt.categs[icat]): categCut += ' && ' + opt.categs[icat]
+        print '\t\t',catName,categCut
+               
+        #define final preselection cuts and repeat for fiducial/non-fiducial regions
+        for sigType in totalSig.keys():
+                        
+            #signal modelling histograms
+            histos=[]
+            for name,mixType,pfix,addWgt in [('sig_%s_m%s'%(catName,mass),                    1, '',     None),
+                                             ('sig_%s_m%s_sigShape'%(catName,mass),           1, 'syst', None),
+                                             ('sig_%s_m%s_sigShapeSingleDiff'%(catName,mass), 2, '',     None),
+                                             ('sig_%s_m%s_sigCalib'%(catName,mass),           1, '',     None),
+                                             ('sig_%s_m%s_sigPzModel'%(catName,mass),         1, '',     'gen_pzwgtUp')]:
 
-        catName='%s_a%d_%d'%(opt.chTag,opt.xangle,icat)
-        print '\t',catName,categCut
+                name=sigType+name
+                templCuts=categCut.replace('csi1',pfix+'csi1')
+                templCuts=templCuts.replace('csi2',pfix+'csi2')
+                if sigType=='outfid':
+                    templCuts+=' && !(%s)'%fiducialCuts
+                else:
+                    templCuts+=' && %s'%fiducialCuts
 
-        #signal modelling histograms
-        histos=[]
-        for name,pfix in [('sig_'+catName,'mix'),('sig_%s_sigShape'%catName,'mixem'),('sig_%s_sigCalib'%catName,'mix')]:
+                chain=dataAlt if 'sigCalib' in name else data
+                chain.Draw('{0}mmiss >> h({1},{2},{3})'.format(pfix,opt.nbins,opt.mMin,opt.mMax),
+                           '{0}*{1}*({2} && mixType=={3} && {4}mmiss>0)'.format(wgtExpr,
+                                                                                addWgt if addWgt else '1',
+                                                                                templCuts,
+                                                                                mixType,
+                                                                                pfix),
+                           'goff')
+                h=chain.GetHistogram()
 
-            templCuts=categCut.replace('csi1',pfix+'csi1')
-            templCuts=templCuts.replace('csi2',pfix+'csi2')
-            wgtExpr='wgt*{xsec}*{lumi}'.format(xsec=SIGNALXSECS[opt.xangle] if 'z' in catName else PHOTONSIGNALXSECS[opt.xangle],
-                                               lumi=opt.lumi)
+                histos.append( h.Clone(name) )         
+                histos[-1].SetDirectory(0)
 
-            chain=dataAlt if 'sigCalib' in name else data
-            chain.Draw('{0}mmiss >> h({1},{2},{3})'.format(pfix,opt.nbins,opt.mMin,opt.mMax),
-                       '{0}*({1})'.format(wgtExpr,templCuts),
-                       'goff')
-            h=chain.GetHistogram()
-            histos.append( h.Clone(name) )         
-            histos[-1].SetDirectory(0)
+                if len(histos)==1:
+                    totalSig[sigType][icat]=h.Integral()
+                    nom_templates[sigType].append(h.Clone(name+'_sigforpseudodata'))
+                    nom_templates[sigType][-1].SetDirectory(0)
 
-            if len(histos)==1:
-                totalSig[icat]=h.Integral()
-
-            h.Reset('ICE')
-        templates += defineProcessTemplates(histos)
+                h.Reset('ICE')
+            templates[sigType] += defineProcessTemplates(histos)
     
     print '\t total signal:',totalSig
-    return totalSig,templates
+    return totalSig,templates,nom_templates
 
 
-def writeDataCards(opt,sigExp,bkgExp,shapesURL):
+def writeDataCards(opt,shapesURL):
 
     """writes the datacard and the workspace"""
+
+    finalState='mm'
+    if opt.chTag.find('zee')==0 : finalState='ee'
+    if opt.chTag.find('g')==0:    finalState='g'
 
     #create a card per category
     dcList=[]
     for icat in range(len(opt.categs)):
-        cat='%s_a%d_%d'%(opt.chTag,opt.xangle,icat)
+        cat='%s_%d'%(opt.chTag,icat)
         dcTxt='%s/shapes-parametric.datacard_%s.dat'%(opt.output,cat)
         dcList.append(dcTxt)
         with open(dcTxt,'w') as dc:
@@ -221,30 +242,94 @@ def writeDataCards(opt,sigExp,bkgExp,shapesURL):
             dc.write('jmax *\n')
             dc.write('kmax *\n')
             dc.write('-'*50+'\n')
-            dc.write('shapes *        * {0} $PROCESS_{1} $PROCESS_$SYSTEMATIC\n'.format(shapesURL,cat))
-            dc.write('shapes data_obs * {0} $PROCESS_{1}\n'.format(shapesURL,cat))
+            dc.write('shapes fidsig    * {0} $PROCESS_{1}_m$MASS $PROCESS_{1}_m$MASS_$SYSTEMATIC\n'.format(shapesURL,cat))
+            dc.write('shapes outfidsig * {0} $PROCESS_{1}_m$MASS $PROCESS_{1}_m$MASS_$SYSTEMATIC\n'.format(shapesURL,cat))
+            dc.write('shapes bkg       * {0} $PROCESS_{1}        $PROCESS_$SYSTEMATIC\n'.format(shapesURL,cat)) 
+            dc.write('shapes data_obs  * {0} $PROCESS_{1}\n'.format(shapesURL,cat))
             dc.write('-'*50+'\n')
             dc.write('bin %s\n'%cat)
             dc.write('observation -1\n')
             dc.write('-'*50+'\n')
-            dc.write('%15s %15s %15s\n'%('bin',cat,cat))
-            dc.write('%15s %15s %15s\n'%('process','sig','bkg'))
-            dc.write('%15s %15s %15s\n'%('process','0', '1'))
-            dc.write('%15s %15s %15s\n'%('rate','%3.2f'%sigExp[icat], '%3.2f'%bkgExp[icat]))
+            dc.write('%15s %15s %15s %15s\n'%('bin',cat,cat,cat))
+            dc.write('%15s %15s %15s %15s\n'%('process','fidsig','outfidsig','bkg'))
+            dc.write('%15s %15s %15s %15s\n'%('process','0',     '1',        '2'))
+            dc.write('%15s %15s %15s %15s\n'%('rate',   '-1',    '-1',       '-1'))
             dc.write('-'*50+'\n')
             
-            #float the background normalization as well as the signal
-            dc.write('mu_bkg{0} rateParam {0} bkg 1\n'.format(cat))
-
             #uncertainties
-            dc.write('lumi %8s %15s %15s\n'%('lnN','1.027','-'))
-            dc.write('%s_sigShape %8s %15s %15s\n'%(cat,'shape','1','-'))
-            dc.write('%s_sigCalib %8s %15s %15s\n'%(cat,'shape','1','-'))
-            dc.write('%s_bkgShape %8s %15s %15s\n'%(cat,'shape','-','1'))
+            dc.write('lumi                   %8s %15s %15s %15s\n'%('lnN',                '1.027', '-',  '-'))
+            dc.write('eff_%s                 %8s %15s %15s %15s\n'%(finalState,  'lnN',   '1.03',  '-',  '-'))
+            dc.write('sigShape               %8s %15s %15s %15s\n'%('shape',              '1',     '1',  '-'))           
+            dc.write('sigCalib               %8s %15s %15s %15s\n'%('shape',              '1',     '1',  '-'))
+            dc.write('sigPzModel             %8s %15s %15s %15s\n'%('shape',              '1',     '1',  '-'))
+            dc.write('%s_bkgShape            %8s %15s %15s %15s\n'%(cat,'shape',          '-',     '-',  '1')) #uncorrelate background shapes
+            dc.write('%s_bkgShapeSingleDiff  %8s %15s %15s %15s\n'%(cat,'shape',          '-',     '-',  '1'))
+
+            #template statistics
             dc.write('{0} autoMCStats 0.0 1\n'.format(cat))
         
+            #float the background normalization as well as the signal
+            dc.write('mu_bkg       rateParam * bkg       1\n')
+            dc.write('mu_outfidsig rateParam * outfidsig 0\n')
+
     print '\tshapes available @',shapesURL
     print '\tgenerated the following datacards',dcList
+
+def datacardTask(args):
+
+    #finalize configuration of this specific task
+    ch,xangle,opt=args
+    setattr(opt,'chTag','%s_a%d'%(CH_DICT[ch],xangle))
+    setattr(opt,'chTitle',CH_TITLE_DICT[ch])
+    setattr(opt,'presel','cat==%s && xangle==%d && %s'%(ch,xangle,opt.preselZ))
+    boson='Z'
+    if ch=='22':
+        boson='gamma'
+        setattr(opt,'presel','cat==%s && xangle==%d && %s'%(ch,xangle,opt.preselGamma))
+
+    #start the output
+    shapesURL=os.path.join(opt.output,'shapes_%s_a%d.root'%(ch,xangle))
+    fOut=ROOT.TFile.Open(shapesURL,'RECREATE')
+
+    #define background templates
+    print '\t filling background templates and observed data'
+    bkgExp,bkgTemplates,data_templates=fillBackgroundTemplates(opt)    
+    for h in bkgTemplates:        
+        h.SetDirectory(fOut)
+        h.Write()
+
+    #parametrize the signal
+    print '\t filling signal templates' 
+    for m in opt.massList:
+        signalFile=opt.sig.format(boson=boson,xangle=xangle,mass=m)
+        sigExp,sigTemplates,sigNomTemplates=fillSignalTemplates(mass=m,
+                                                                signalFile=signalFile,
+                                                                xsec=SIGNALXSECS[xangle] if boson=='Z' else PHOTONSIGNALXSECS[xangle],
+                                                                opt=opt)
+        for key in sigTemplates:
+
+            for h in sigTemplates[key]:
+                h.SetDirectory(fOut)
+                h.Write()
+
+            #if blinded add signal pseudo-data 
+            if not opt.unblind and opt.injectMass==m:
+                for i in range(len(sigNomTemplates[key])):
+                    data_templates[i].Add(sigNomTemplates[key][i])
+                    sigNomTemplates[key][i].Delete() #no longer needed
+        
+    #now write the data
+    for h in data_templates:
+        h.SetDirectory(fOut)
+        h.Write()
+
+    #all done
+    fOut.Close()
+
+    #write summary in datacards
+    print '\t writing datacard'
+    writeDataCards(opt,os.path.basename(shapesURL))
+    
 
 
 def main(args):
@@ -252,38 +337,42 @@ def main(args):
     parser = argparse.ArgumentParser(description='usage: %prog [options]')
     parser.add_argument('-i', '--input',
                         dest='input',   
-                        default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/final/ab05162/analysis/',
+                        default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/final/ab05162/analysis_0p05/',
                         help='input directory with the files [default: %default]')
-    parser.add_argument('--xangle',
-                        dest='xangle',
-                        default=120,
-                        type=int,
-                        help='signal point [%default]')
     parser.add_argument('--sig',
                         dest='sig',
-                        default='Z_m_X_1200_xangle_120_2017_preTS2_opt_v1_simu_reco.root',
+                        default='{boson}_m_X_{mass}_xangle_{xangle}_2017_preTS2_opt_v1_simu_reco.root',
                         help='signal point [%default]')
-    parser.add_argument('--presel',
-                        dest='presel', 
-                        default='cat==169 && l1pt>30 && l2pt>20 && bosonpt>50',
-                        help='preselection [default: %default]')
-    parser.add_argument('--csiacc',
-                        dest='csiacc', 
+    parser.add_argument('--massList',
+                        dest='massList',
+                        default='780,800,840,900,960,1000,1020,1080,1140,1200,1260,1320,1380,1400,1440,1500,1560,1600',
+                        help='signal mass list (CSV) [%default]')
+    parser.add_argument('--injectMass',
+                        dest='injectMass',
                         default=None,
-                        help='parametrization of the csi acceptance cuts and mass resolution [default: %default]')
+                        help='mass to inject in pseudo-data [%default]')
+    parser.add_argument('--preselZ',
+                        dest='preselZ', 
+                        default='l1pt>30 && l2pt>20 && bosonpt>50',
+                        help='preselection for Z categories [default: %default]')
+    parser.add_argument('--preselGamma',
+                        dest='preselGamma', 
+                        default='bosonpt>95',
+                        help='preselection for photon categories [default: %default]')
     parser.add_argument('--categs',
                         dest='categs',
                         default='nvtx<20,nvtx>=20',
                         help='Sub-categories [default: %default]')
-    parser.add_argument('--mix',
-                        dest='mix',
-                        default='mix',
-                        help='Mixing values to use [default: %default]')
     parser.add_argument('--lumi',
                         dest='lumi',
                         default=37500.,
                         type=float,
                         help='integrated luminosity [default: %default]')
+    parser.add_argument('--mBin',
+                        dest='mBin',
+                        default=50.,
+                        type=float,
+                        help='mass bin width [default: %default]')
     parser.add_argument('--mMin',
                         dest='mMin',
                         default=0,
@@ -310,70 +399,37 @@ def main(args):
     ROOT.gStyle.SetOptStat(0)
     shushRooFit()
 
-    #parse channels from pre-selection string
-    import re
-    ch_dict={'169':'zmm','121':'zee','22':'g'}
-    chtit_dict={'169':'Z#rightarrow#mu#mu','121':'Z#rightarrowee','22':'#gamma'}
-    regex=re.compile('cat==(\d+)') 
-    allCh=regex.findall(opt.presel)
-    setattr(opt,'chTag','_'.join([ch_dict[x] for x in allCh]))
-    setattr(opt,'chTitle',','.join([chtit_dict[x] for x in allCh]))
-
     #configuration
-    if not opt.xangle in VALIDLHCXANGLES : 
-        print 'Crossing angle',opt.xangle,'is not valid a valid one'
-        return
     opt.categs=opt.categs.split(',')
     if len(opt.categs)==0 : opt.categs=[]
-    opt.mass=int(opt.sig.split('_')[3])
-
-    if opt.csiacc: 
-        opt.csiacc,resolParam=defineCsiAcceptanceAndBinning(opt.csiacc,opt.mass)
-        setattr(opt,'massResol',resolParam[(opt.xangle,'pre')].Eval(opt.mass))
-        setattr(opt,'nbins', ROOT.TMath.FloorNint( (opt.mMax-opt.mMin)/(opt.massResol)) )
-    else:
-        opt.csiacc={}
-        for a in VALIDLHCXANGLES : opt.csiacc[a]=[(0.02,0.18),(0.02,0.18)]
-        setattr(opt,'massResol',50)
-        setattr(opt,'nbins',ROOT.TMath.FloorNint( (opt.mMax-opt.mMin)/(opt.massResol)) )
+    opt.massList=opt.massList.split(',')
+    setattr(opt,'nbins', ROOT.TMath.FloorNint( (opt.mMax-opt.mMin)/(opt.mBin)) )
 
     print '[generateWorkspace]'
-    print '\t signal from',opt.sig,'mass=',opt.mass
-    print '\t will apply the following preselection:',opt.presel
-    print '\t channel tag=',opt.chTag
+    print '\t signal for masses=',opt.massList
+    print '\t will apply the following preselection:'
+    print '\t\t Z:',opt.preselZ
+    print '\t\t gamma:',opt.preselGamma
+    print '\t histograms defined as (%d,%f,%f)'%(opt.nbins,opt.mMin,opt.mMax)
     if len(opt.categs) : 
         print '\t will categorize in:',opt.categs
-    if opt.csiacc:
-        print '\t will apply csi acceptance cuts',opt.csiacc
-        print '\t mass resolution=',opt.massResol,' GeV =>',opt.nbins,' bins for templates',
-        print 'in the range (',opt.mMin,',',opt.mMax,')'
+    if opt.unblind:
+        print '\t Analysis will be unblinded'
+    else:
+        print '\t Pseudo-data built from background expectations'
+        print '\t Signal injected from mass=',opt.injectMass
 
-    #start the output
+    #prepare output
     os.system('mkdir -p %s'%opt.output)
-    shapesURL=os.path.join(opt.output,'shapes_%d.root'%opt.xangle)
-    fOut=ROOT.TFile.Open(shapesURL,'RECREATE')
 
-    #define background templates
-    print '\t filling background templates and observed data'
-    bkgExp,bkgTemplates=fillBackgroundTemplates(opt)    
-    for h in bkgTemplates:        
-        h.SetDirectory(fOut)
-        h.Write()
-
-    #parametrize the signal
-    print '\t filling signal templates'
-    sigExp,sigTemplates=fillSignalTemplates(opt)
-    for h in sigTemplates:
-        h.SetDirectory(fOut)
-        h.Write()
-
-    #all done
-    fOut.Close()
-
-
-    #write summary in datacards
-    print '\t writing datacard'
-    writeDataCards(opt,sigExp,bkgExp,os.path.basename(shapesURL))
+    task_list=[]
+    for ch in CH_DICT.keys():
+        for angle in VALIDLHCXANGLES:
+            task_list.append( (ch,angle,copy.deepcopy(opt)) )
+            
+    import multiprocessing as MP
+    pool = MP.Pool(8)
+    pool.map( datacardTask, task_list )
 
     print '\t all done, output can be found in',opt.output
 

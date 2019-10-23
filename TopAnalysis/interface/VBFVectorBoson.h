@@ -105,7 +105,7 @@ class VBFVectorBoson{
     if (era_.Contains("2017")) highVPtPhotonTrigs_.push_back("HLT_Photon200_v");
     else                       highVPtPhotonTrigs_.push_back("HLT_Photon175_v");
 
-    lowMJJCut_  = 500.;
+    lowMJJCut_  = 200.;
     highMJJCut_ = 1000.;        
     lowVPtMinMJJCut_ = 300.;
 

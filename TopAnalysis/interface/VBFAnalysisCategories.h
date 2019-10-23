@@ -3,9 +3,9 @@
 #include <iostream>
 using namespace std;
 namespace vbf {
-  TString categoryNames[]={"LowVPtLowMJJ","LowVPtHighMJJ","HighVPtLowMJJ","HighVPtHighMJJ","HighVPt","LowVPt"};
+  TString categoryNames[]={"LowVPtLowMJJ","LowVPtHighMJJ","HighVPtLowMJJ","HighVPtHighMJJ","HighVPt","LowVPt"," LooseVPt"};
   struct Category{
-    float EE,MM,A,LowVPt,HighVPt,LowMJJ,HighMJJ,AllMJJ;
+    float EE,MM,A,LowVPt,HighVPt,LowMJJ,HighMJJ,AllMJJ, LooseVPt;
     Category(){ reset(); }
     Category(std::vector<bool> &cat){
       reset();
@@ -24,6 +24,7 @@ namespace vbf {
       LowMJJ          = (float) cat[5];
       HighMJJ         = (float) cat[6];
       AllMJJ          = (float) cat[7];
+      LooseVPt        = (float) cat[8];
 
     };
     std::vector<TString> getChannelTags() {
@@ -40,6 +41,9 @@ namespace vbf {
       if(HighVPt>0 && HighMJJ>0)                 {chTags.push_back(categoryNames[3]+chTag); }//cout<<categoryNames[3]<<endl;}
       if(HighVPt>0 && AllMJJ>0)                  {chTags.push_back(categoryNames[4]+chTag); }//cout<<categoryNames[4]<<endl;}
       if(LowVPt>0 && AllMJJ>0)                   {chTags.push_back(categoryNames[5]+chTag); }//cout<<categoryNames[5]<<endl;}
+      if(LowVPt>0 && LooseVPt>0)                 {chTags.push_back(categoryNames[6]+chTag); }//cout<<categoryNames[5]<<endl;}
+
+      if(HighVPt>0 && LooseVPt>0)                 {chTags.push_back(categoryNames[7]+chTag); }//cout<<categoryNames[5]<<endl;} 
       return chTags;
     }
   };

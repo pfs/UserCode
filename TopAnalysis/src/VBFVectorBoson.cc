@@ -160,8 +160,8 @@ void VBFVectorBoson::runAnalysis()
   ///////////////////////
   // LOOP OVER EVENTS //
   /////////////////////
-   for (Int_t iev=0;iev<nentries_;iev++)
-  // for (Int_t iev=0;iev<1000;iev++)    
+  for (Int_t iev=0;iev<nentries_;iev++)
+    // for (Int_t iev=0;iev<10000;iev++)    
     {
       t_->GetEntry(iev);
       if(debug_) cout << "Number of event: "<<iev<<endl;      
@@ -430,6 +430,7 @@ void VBFVectorBoson::runAnalysis()
         cat[5]  =  (vbfVars_.mjj>lowMJJCut_ && vbfVars_.mjj<=highMJJCut_);
         cat[6]  =  (vbfVars_.mjj>highMJJCut_);
 	cat[7]  =  (vbfVars_.mjj>lowMJJCut_);
+	cat[8]  =  (vbfVars_.mjj>200. && vbfVars_.mjj<500.);
       }
 
       category_.set(cat);
@@ -447,9 +448,9 @@ void VBFVectorBoson::runAnalysis()
 
 
      
-         vbfmvaHVPt_ = vbfmvaLVPt_= -1000;
+      /*      vbfmvaHVPt_ = vbfmvaLVPt_= -1000;
       
-      if( chTag=="MM" || chTag=="EE" ){
+      if( chTag=="MM"  ){
 
 	if( vbfVars_.leadj_pt >50 &&  vbfVars_.mjj > 200 &&  vbfVars_.mjj <500 ){
 	  chTags.push_back(chTag+"newcatLooseZ");
@@ -460,8 +461,8 @@ void VBFVectorBoson::runAnalysis()
 	  // std::cout << "Debug Inside the if: vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;
 	}
 	}
-      // std::cout << "Debug:outside the if vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;
-
+	// std::cout << "Debug:outside the if vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;*/
+      
 
      
      
@@ -485,9 +486,12 @@ void VBFVectorBoson::runAnalysis()
 
 	  if(doBlindAnalysis_ && ev_.isData && chTags[icat].EndsWith("A") && flat_vbfmva_[chTags[icat]]>0.8) flat_vbfmva_[chTags[icat]]=-1000;
 	  if(doBlindAnalysis_ && ev_.isData && chTags[icat].EndsWith("A") && vbfmva_[chTags[icat]]>0.8) vbfmva_[chTags[icat]]=-1000;
+	  
+	std::cout << "in loop Debug:=vbfmva " << vbfmva_[chTags[icat]] << "  "  << 	flat_vbfmva_[chTags[icat]] << std::endl;
 
       }
 
+       //std::cout << "out loop Debug:=vbfmva " << vbfmva_ << "  "  << 	flat_vbfmva_ << std::endl;
 
 
       

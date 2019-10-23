@@ -60,14 +60,14 @@ case $WHAT in
                
 
 
-        json=data/era${ERA}/vbf_samples.json
+        json=data/era${ERA}/vbf_DY_FXFX_mlm.json
 	
         #tag=MC13TeV_2016_DY50toInf_1J_mlm
         tag=MC13TeV_2017_DY50toInf_2J_fxfx
 
         if [[ ${ERA} == "2016" ]]; then
-           tag=MC13TeV_2016_GJets_HT400to600
-          # tag=MC13TeV_2016_DY50toInf_2J_mlm
+          # tag==MC13TeV_2016_DY50toInf_2J_fxfx
+           tag=MC13TeV_2016_DY50toInf_2J_mlm
         fi
 
         input=${eosdir}/${tag}/Chunk_0_ext0.root        
@@ -190,20 +190,20 @@ case $WHAT in
     PLOT )
 	
 
-        #json=data/era${ERA}/vbf_DY_FXFX_mlm.json;
+       # json=data/era${ERA}/vbf_DY_FXFX_mlm.json;
 	json=data/era${ERA}/vbf_samples.json;
-	syst_json=data/era${ERA}/vbf_syst_samples.json;
+#	syst_json=data/era${ERA}/vbf_syst_samples.json;
         gjets_json=data/era${ERA}/gjets_samples.json;
 	fake_json=data/era${ERA}/vbf_fake_samples.json;
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
 
-	commonOpts="-i ${outdir}/${githash}/${EXTRA} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi}:LowVPtA:${vbflumi}"
+	commonOpts="-i ${outdir}/${githash}/${EXTRA} --puNormSF puwgtctr -l ${fulllumi} --saveLog --mcUnc ${lumiUnc} --lumiSpecs LowVPtLowMJJA:${vbflumi},LowVPtHighMJJA:${vbflumi},LowVPtA:${vbflumi}"
 
 #        python scripts/plotter.py ${commonOpts} -j ${gjets_json} --silent --only A_gen
         #python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
 
 #	echo "python scripts/plotter.py ${commonOpts} -j ${json} ${kFactors}  --only newcat,HighVPtA,LowVPtA,HighVPtMM,LowVPtMM,HighVPtEE,LowVPtEE"
-	python scripts/plotter.py ${commonOpts} -j ${json}  ${kFactors}  --only newcat,HighVPtA,LowVPtA,HighVPtMM,LowVPtMM,HighVPtEE,LowVPtEE
+	python scripts/plotter.py ${commonOpts} -j ${json}  ${kFactors}  --only newcat,HighVPt,LowVPt
 
 
 #	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors} --rawYields -o acceptance_plotter.root

@@ -190,8 +190,8 @@ case $WHAT in
     PLOT )
 	
 
-       # json=data/era${ERA}/vbf_DY_FXFX_mlm.json;
-	json=data/era${ERA}/vbf_samples.json;
+        json=data/era${ERA}/vbf_DY_FXFX_mlm.json;
+#	json=data/era${ERA}/vbf_samples.json;
 #	syst_json=data/era${ERA}/vbf_syst_samples.json;
         gjets_json=data/era${ERA}/gjets_samples.json;
 	fake_json=data/era${ERA}/vbf_fake_samples.json;

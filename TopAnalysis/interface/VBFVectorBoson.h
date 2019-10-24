@@ -105,7 +105,8 @@ class VBFVectorBoson{
     if (era_.Contains("2017")) highVPtPhotonTrigs_.push_back("HLT_Photon200_v");
     else                       highVPtPhotonTrigs_.push_back("HLT_Photon175_v");
 
-    lowMJJCut_  = 200.;
+    lowMJJCut_  = 500.;
+    looseMJJCut_  = 200.;
     highMJJCut_ = 1000.;        
     lowVPtMinMJJCut_ = 300.;
 
@@ -193,7 +194,7 @@ private:
   float zMassWindow_;
   float lowVPtCut_,  lowVPtDetaJJCut_, lowVPtMaxRapCut_, lowVPtMinMJJCut_;
   float highVPtCut_;
-  float lowMJJCut_, highMJJCut_;
+  float lowMJJCut_, highMJJCut_ , looseMJJCut_;
   std::vector<TString> lowVPtPhotonTrigs_, highVPtPhotonTrigs_;
   bool applyTrigSafePhoton_;
   

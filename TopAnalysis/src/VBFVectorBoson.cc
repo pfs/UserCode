@@ -427,9 +427,9 @@ void VBFVectorBoson::runAnalysis()
       cat[3]  = (passLowVPtTrig && boson.Pt()>lowVPtCut_  && boson.Pt()<=highVPtCut_ && isBosonTrigSafe);
       cat[4]  = (passHighVPtTrig && boson.Pt()>highVPtCut_ && isBosonTrigSafe);
       if(jets.size()>=2) {
-        cat[5]  =  (vbfVars_.mjj>lowMJJCut_ && vbfVars_.mjj<=highMJJCut_);
+        cat[5]  =  (vbfVars_.mjj>looseMJJCut_  && vbfVars_.mjj<=lowMJJCut_);
         cat[6]  =  (vbfVars_.mjj>highMJJCut_);
-	cat[7]  =  (vbfVars_.mjj>lowMJJCut_);
+	cat[7]  =  (vbfVars_.mjj>looseMJJCut_   && vbfVars_.mjj<=lowMJJCut_);
 	cat[8]  =  (vbfVars_.mjj>200. && vbfVars_.mjj<500.);
       }
 
@@ -750,9 +750,9 @@ void VBFVectorBoson::runAnalysis()
           bool isHighVPt = (passHighVPtTrig  && iBoson.Pt()>highVPtCut_ && isBosonTrigSafe );
 	  bool isLowMJJ(false), isHighMJJ(false), isAllMJJ(false);
 	  if(ijets.size() >= 2){
-	    isLowMJJ = (vbfVars_.mjj>lowMJJCut_ && vbfVars_.mjj<=highMJJCut_);
+	    isLowMJJ = (vbfVars_.mjj>looseMJJCut_  && vbfVars_.mjj<=lowMJJCut_ );
 	    isHighMJJ = (vbfVars_.mjj>highMJJCut_);
-	    isAllMJJ =  (vbfVars_.mjj>lowMJJCut_);
+	    isAllMJJ =  ( vbfVars_.mjj>looseMJJCut_ && vbfVars_.mjj<=lowMJJCut_ );
 	  }
 
 	  if(chTag=="A" && isLowVPt) {
@@ -1002,8 +1002,8 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("vbfmvaAcc",       new TH1F("vbfmvaAcc",      ";VBF MVA;Events",50,-1,1));  
   ht_->addHist("acdfvbfmva",     new TH1F("acdfvbfmva",    ";CDF^{-1}(VBF MVA);Events",50,0,1));  
   ht_->addHist("tagjetresol", new TH1F("tagjetresol",";#Delta p_{T}/p_{T};Jets",50,-0.5,0.5));
-  ht_->addHist("vbfmvaHVPt",          new TH1F("vbfmvaHVPt",         ";VBF MVA;Events",50,-1,1));
-  ht_->addHist("vbfmvaLVPt",          new TH1F("vbfmvaLVPt",         ";VBF MVA;Events",50,-1,1));
+  //  ht_->addHist("vbfmvaHVPt",          new TH1F("vbfmvaHVPt",         ";VBF MVA;Events",50,-1,1));
+  // ht_->addHist("vbfmvaLVPt",          new TH1F("vbfmvaLVPt",         ";VBF MVA;Events",50,-1,1));
 
 
   TString expSystNames[]={"puup","pudn","trigup","trigdn","selup","seldn","l1prefireup","l1prefiredn",
@@ -1379,10 +1379,10 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
       ht_->fill("evcount",  1, cplotwgts, c);  
   }
   // std::cout << "Debug: Filling HV and LV pt histograms with values>>>" << vbfmvaHVPt_ << "\t" << vbfmvaLVPt_ << std::endl;
-  if (vbfmva1_ >-1000){
+  /* if (vbfmva1_ >-1000){
    ht_->fill("vbfmvaHVPt", vbfmvaHVPt_, cplotwgts,c);
    ht_->fill("vbfmvaLVPt", vbfmvaLVPt_, cplotwgts,c);
-  }
+   }*/
 
     
  

@@ -179,11 +179,12 @@ just remember that before doing the below command do hadd for signal.root files 
 
 
 
+
+
 python scripts/trainVbfBDT --vbf nt=50:mns=5:md=3:abb=0.6:nc=1 --ext LowVPtHighMJJ --sig signal.root --bkg backgrounds.root --cat A:VBF --card test/analysis/VBF_Cards/LowVPtHighMJJCard
 ```
+The example above is for "LowVPtHighMJJ" category. Once happy with the training, 
 
-```
-The example above is for "LowVPtHighMJJ" category. Once happy with the training,
 
 cp vbf/weights/LowVPtHighMJJ_BDT_VBF0LowVPtHighMJJ* test/analysis/VBF_weights
 

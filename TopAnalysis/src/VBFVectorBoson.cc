@@ -447,9 +447,10 @@ void VBFVectorBoson::runAnalysis()
       }
 
 
-     
-      /*      vbfmvaHVPt_ = vbfmvaLVPt_= -1000;
-      
+
+      /*
+         vbfmvaHVPt_ = vbfmvaLVPt_= -1000;
+
       if( chTag=="MM"  ){
 
 	if( vbfVars_.leadj_pt >50 &&  vbfVars_.mjj > 200 &&  vbfVars_.mjj <500 ){
@@ -460,9 +461,11 @@ void VBFVectorBoson::runAnalysis()
 	  vbfmvaLVPt_ = readers[key2]->EvaluateMVA(key2);
 	  // std::cout << "Debug Inside the if: vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;
 	}
-	}
-	// std::cout << "Debug:outside the if vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;*/
-      
+
+	}*/
+      // std::cout << "Debug:outside the if vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;
+
+
 
      
      
@@ -476,7 +479,8 @@ void VBFVectorBoson::runAnalysis()
 
 
        for(unsigned int icat = 0; icat<chTags.size(); icat++){
-	int pos(chTags[icat].EndsWith("A")? chTags[icat].Sizeof()-1 : chTags[icat].Sizeof()-2);
+	       
+	int pos(chTags[icat].EndsWith("MM")? chTags[icat].Sizeof() : chTags[icat].Sizeof()-2);
 	std::string s(chTags[icat]);
 	std::cout << "Debug:=category " << pos << "  "  << s << "  "  << s.substr(0,pos-1) << std::endl;
 	TString key("BDT_VBF0"+s.substr(0,pos-1));
@@ -484,12 +488,15 @@ void VBFVectorBoson::runAnalysis()
 	flat_vbfmva_[chTags[icat]] = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
 	if(mvaCDFinv[key]) flat_vbfmva_[chTags[icat]]=max(0.,mvaCDFinv[key]->Eval(vbfmva_[icat]));
 
+
 	  if(doBlindAnalysis_ && ev_.isData && chTags[icat].EndsWith("A") && flat_vbfmva_[chTags[icat]]>0.8) flat_vbfmva_[chTags[icat]]=-1000;
 	  if(doBlindAnalysis_ && ev_.isData && chTags[icat].EndsWith("A") && vbfmva_[chTags[icat]]>0.8) vbfmva_[chTags[icat]]=-1000;
 	  
 	std::cout << "in loop Debug:=vbfmva " << vbfmva_[chTags[icat]] << "  "  << 	flat_vbfmva_[chTags[icat]] << std::endl;
 
+
       }
+     
 
        //std::cout << "out loop Debug:=vbfmva " << vbfmva_ << "  "  << 	flat_vbfmva_ << std::endl;
 

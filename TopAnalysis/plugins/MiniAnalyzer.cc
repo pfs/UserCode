@@ -603,6 +603,7 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
       for (const auto & proton : *recoProtons)
         {
           if(!proton.validFit()) continue;
+          if(short(proton.method())!=0)  continue;
 
           CTPPSDetId detid( (*(proton.contributingLocalTracks().begin()))->getRPId() );
           ev_.fwdtrk_pot[ev_.nfwdtrk]       = 100*detid.arm()+10*detid.station()+detid.rp();

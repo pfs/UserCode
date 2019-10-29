@@ -220,17 +220,17 @@ if not (options.runOnData or options.noParticleLevel):
       process.mctruth=cms.Path(process.mergedGenParticles*process.genParticles2HepMC*process.particleLevel)
       toSchedule.append( process.mctruth )
 
-if options.runOnData:
-      from TopLJets2015.TopAnalysis.protonReco_cfg import ctppsCustom
-      ctppsCustom(process,options.era)
-
-      if options.redoProtonRecoFromRAW:
-            process.load('EventFilter.CTPPSRawToDigi.ctppsRawToDigi_cff')
-            process.load('RecoCTPPS.Configuration.recoCTPPS_cff')
-            process.ppsReco=cms.Path(process.ctppsRawToDigi*process.recoCTPPS*process.ppsSeq)
-      else:
-            process.ppsReco=cms.Path(process.ppsSeq)
-      toSchedule.append(process.ppsReco)
+#if options.runOnData:
+#      from TopLJets2015.TopAnalysis.protonReco_cfg import ctppsCustom
+#      ctppsCustom(process,options.era)
+#
+#      if options.redoProtonRecoFromRAW:
+#            process.load('EventFilter.CTPPSRawToDigi.ctppsRawToDigi_cff')
+#            process.load('RecoCTPPS.Configuration.recoCTPPS_cff')
+#            process.ppsReco=cms.Path(process.ctppsRawToDigi*process.recoCTPPS*process.ppsSeq)
+#      else:
+#            process.ppsReco=cms.Path(process.ppsSeq)
+#      toSchedule.append(process.ppsReco)
 
 if options.runProtonFastSim:
       from TopLJets2015.TopAnalysis.protonReco_cfg import setupProtonReco

@@ -108,7 +108,7 @@ case $WHAT in
 
 
 
-        json=data/era${ERA}/vbf_samples.json,data/era${ERA}/vbf_syst_samples.json
+        json=data/era${ERA}/vbf_DY_FXFX_mlm.json #,data/era${ERA}/vbf_syst_samples.json
 	#json=data/era${ERA}/vbf_syst_samples.json
 
 
@@ -191,8 +191,8 @@ case $WHAT in
 	
 
         json=data/era${ERA}/vbf_DY_FXFX_mlm.json;
-#	json=data/era${ERA}/vbf_samples.json;
-#	syst_json=data/era${ERA}/vbf_syst_samples.json;
+#	 json=data/era${ERA}/vbf_samples.json;
+	 syst_json=data/era${ERA}/vbf_syst_samples.json;
         gjets_json=data/era${ERA}/gjets_samples.json;
 	fake_json=data/era${ERA}/vbf_fake_samples.json;
 	plotOutDir=${outdir}/${githash}/${EXTRA}/plots/
@@ -203,7 +203,7 @@ case $WHAT in
         #python scripts/plotter.py ${commonOpts} -j ${gjets_json} --noStack --only A_
 
 #	echo "python scripts/plotter.py ${commonOpts} -j ${json} ${kFactors}  --only newcat,HighVPtA,LowVPtA,HighVPtMM,LowVPtMM,HighVPtEE,LowVPtEE"
-	python scripts/plotter.py ${commonOpts} -j ${json}  ${kFactors}  --only newcat,HighVPt,LowVPt
+	python scripts/plotter.py ${commonOpts} -j ${json}  ${kFactors}  --only HighVPt,LowVPt
 
 
 #	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors} --rawYields -o acceptance_plotter.root

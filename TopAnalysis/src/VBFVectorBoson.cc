@@ -427,9 +427,9 @@ void VBFVectorBoson::runAnalysis()
       cat[3]  = (passLowVPtTrig && boson.Pt()>lowVPtCut_  && boson.Pt()<=highVPtCut_ && isBosonTrigSafe);
       cat[4]  = (passHighVPtTrig && boson.Pt()>highVPtCut_ && isBosonTrigSafe);
       if(jets.size()>=2) {
-        cat[5]  =  (vbfVars_.mjj>looseMJJCut_  && vbfVars_.mjj<=lowMJJCut_);
-        cat[6]  =  (vbfVars_.mjj>highMJJCut_);
-	cat[7]  =  (vbfVars_.mjj>looseMJJCut_   && vbfVars_.mjj<=lowMJJCut_);
+        cat[5]  =  (vbfVars_.mjj>looseMJJCut_  && vbfVars_.mjj<=lowMJJCut_);//LowMjj200-500
+        cat[6]  =  (vbfVars_.mjj>lowMJJCut_   &&vbfVars_.mjj<=highMJJCut_);//HighMjj500-1TeV
+	cat[7]  =  (vbfVars_.mjj>highMJJCut_);//1TeV
 	cat[8]  =  (vbfVars_.mjj>200. && vbfVars_.mjj<500.);
       }
 
@@ -448,24 +448,7 @@ void VBFVectorBoson::runAnalysis()
 
 
 
-      /*
-         vbfmvaHVPt_ = vbfmvaLVPt_= -1000;
-
-      if( chTag=="MM"  ){
-
-	if( vbfVars_.leadj_pt >50 &&  vbfVars_.mjj > 200 &&  vbfVars_.mjj <500 ){
-	  chTags.push_back(chTag+"newcatLooseZ");
-	  TString key1("BDT_VBF0HighVPt");
-	  vbfmvaHVPt_ = readers[key1]->EvaluateMVA(key1);
-	  TString key2("BDT_VBF0LowVPt");
-	  vbfmvaLVPt_ = readers[key2]->EvaluateMVA(key2);
-	  // std::cout << "Debug Inside the if: vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;
-	}
-
-	}*/
-      // std::cout << "Debug:outside the if vbfmvaHVPt=" << vbfmvaHVPt_ << "\t vbfmvaLVPt=" << vbfmvaLVPt_ << std::endl;
-
-
+     
 
      
      
@@ -480,9 +463,9 @@ void VBFVectorBoson::runAnalysis()
 
        for(unsigned int icat = 0; icat<chTags.size(); icat++){
 	       
-	int pos(chTags[icat].EndsWith("MM")? chTags[icat].Sizeof() : chTags[icat].Sizeof()-2);
+	int pos(chTags[icat].EndsWith("A")? chTags[icat].Sizeof()-1 : chTags[icat].Sizeof()-2);
 	std::string s(chTags[icat]);
-	std::cout << "Debug:=category " << pos << "  "  << s << "  "  << s.substr(0,pos-1) << std::endl;
+	//	std::cout << "Debug:=category " << pos << "  "  << s << "  "  << s.substr(0,pos-1) << std::endl;
 	TString key("BDT_VBF0"+s.substr(0,pos-1));
 	vbfmva_[chTags[icat]]      = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
 	flat_vbfmva_[chTags[icat]] = (readers[key]?readers[key]->EvaluateMVA(key):-1000);
@@ -492,14 +475,13 @@ void VBFVectorBoson::runAnalysis()
 	  if(doBlindAnalysis_ && ev_.isData && chTags[icat].EndsWith("A") && flat_vbfmva_[chTags[icat]]>0.8) flat_vbfmva_[chTags[icat]]=-1000;
 	  if(doBlindAnalysis_ && ev_.isData && chTags[icat].EndsWith("A") && vbfmva_[chTags[icat]]>0.8) vbfmva_[chTags[icat]]=-1000;
 	  
-	std::cout << "in loop Debug:=vbfmva " << vbfmva_[chTags[icat]] << "  "  << 	flat_vbfmva_[chTags[icat]] << std::endl;
+	  //	std::cout << "in loop Debug:=vbfmva " << vbfmva_[chTags[icat]] << "  "  << 	flat_vbfmva_[chTags[icat]] << std::endl;
 
 
       }
      
 
-       //std::cout << "out loop Debug:=vbfmva " << vbfmva_ << "  "  << 	flat_vbfmva_ << std::endl;
-
+     
 
       
 
@@ -524,13 +506,13 @@ void VBFVectorBoson::runAnalysis()
       float wgt(1.0);
       std::vector<float>puWgts(3,1.0);
       EffCorrection_t trigSF(1.0,0.),selSF(1.0,0.),l1prefireProb(1.0,0.);
-      std::cout << "Debug: Is data?" << ev_.isData << " current wt:" << wgt << std::endl;
+      // std::cout << "Debug: Is data?" << ev_.isData << " current wt:" << wgt << std::endl;
       if (!ev_.isData) {
 
         // norm weight
-	std::cout << "Norm weight:" << normH_->GetBinContent(1) << std::endl;
+	//	std::cout << "Norm weight:" << normH_->GetBinContent(1) << std::endl;
 	wgt  = (normH_? normH_->GetBinContent(1) : 1.0);
-	std::cout << "Debug: Norm weight is multiplied, current wt:" << wgt << std::endl;
+	//	std::cout << "Debug: Norm weight is multiplied, current wt:" << wgt << std::endl;
 	
         // pu weight
         ht_->fill("puwgtctr",0,plotwgts);
@@ -543,7 +525,7 @@ void VBFVectorBoson::runAnalysis()
         l1prefireProb=l1PrefireWR_->getCorrection(jets,photons_);
 
 	
-	std::cout << "Debug: L1 Prefire weight is multiplied, current wt:" << wgt << std::endl;	
+	//	std::cout << "Debug: L1 Prefire weight is multiplied, current wt:" << wgt << std::endl;	
 
         // photon trigger*selection weights        
         if(chTag=="A")
@@ -561,18 +543,18 @@ void VBFVectorBoson::runAnalysis()
           }
         wgt *= l1prefireProb.first;
         wgt *= puWgts[0]*trigSF.first*selSF.first;
-	std::cout << "Debug: puWt*trigSF*selecionSF are  multiplied, current wt:" << wgt << std::endl;	
+	//	std::cout << "Debug: puWt*trigSF*selecionSF are  multiplied, current wt:" << wgt << std::endl;	
         
         // generator level weights
 	std::cout << "Generator level weight:" << ev_.g_w[0] << std::endl;
 	wgt *= (ev_.g_nw>0 ? ev_.g_w[0] : 1.0);//if condition is true ? calculate otherwise do : 
 
-	std::cout << "Debug:  gen level weight is multiplied, current wt:" << wgt << std::endl;
+	//	std::cout << "Debug:  gen level weight is multiplied, current wt:" << wgt << std::endl;
 	
         //update weight for plotter
         plotwgts[0]=wgt;
 
-	std::cout << "Debug:  gen level weight is multiplied with wgt, current wt:" <<  plotwgts[0] << std::endl;
+	//	std::cout << "Debug:  gen level weight is multiplied with wgt, current wt:" <<  plotwgts[0] << std::endl;
       }
 
       //gen level
@@ -590,7 +572,7 @@ void VBFVectorBoson::runAnalysis()
       bool FRmeasured(chTags.size() > 1);
       //fill control histograms
       for( auto c : chTags){
-		std::cout << "Debug: Filling control histograms for tag:" << c << " with current wt:" << plotwgts[0] << std::endl;
+	//	std::cout << "Debug: Filling control histograms for tag:" << c << " with current wt:" << plotwgts[0] << std::endl;
 	float myWgt(plotwgts[0]);
 	//fake rate      
 	if(ev_.isData && chTag=="A" && SRfake_ && FRmeasured) {
@@ -755,11 +737,14 @@ void VBFVectorBoson::runAnalysis()
 
           bool isLowVPt = (passLowVPtTrig && iBoson.Pt()>lowVPtCut_ && iBoson.Pt()<=highVPtCut_ && isBosonTrigSafe);
           bool isHighVPt = (passHighVPtTrig  && iBoson.Pt()>highVPtCut_ && isBosonTrigSafe );
-	  bool isLowMJJ(false), isHighMJJ(false), isAllMJJ(false);
+	  bool isLowMJJ(false), isHighMJJ(false), isAllMJJ(false), islooseMJJ(false);
 	  if(ijets.size() >= 2){
-	    isLowMJJ = (vbfVars_.mjj>looseMJJCut_  && vbfVars_.mjj<=lowMJJCut_ );
-	    isHighMJJ = (vbfVars_.mjj>highMJJCut_);
-	    isAllMJJ =  ( vbfVars_.mjj>looseMJJCut_ && vbfVars_.mjj<=lowMJJCut_ );
+
+	    
+	    // islooseMJJ=  (vbfVars_.mjj>200. && vbfVars_.mjj<500.);
+	    isLowMJJ =  (vbfVars_.mjj>looseMJJCut_  && vbfVars_.mjj<=lowMJJCut_);//LowMjj200-500
+	    isHighMJJ =(vbfVars_.mjj>lowMJJCut_   &&vbfVars_.mjj<highMJJCut_);//HighMjj500-1TeV
+	    isAllMJJ =  (vbfVars_.mjj>highMJJCut_);//1TeV
 	  }
 
 	  if(chTag=="A" && isLowVPt) {
@@ -768,7 +753,7 @@ void VBFVectorBoson::runAnalysis()
 	       || vbfVars_.detajj<lowVPtDetaJJCut_)
 	      continue;
 	  }
-	  /*-----*/if(vbfVars_.mjj < lowMJJCut_) continue;
+	  //	  /*-----*/if(vbfVars_.mjj < lowMJJCut_) continue;
           if(isLowVPt) {
 	    if(isAllMJJ) myCat.push_back("LowVPt"+chTag);
 	    if(isLowMJJ) myCat.push_back("LowVPtLowMJJ"+chTag);
@@ -1009,6 +994,7 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("vbfmvaAcc",       new TH1F("vbfmvaAcc",      ";VBF MVA;Events",50,-1,1));  
   ht_->addHist("acdfvbfmva",     new TH1F("acdfvbfmva",    ";CDF^{-1}(VBF MVA);Events",50,0,1));  
   ht_->addHist("tagjetresol", new TH1F("tagjetresol",";#Delta p_{T}/p_{T};Jets",50,-0.5,0.5));
+   ht_->addHist("ptcentj",          new TH2F("ptcentj",          ";Cent Jet p_{T}; #eta_{j}",25,20,280,25,0,5)); 
   //  ht_->addHist("vbfmvaHVPt",          new TH1F("vbfmvaHVPt",         ";VBF MVA;Events",50,-1,1));
   // ht_->addHist("vbfmvaLVPt",          new TH1F("vbfmvaLVPt",         ";VBF MVA;Events",50,-1,1));
 

@@ -2,7 +2,7 @@
 
 "MC13TeV_2016_DY50toInf_mlm_ext"     : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v2/MINIAODSIM", "DY", 41, false, false, 1],
 "MC13TeV_2016_DY50toInf_mlm" : [5765.4, 0,  "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM", "DYlo", 41, false, false, 1],
-"MC13TeV_2016_GJets_unlops"  : [14676.0,  0,  "", "#gamma+jets (unlops)", "#7fc97f", false, false, 1],
+"MC13TeV_2016_GJets_unlops"  : [14676.0,  0,   "#gamma+jets (unlops)", "#7fc97f", false, false, 1],
 "MC13TeV_2016_DY50toInf_1J_mlm"  : [5765.4, 0, "/DY1JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM", "DYlojet", 41, false, false, 1], 
 "MC13TeV_2016_DY50toInf_2J_mlm"  : [5765.4, 0, "/DY2JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "DYlojet", 41, false, false, 1], 
 "MC13TeV_2016_DY50toInf_3J_mlm"  : [5765.4, 0, "/DY3JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM", "DYlojet", 41, false, false, 1], 

@@ -15,6 +15,7 @@ cmsenv
 
 #EGM id
 git cms-merge-topic cms-egamma:EgammaPostRecoTools
+scram b -j 8
 
 #B-fragmentation analyzer
 mkdir TopQuarkAnalysis 

@@ -1235,12 +1235,18 @@ bool MiniAnalyzer::isMediumMuon2016ReReco(const reco::Muon & recoMu)
 void MiniAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   //get beam-crossing angle and LHC conditions
-  edm::ESHandle<LHCInfo> hLHCInfo;
-  std::string lhcInfoLabel("");
-  iSetup.get<LHCInfoRcd>().get(lhcInfoLabel, hLHCInfo);
-  if(hLHCInfo.isValid()){
-    ev_.beamXangle=hLHCInfo->crossingAngle();
-    ev_.instLumi=hLHCInfo->instLumi();
+  try{
+    edm::ESHandle<LHCInfo> hLHCInfo;
+    std::string lhcInfoLabel("");
+    iSetup.get<LHCInfoRcd>().get(lhcInfoLabel, hLHCInfo);
+    if(hLHCInfo.isValid()){
+      ev_.beamXangle=hLHCInfo->crossingAngle();
+      ev_.instLumi=hLHCInfo->instLumi();
+    }
+  }
+  catch(...){
+    ev_.beamXangle=0;
+    ev_.instLumi=0;
   }
 
   histContainer_["counter"]->Fill(0);

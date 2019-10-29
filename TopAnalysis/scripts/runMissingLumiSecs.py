@@ -29,7 +29,7 @@ def main():
       cfg=job.replace('crab_','')+'_cfg.py'      
       newWorkArea='%s_new'%WORKAREA
       newCfg='%s/%s'%(newWorkArea,os.path.basename(cfg.replace('_cfg','_ext_cfg')))
-      os.system('mkdir -p %s_new'%newWorkArea)
+      os.system('mkdir -p %s'%newWorkArea)
       newCfgFile=open(newCfg,'w')
       lumiMaskSet=False
       for line in open(cfg,'r'):

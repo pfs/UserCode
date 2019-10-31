@@ -18,8 +18,9 @@
 #include <set>
 #include <iostream>
 #include <algorithm>
-#include "TMath.h"
 
+#include "TMath.h"
+#include "TProfile.h"
 using namespace std;
 
 //
@@ -259,6 +260,8 @@ void TOP17010::runAnalysis()
     cout << "[TOP17010::runAnalysis] caught a NULL file, won't do anything here" << endl;
   }
 
+  TProfile *btagUnc=new TProfile("btagunc",";Flavour;Average uncertainty",2,0,2);
+
   ///////////////////////
   // LOOP OVER EVENTS //
   /////////////////////
@@ -440,6 +443,12 @@ void TOP17010::runAnalysis()
       //experimental systs cycle: better not to do anything else after this...
       //final category selection is repeated ad nauseam with varied objects/weights 
       if(ev_.isData) continue;
+
+      //profile b-tag uncertainty
+      for(auto &j:tweSelJets) {
+        double sfUnc=btvSF_->getSFUncertainty(j,ev_);
+        btagUnc->Fill(ev_.j_hadflav[j.getJetIndex()]==5 ? 1 : 0,sfUnc);
+      }
 
       selector_->setDebug(false);
 
@@ -656,6 +665,8 @@ void TOP17010::runAnalysis()
 
   //save histograms to the output
   fOut_->cd();
+  btagUnc->SetDirectory(fOut_);
+  btagUnc->Write();
   for (auto& it : ht_->getPlots())  { 
     if(it.second->GetEntries()==0) continue;
     it.second->SetDirectory(fOut_); 

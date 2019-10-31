@@ -23,7 +23,7 @@ DIMUONS=13*13
 EMU=11*13
 DIELECTRONS=11*11
 SINGLEPHOTON=22
-MINCSI=0.05
+MINCSI=0.04
 MIXEDRP=None
 
 
@@ -105,8 +105,8 @@ def passHighPurSelection(protons,boson):
     
     highPur = True if protons and len(protons[0])==1 and len(protons[1])==1 else False  
     if highPur:
-        if protons[0][0]<0.05 or protons[0][0]>0.18 : highPur=False
-        if protons[1][0]<0.05 or protons[1][0]>0.18 : highPur=False
+        if protons[0][0]<MINCSI or protons[0][0]>0.18 : highPur=False
+        if protons[1][0]<MINCSI or protons[1][0]>0.18 : highPur=False
 
     return highPur
 
@@ -668,8 +668,8 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,effDir,maxEvents=-1):
     #dump events for the mixing
     nSelRPData=sum([len(rpData[x]) for x in rpData])
     if nSelRPData>0:
-        print 'Saving',nSelRPData,'events for mixing in',rpDataOut
         rpDataOut=outFileName.replace('.root','.pck')                
+        print 'Saving',nSelRPData,'events for mixing in',rpDataOut
         with open(rpDataOut,'w') as cachefile:
             pickle.dump(rpData,cachefile, pickle.HIGHEST_PROTOCOL)        
 

@@ -8,7 +8,7 @@ if [ "$#" -ne 1 ]; then
     echo "   PLOTSEL         - make plots"
     echo "   TRAINPUDISCR    - train pileup discriminator"
     echo "   RUNPRED         - run pileup discriminator prediction"
-    echo "   PREPAREANA      - prepare bank of events for event mixing from the summary trees"
+    echo "   PREPAREMIX      - prepare bank of events for event mixing from the summary trees"
     echo "   COLLECTMIX      - collects all the mixing events found in PREPAREANA"
     echo "   ANA/ANASIG      - run analysis on the summary trees"
     echo "   CHECKANA        - check analysis integrity and re-run locally jobs which have failed"
@@ -27,15 +27,17 @@ eosdir=/store/cmst3/group/top/RunIIReReco/${githash}
 #eosdir=/store/cmst3/group/top/RunIIReReco/2017/${githash}
 signal_dir=/store/cmst3/group/top/RunIIReReco/2017/vxsimulations_30Sep
 outdir=/store/cmst3/user/psilva/ExclusiveAna/final/${githash}
-anadir=${outdir}/analysis_0p05
+#anadir=${outdir}/analysis_0p05
+anadir=${outdir}/analysis_0p04
 signal_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/signal_samples.json
 plot_signal_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/plot_signal_samples.json
+plot_signal_ext_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/plot_signal_samples_ext.json
 samples_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/samples.json
 jetht_samples_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/jetht_samples.json
 zx_samples_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/zx_samples.json
 zbias_samples_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/zbias_samples.json
 RPout_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/golden_noRP.json
-wwwdir=/eos/user/p/psilva/www/ExclusiveAna
+wwwdir=/eos/user/p/psilva/www/ExclusiveAna_0p04
 inputfileTag=MC13TeV_2017_GGH2000toZZ2L2Nu
 inputfileTag=MC13TeV_2017_GGToEE_lpair
 inputfileTag=Data13TeV_2017F_MuonEG
@@ -238,7 +240,7 @@ case $WHAT in
         ;;
    
     CHECKANASIG )
-        python test/analysis/pps/checkFinalNtupleInteg.py /eos/cms/${signal_dir} /eos/cms/${anadir}/Chunks 2 1 /eos/cms/${anadir}/mixing/mixbank.pck
+        python test/analysis/pps/checkFinalNtupleInteg.py /eos/cms/${signal_dir} /eos/cms/${anadir}/Chunks 1 1 /eos/cms/${anadir}/mixing/mixbank.pck
         ;;
 
     MERGEANA )
@@ -292,29 +294,32 @@ case $WHAT in
 
     PLOTANA )
 
-        lumiSpecs="mmrpin:${ppsLumi},eerpin:${ppsLumi},emrpin:${ppsLumi},a:${lptalumi},arpin:${lptappslumi}"        
+        lumiSpecs="mmrpin:${ppsLumi},eerpin:${ppsLumi},emrpin:${ppsLumi},a:${lptalumi},arpin:${lptappslumi},arpinhpur:${lptappslumi}"   
         for c in neg pos hpur hpurpos hpurneg hpur120xangle hpur130xangle hpur140xangle hpur150xangle; do
             lumiSpecs="${lumiSpecs},mmrpin${c}:${ppsLumi},eerpin${c}:${ppsLumi},emrpin${c}:${ppsLumi},arpin${c}:${lptappslumi}";
         done
 	baseOpts="-i /eos/cms/${anadir} --lumiSpecs ${lumiSpecs} --procSF #gamma+jets:1.4 -l ${lumi} --mcUnc ${lumiUnc} ${lumiSpecs} ${kFactorList}"
-        commonOpts="${baseOpts} -j ${samples_json} --signalJson ${plot_signal_json} -O /eos/cms/${anadir}/plots"
+        commonOpts="${baseOpts} -j ${samples_json} --signalJson ${plot_signal_ext_json} -O /eos/cms/${anadir}/plots"
 
-        plots=xangle_eerpinhpur,xangle_mmrpinhpur,xangle_emrpinhpur,xangle_arpinhpur
+        plots=xangle_arpinhpur #xangle_eerpinhpur,xangle_mmrpinhpur,xangle_emrpinhpur,xangle_arpinhpur
         python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/scripts/plotter.py ${commonOpts} --only ${plots} --strictOnly --saveTeX --rebin 4;
 
+        commonOpts="${baseOpts} -j ${samples_json} --signalJson ${plot_signal_json} -O /eos/cms/${anadir}/plots"
         cats=(
             "" 
-            "rpin" "rpinhpur" 
+            "rpin"
+            "rpinpos" "rpinneg"
+            "rpinhpur" 
             "rpinhpurneg" "rpinhpurpos" 
             "rpinhpur120xangle" "rpinhpur130xangle" "rpinhpur140xangle" "rpinhpur150xangle" 
         )
-        for ch in mm ee a em; do
+        for ch in a; do #mm ee a em; do
            plots=""
 
             for c in "${cats[@]}"; do            
                 evcat=${ch}${c}
                 
-                for p in ptll mll nvtx rho xangle mll yll etall ptll l1eta l1pt l2eta l2pt acopl costhetacs met njets mpf zjb zj2b; do                  
+                for p in ptll mll nvtx rho xangle mll yll etall ptll l1eta l1pt l2eta l2pt acopl costhetacs met njets mpf zjb zj2b nch; do                  
                     plots="${p}_${evcat},${plots}"
                 done
 
@@ -335,6 +340,12 @@ case $WHAT in
         
         ;;
 
+    BKGVALIDATION )
+        python test/analysis/pps/doBackgroundValidation.py --doPerAngle -i /eos/cms/${anadir} -o /eos/cms/${outdir}/bkg &
+        python test/analysis/pps/doBackgroundValidation.py --doPerAngle -i /eos/cms/${anadir} -o /eos/cms/${outdir}/bkg_ptll0 --selCuts "bosonpt>=0. && l1pt>30 && l2pt>20" &
+        python test/analysis/pps/doBackgroundValidation.py --doPerAngle -i /eos/cms/${anadir} -o /eos/cms/${outdir}/bkg_ptll60 --selCuts "bosonpt>60 && l1pt>30 && l2pt>20" &
+        ;;
+
     WWW )
 
 	cp $CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/index.php ${wwwdir}
@@ -346,6 +357,11 @@ case $WHAT in
         mkdir -p ${wwwdir}/ana
         cp /eos/cms/${anadir}/plots/*.{png,pdf,dat} ${wwwdir}/ana
         cp $CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/index.php ${wwwdir}/ana
+
+        mkdir -p ${wwwdir}/bkg
+        cp /eos/cms/${anadir}/plots/*.{png,pdf,dat} ${wwwdir}/bkg
+        cp $CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/index.php ${wwwdir}/bkg
+
         ;;
 
     TESTSTATANA)
@@ -353,7 +369,7 @@ case $WHAT in
         echo "Generating a datacard takes a bit as it'll project the shapes for a given set of cuts"
         echo "You can run locally with python test/analysis/pps/generatedBinnedWorkspace.py and your preferred set of cuts"
         echo "Running with the default values for ${anadir} and output @ ppvx_analysis/test"
-        python test/analysis/pps/generatedBinnedWorkspace.py -i /eos/cms/${anadr} -o ppvx_analysis/test
+        python test/analysis/pps/generatedBinnedWorkspace.py -i /eos/cms/${anadir} -o ppvx_analysis/test
 
         ;;
 
@@ -365,7 +381,8 @@ case $WHAT in
         ;;
 
     FINALIZESTATANA )
-        python test/analysis/pps/compareOptimResults.py ppvx_analysis/
+        #python test/analysis/pps/compareOptimResults.py ppvx_analysis/
+        python test/analysis/pps/compareOptimResults.py ppvx_analysis/ 45
         ;;
 
     
@@ -373,7 +390,7 @@ case $WHAT in
 
         #afs needs to be used here...
         for m in 800 1200 1400; do
-            python test/analysis/pps/prepareOptimScanCards.py -o ppvx_analysis_${m}  -i /eos/cms/${anadir} --injectMass ${m} --just 5,45;
+            python test/analysis/pps/prepareOptimScanCards.py -o ppvx_analysis_${m}  -i /eos/cms/${anadir} --injectMass ${m} --just 2,11,37;
         done
 
         ;;

@@ -4,7 +4,7 @@ import sys
 import optparse
 import numpy as np
 
-CSILIST=np.arange(0.05,0.06,0.001)
+CSILIST=np.arange(0.04,0.05,0.001)
 PTLIST=np.arange(20,60,5)
 NVTXLIST=np.arange(10,40,5)
 PFSUMPZLIST=np.arange(4000,12000,1000)
@@ -15,12 +15,12 @@ def estimateLocalSensitivity(opt):
     """ steers the estimation of the local sensitivity for a given distribution """
 
     data=ROOT.TChain('data')
-    for f in [os.path.join(opt.input,x) for x in os.listdir(opt.input) if 'Data13TeV' in x]:
+    for f in [os.path.join(opt.input,x) for x in os.listdir(opt.input) if 'Data13TeV' in x and 'DoubleMu' in x]:
         if 'MuonEG' in f : continue
         data.AddFile(f)
 
     cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && bosonpt>40 && nvtx<20 && PFPzSumHF<12000'%opt.xangle
-    finalCut=cuts+' && csi1>0.5 && csi2>0.5'
+    finalCut=cuts+' && csi1>0.04 && csi2>0.04'
     data.Draw('mmiss >> (50,0,2500)',finalCut,'goff')
     h=data.GetHistogram()    
     h.SetDirectory(0)
@@ -51,7 +51,7 @@ def estimateLocalSensitivity(opt):
 
     #scan in ptll
     print 'Scanning ptll in',PTLIST
-    cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && csi1>0.05 && csi2>0.05 && nvtx<20 && PFPzSumHF<12000'%opt.xangle
+    cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && csi1>0.04 && csi2>0.04 && nvtx<20 && PFPzSumHF<12000'%opt.xangle
     for pt in PTLIST:
         finalCut='%s && bosonpt>%f'%(cuts,pt)
         data.Draw('mmiss >> (50,0,2500)',finalCut,'goff')
@@ -64,7 +64,7 @@ def estimateLocalSensitivity(opt):
 
     #scan in vertices
     print 'Scanning nvtx in',NVTXLIST
-    cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && csi1>0.05 && csi2>0.05 && bosonpt>40 && PFPzSumHF<12000'%opt.xangle
+    cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && csi1>0.04 && csi2>0.04 && bosonpt>40 && PFPzSumHF<12000'%opt.xangle
     for n in NVTXLIST:
         finalCut='%s && nvtx<%f'%(cuts,n)
         data.Draw('mmiss >> (50,0,2500)',finalCut,'goff')
@@ -77,7 +77,7 @@ def estimateLocalSensitivity(opt):
 
     #scan in HF
     print 'Scanning PFSumPz in',PFSUMPZLIST
-    cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && csi1>0.05 && csi2>0.05 && bosonpt>40 && nvtx<20'%opt.xangle
+    cuts='xangle==%d && mixType==1 && cat==169 && l1pt>30 && l2pt>20 && csi1>0.04 && csi2>0.04 && bosonpt>40 && nvtx<20'%opt.xangle
     for hf in PFSUMPZLIST:
         finalCut='%s && PFPzSumHF<%f'%(cuts,hf)
         data.Draw('mmiss >> (50,0,2500)',finalCut,'goff')
@@ -162,7 +162,7 @@ def estimateLocalSensitivity(opt):
     tex.SetTextSize(0.04)
     tex.SetNDC()
     tex.DrawLatex(0.15,0.96,'#bf{CMS} #it{preliminary}')
-    tex.DrawLatex(0.17,0.92,'[%d#murad]'%opt.xangle)
+    tex.DrawLatex(0.17,0.9,'[%d#murad]'%opt.xangle)
     tex.SetTextAlign(31)
     tex.DrawLatex(0.97,0.96,'13 TeV')  
 
@@ -179,12 +179,12 @@ def main():
     parser.add_option('-i', '--in',          
                       dest='input',       
                       help='input directory [%default]',  
-                      default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/final/ab05162/analysis/',
+                      default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/final/ab05162/analysis_0p04/',
                       type='string')
     parser.add_option('-o', '--out',          
                       dest='output',       
                       help='output directory [%default]',  
-                      default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/final/ab05162/analysis/plots',
+                      default='/eos/cms/store/cmst3/user/psilva/ExclusiveAna/final/ab05162/analysis_0p04/plots',
                       type='string')
     parser.add_option('--xangle',
                       dest='xangle',

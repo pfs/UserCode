@@ -3,7 +3,7 @@ import os
 import sys
 import argparse
 import itertools
-
+"""
 KINEMATICS = [('bosonpt>20', 'bosonpt>95'),
               ('bosonpt>30', 'bosonpt>100'),
               ('bosonpt>40', 'bosonpt>110'),
@@ -18,6 +18,22 @@ CATEGS     = ['nvtx>15',
               'nvtx<20,nvtx>=20',
               'nvtx<25,nvtx>=25',
               'nvtx<30,nvtx>=30']
+"""
+
+
+KINEMATICS = [('bosonpt>30',                       'bosonpt>95'),
+              ('bosonpt>40',                       'bosonpt>100'),
+              ('bosonpt>40 && l1pt>40 && l2pt>30', 'bosonpt>110'),             
+              ('bosonpt>50',                       'bosonpt>120'),
+              ('bosonpt>50 && l1pt>40 && l2pt>30', 'bosonpt>130'),             
+              ('bosonpt>60',                       'bosonpt>140')]
+RPSEL      = ['csi1>0.04 && csi2>0.04',
+              'csi1>0.05 && csi2>0.05',              
+              'csi1>0.06 && csi2>0.06']
+CATEGS     = ['nvtx<20,nvtx>=20',
+              'nvtx<25,nvtx>=25',
+              'nvtx<30,nvtx>=30']
+
 OPTIMLIST=list(itertools.product(KINEMATICS, RPSEL,CATEGS))
 
 def main(args):
@@ -88,7 +104,7 @@ def main(args):
 
             #create datacard
             script.write('echo "Running datacard creation"\n')
-            script.write('python ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/generateBinnedWorkspace.py -i ${input} -o ${output} --preselZ "${preselZ}" --preselGamma "${preselGamma}" --categs "${categs} ${injectMass}"\n')
+            script.write('python ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/generateBinnedWorkspace.py -i ${input} -o ${output} --preselZ "${preselZ}" --preselGamma "${preselGamma}" --categs "${categs}" ${injectMass}\n')
             script.write('\n')
 
             #combine cards
@@ -109,7 +125,7 @@ def main(args):
             #run statistical analysis
             script.write('echo "Running combine"\n')
             script.write('for b in z g; do\n')
-            script.write('\t for m in 800 900 1000 1080 1200 1320 1400 1500; do\n')
+            script.write('\t for m in 780 800 840 900 960 1000 1020 1080 1140 1200 1260 1320 1380 1400 1440 1500 1560 1600; do \n')
             script.write('\t\t pfix=${b}_m${m}\n')
             script.write('\t\t text2workspace.py ${b}_datacard.dat -m ${m} -o ${pfix}_workspace.root\n')
             script.write('\t\t combine ${pfix}_workspace.root -n PP${b}X.obs -M AsymptoticLimits -m ${m}\n')

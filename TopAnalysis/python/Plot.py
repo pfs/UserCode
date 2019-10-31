@@ -75,6 +75,7 @@ class Plot(object):
         self.mcUnc=0
         self.noErrorsOnRatio=False
         ROOT.TGaxis.SetMaxDigits(4)
+        self.nominalDistForSystsName='t#bar{t}'
 
     def normToData(self):
         if not self.dataH : return
@@ -277,6 +278,7 @@ class Plot(object):
                     self.mc[h].SetTitle('#splitline{%s}{#chi^{2}=%3.1f (p-val: %3.3f)}'%(self.mc[h].GetTitle(),chi2,pval))
                 else:
                     refH.SetLineWidth(2)
+
             leg.AddEntry(self.mc[h], self.mc[h].GetTitle(), 'f')
             nlegCols += 1
 
@@ -308,22 +310,22 @@ class Plot(object):
                 totalMC = self.mc[h].Clone('totalmc')
                 self._garbageList.append(totalMC)
                 totalMC.SetDirectory(0)
-            nominalTTbar=None
-            if h=='t#bar{t}':
-                nominalTTbar = self.mc[h].Clone('nomttbar')
-                self._garbageList.append(nominalTTbar)
-                nominalTTbar.SetDirectory(0)
+            nominalDistForSysts=None
+            if h==self.nominalDistForSystsName: 
+                nominalDistForSysts = self.mc[h].Clone('nomdistforsyst')
+                self._garbageList.append(nominalDistForSysts)
+                nominalDistForSysts.SetDirectory(0)
 
         #systematics
-        if (totalMC and nominalTTbar and len(self.mcsyst)>0):
+        if (totalMC and nominalDistForSysts and len(self.mcsyst)>0):
             # complete
             systUp=[0.]
             systDown=[0.]
-            for xbin in xrange(1,nominalTTbar.GetNbinsX()+1):
+            for xbin in xrange(1,nominalDistForSysts.GetNbinsX()+1):
                 systUp.append(0.)
                 systDown.append(0.)
                 for hname in self.mcsyst:
-                    diff = self.mcsyst[hname].GetBinContent(xbin) - nominalTTbar.GetBinContent(xbin)
+                    diff = self.mcsyst[hname].GetBinContent(xbin) - nominalDistForSysts.GetBinContent(xbin)
                     if (diff > 0):
                         systUp[xbin] = math.sqrt(systUp[xbin]**2 + diff**2)
                     else:
@@ -334,20 +336,20 @@ class Plot(object):
             totalMCUnc.SetFillColor(1) #ROOT.TColor.GetColor('#99d8c9'))
             ROOT.gStyle.SetHatchesLineWidth(1)
             totalMCUnc.SetFillStyle(3344) #3254)
-            for xbin in xrange(1,nominalTTbar.GetNbinsX()+1):
+            for xbin in xrange(1,nominalDistForSysts.GetNbinsX()+1):
                 totalMCUnc.SetBinContent(xbin, totalMCUnc.GetBinContent(xbin) + (systUp[xbin]-systDown[xbin])/2.)
                 totalMCUnc.SetBinError(xbin, math.sqrt(totalMCUnc.GetBinError(xbin)**2 + ((systUp[xbin]+systDown[xbin])/2.)**2))
             # shape
-            nominalIntegral = nominalTTbar.Integral()
+            nominalIntegral = nominalDistForSysts.Integral()
             for hname,h in self.mcsyst.iteritems():
                 if (h.Integral()>0.): h.Scale(nominalIntegral/h.Integral())
             systUpShape=[0.]
             systDownShape=[0.]
-            for xbin in xrange(1,nominalTTbar.GetNbinsX()+1):
+            for xbin in xrange(1,nominalDistForSysts.GetNbinsX()+1):
                 systUpShape.append(0.)
                 systDownShape.append(0.)
                 for hname in self.mcsyst:
-                    diff = self.mcsyst[hname].GetBinContent(xbin) - nominalTTbar.GetBinContent(xbin)
+                    diff = self.mcsyst[hname].GetBinContent(xbin) - nominalDistForSysts.GetBinContent(xbin)
                     if (diff > 0):
                         systUpShape[xbin] = math.sqrt(systUpShape[xbin]**2 + diff**2)
                     else:
@@ -357,7 +359,7 @@ class Plot(object):
             totalMCUncShape.SetDirectory(0)
             totalMCUncShape.SetFillColor(ROOT.TColor.GetColor('#d73027'))
             totalMCUncShape.SetFillStyle(3254)
-            for xbin in xrange(1,nominalTTbar.GetNbinsX()+1):
+            for xbin in xrange(1,nominalDistForSysts.GetNbinsX()+1):
                 totalMCUncShape.SetBinContent(xbin, totalMCUncShape.GetBinContent(xbin) + (systUpShape[xbin]-systDownShape[xbin])/2.)
                 totalMCUncShape.SetBinError(xbin, math.sqrt(totalMCUncShape.GetBinError(xbin)**2 + ((systUpShape[xbin]+systDownShape[xbin])/2.)**2))
             self.totalMCUnc = totalMCUnc
@@ -493,6 +495,20 @@ class Plot(object):
         else:
             txt.DrawLatex(0.95,0.97,'#scale[0.8]{%3.1f fb^{-1} (%s)}' % (lumi/1000.,self.com) )
         try:
+            
+            if self.doChi2 and totalMC and self.dataH:
+                if self.totalMCUnc:
+                    chi2=self.totalMCUnc.Chi2Test( self.dataH, 'WU CHI2')
+                    pval=self.totalMCUnc.Chi2Test( self.dataH, 'WWU')
+                else:
+                    chi2=totalMC.Chi2Test( self.dataH, 'WU CHI2')
+                    pval=totalMC.Chi2Test( self.dataH, 'WWU')
+                if not extraText:
+                    extraText=''
+                else:
+                    extraText+='\\'
+                extraText+='#chi^{2}/dof=%3.1f/%d (p-val: %3.3f)'%(chi2,self.dataH.GetNbinsX(),pval)
+                
             extraCtr=1
             for extra in extraText.split('\\'):
                 if inix>0.5:
@@ -662,15 +678,31 @@ class Plot(object):
             f.write(pval.ljust(40),)
         f.write('\n')
 
-        if self.dataH is None: return
+        if self.dataH :
+            f.write('------------------------------------------\n')
+            f.write('Data'.ljust(20),)
+            for xbin in xrange(1,self.dataH.GetXaxis().GetNbins()+1):
+                itot=self.dataH.GetBinContent(xbin)
+                pval=' & %d'%itot
+                f.write(pval.ljust(40))
+            f.write('\n')
+            f.write('------------------------------------------\n')
+
+        for pname in self.spimpose:
+            h = self.spimpose[pname]
+            f.write(pname.ljust(20),)
+
+            for xbin in xrange(1,h.GetXaxis().GetNbins()+1):
+                itot=h.GetBinContent(xbin)
+                ierr=h.GetBinError(xbin)
+                pval=' & %s'%toLatexRounded(itot,ierr)
+                f.write(pval.ljust(40),)
+                tot[xbin] = tot[xbin]+itot
+                err[xbin] = err[xbin]+ierr*ierr
+            f.write('\n')
+
         f.write('------------------------------------------\n')
-        f.write('Data'.ljust(20),)
-        for xbin in xrange(1,self.dataH.GetXaxis().GetNbins()+1):
-            itot=self.dataH.GetBinContent(xbin)
-            pval=' & %d'%itot
-            f.write(pval.ljust(40))
-        f.write('\n')
-        f.write('------------------------------------------\n')
+
         f.close()
 
 

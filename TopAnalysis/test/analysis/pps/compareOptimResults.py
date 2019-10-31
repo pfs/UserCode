@@ -6,7 +6,7 @@ import re
 from prepareOptimScanCards import OPTIMLIST
 from TopLJets2015.TopAnalysis.Plot import *
 
-def getLimitsFrom(url):
+def getLimitsFrom(url,getObs=False):
 
     """parses the r95 limits from the tree"""
 
@@ -14,9 +14,13 @@ def getLimitsFrom(url):
     try:
         t=fIn.Get('limit')
         vals=[]
-        for i in range(5):
-            t.GetEntry(i)
-            vals.append(t.limit)
+        if getObs:
+            t.GetEntry(t.GetEntriesFast()-1)
+            vals=[t.limit]*5
+        else:
+            for i in range(5):
+                t.GetEntry(i)
+                vals.append(t.limit)
         fIn.Close()
     except:
         vals=[999.]*5
@@ -40,7 +44,7 @@ def getSignificanceFrom(url):
     return vals
 
 
-def showOptimizationScan(results,name,title,lumi):
+def showOptimizationScan(results,name,title,mass,lumi):
 
     """a bar plot with the expected limits obtained at each optimization point"""
 
@@ -52,20 +56,23 @@ def showOptimizationScan(results,name,title,lumi):
     c.SetGridx()
     c.SetGridy()
 
-    h    = ROOT.TH1F('optimscan',    '#sigma_{fid}^{95%CL};;95% CL on #sigma_{fid} [pb]', len(results),0,len(results))
-    hsig = ROOT.TH1F('optimscansig', 'Significance;;Significance (asymptotic)',           len(results),0,len(results))
+    h    = ROOT.TH1F('optimscan',    '#sigma_{fid}^{95%CL};;95% CL on #sigma_{fid} [pb]', len(OPTIMLIST),0,len(OPTIMLIST))
+    hsig = ROOT.TH1F('optimscansig', 'Significance;;Significance (asymptotic)',           len(OPTIMLIST),0,len(OPTIMLIST))
     maxy=0
     for ipt,limits in results:
 
         kinCuts,rpCuts,categs=OPTIMLIST[ipt-1]
         xlabel=kinCuts[0] if '_z' in name else kinCuts[1] #dirty hack
-        xlabel=xlabel.replace('bosonpt','pT')
-        xlabel+=' && ' + rpCuts
+        xlabel=xlabel.replace('bosonpt','V')
+        xlabel+=',' + rpCuts
         xlabel=xlabel.replace('csi1','#xi')
-        xlabel=xlabel.replace('&& csi2>','/ ')
-        xlabel=xlabel.replace(' && ',' #wedge ')
+        xlabel=xlabel.replace('&& csi2>','/')
+        xlabel=xlabel.replace('l1pt','l')
+        xlabel=xlabel.replace('&& l2pt>','/ ')
+        xlabel=xlabel.replace(' && ',',')
         xlabel += ' (' + categs.split(',')[0] + ')'
         xlabel=xlabel.replace('nvtx','vtx')
+        xlabel=xlabel.replace(' ','')
         xlabel='#scale[0.8]{%s}'%xlabel
         h.GetXaxis().SetBinLabel(ipt,xlabel)
         h.SetBinContent(ipt,limits[0])
@@ -97,12 +104,12 @@ def showOptimizationScan(results,name,title,lumi):
     leg.SetTextFont(42)
     leg.SetBorderSize(0)
     leg.SetTextSize(0.035)
-    leg.SetHeader(title)
+    leg.SetHeader(title+'(%d)'%mass)
     leg.AddEntry(h,h.GetTitle(),'f')
     leg.AddEntry(hsig,hsig.GetTitle(),'f')
     leg.Draw()
 
-    axis = ROOT.TGaxis(0,-8, h.GetMaximum(),-8, 0, rightmax,5,"-L=");
+    axis = ROOT.TGaxis(0,-5, h.GetMaximum(),-5, 0, rightmax,5,"-L=");
     axis.SetTickLength(0.005)
     axis.SetTextFont(42)
     axis.SetLabelFont(42)
@@ -128,7 +135,7 @@ def showOptimizationScan(results,name,title,lumi):
         c.SaveAs('%s.%s'%(name,ext))
 
 
-def showLimits(results,name,title,lumi):
+def showLimits(results,name,title,lumi,results_obs=None):
 
     """the brazilian flag plot for the limits"""
 
@@ -146,7 +153,7 @@ def showLimits(results,name,title,lumi):
     r68.SetLineWidth(2)
     r68.SetLineStyle(7)
     r68.SetName('r68')
-    r68.SetTitle('Expected (68%)')
+    r68.SetTitle('Expected #pm1#sigma')
 
     r95=ROOT.TGraphAsymmErrors()
     r95.SetFillColor(5)
@@ -156,14 +163,15 @@ def showLimits(results,name,title,lumi):
     r95.SetLineWidth(2)
     r95.SetLineStyle(7)
     r95.SetName('r95')
-    r95.SetTitle('Expected (95%)')
+    r95.SetTitle('Expected  #pm2#sigma')
 
     rmed=ROOT.TGraph()
+    rmed.SetName('rmed')
     rmed.SetFillColor(0)
     rmed.SetFillStyle(0)
-    rmed.SetLineColor(1)
     rmed.SetLineWidth(2)
     rmed.SetLineStyle(7)
+    rmed.SetLineColor(1)
 
     maxRan=0
     for m,limits in results:
@@ -175,15 +183,39 @@ def showLimits(results,name,title,lumi):
         r95.SetPointError(ipt,10,10,abs(limits[4]),abs(limits[3]))
         
         maxRan=max(maxRan,limits[0]+limits[3])
-    
+
     r68.Sort()
     r95.Sort()
     rmed.Sort()
 
+    #observed results
+    robs=None
+    if results_obs:
+        robs=ROOT.TGraph()
+        robs.SetName('robs')
+        robs.SetTitle('Observed')
+        robs.SetFillColor(0)
+        robs.SetFillStyle(0)
+        robs.SetLineColor(1)
+        robs.SetLineWidth(3)
+        robs.SetLineStyle(1)
+        robs.SetMarkerStyle(20)
+        robs.SetMarkerColor(1)
+
+        for m,limits in results_obs:
+            ipt=robs.GetN()
+            robs.SetPoint(ipt,m,limits[0])
+            maxRan=max(maxRan,limits[0])
+
+        robs.Sort()
+    
     mg=ROOT.TMultiGraph()
     mg.Add(r95,'l3')
     mg.Add(r68,'l3')
-    mg.Add(rmed,'l')
+    mg.Add(rmed,'lp')
+    if robs:
+        mg.Add(robs,'lp')
+
     frame=ROOT.TH1F('frame',';m_{X} [GeV];95% CL limits on #sigma_{fid} [pb]',1,700,1700)
     frame.GetYaxis().SetRangeUser(1e-1,maxRan*1.1)
     frame.SetBinContent(1,1)
@@ -192,11 +224,13 @@ def showLimits(results,name,title,lumi):
     frame.Draw('hist')
     mg.Draw('l3')
 
-    leg=ROOT.TLegend(0.15,0.92,0.4,0.72)
+    leg=ROOT.TLegend(0.15,0.92,0.4,0.68)
     leg.SetTextFont(42)
     leg.SetTextSize(0.035)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
+    if robs:
+        leg.AddEntry(robs,robs.GetTitle(),'l')
     leg.AddEntry(r68,r68.GetTitle(),'lf')
     leg.AddEntry(r95,r95.GetTitle(),'lf')
     leg.Draw()
@@ -212,7 +246,7 @@ def showLimits(results,name,title,lumi):
     c.Modified()
     c.Update()   
     c.RedrawAxis()
-
+    
     for ext in ['png','pdf']:
         c.SaveAs('%s.%s'%(name,ext))
     
@@ -252,7 +286,9 @@ def showShapes(resultsDir,name,title,mass,boson,r95,sig,lumi):
 
             bkgH       = fIn.Get('bkg_%s_a%d_%d'%(v,angle,icat))
             fidsigH    = fIn.Get('fidsig_%s_a%d_%d_m%d'%(v,angle,icat,mass))
+            fidsigH.Scale(5)
             outfidsigH = fIn.Get('outfidsig_%s_a%d_%d_m%d'%(v,angle,icat,mass))
+            outfidsigH.Scale(5)
             dataH = fIn.Get('data_obs_%s_a%d_%d'%(v,angle,icat))
             
             try:
@@ -261,14 +297,14 @@ def showShapes(resultsDir,name,title,mass,boson,r95,sig,lumi):
                 p=Plot('%s_%s_a%d_cat%d'%(name,v,angle,icat))
                 p.xtit='Missing mass [GeV]'
                 p.ytit='Events'
-                p.add(fidsigH,            title=title+' (%d)'%m, color=ROOT.TColor.GetColor('#fdc086'), isData=False, spImpose=False, isSyst=False)
-                p.add(outfidsigH,         title='non-fiducial',  color=ROOT.TColor.GetColor('#a6cee3'), isData=False, spImpose=False, isSyst=False)
+                p.add(fidsigH,            title='#scale[0.5]{5x}'+title+'#scale[0.8]{(%d)}'%mass, color=ROOT.TColor.GetColor('#fdc086'), isData=False, spImpose=False, isSyst=False)
+                p.add(outfidsigH,         title='#scale[0.5]{5x}non-fiducial',  color=ROOT.TColor.GetColor('#a6cee3'), isData=False, spImpose=False, isSyst=False)
                 p.add(bkgH,               title='background',    color=ROOT.TColor.GetColor('#1f78b4'), isData=False, spImpose=False, isSyst=False)
                 p.add(dataH,              title='pseudo-data',   color=1, isData=True, spImpose=False, isSyst=False)
-                p.add(fidsigH.Clone(),    title=title+' (%d)'%m, color=ROOT.TColor.GetColor('#fdc086'), isData=False, spImpose=True,  isSyst=False)
+                p.add(fidsigH.Clone(),    title=title+'#scale[0.8]{(%d)}'%mass, color=ROOT.TColor.GetColor('#fdc086'), isData=False, spImpose=True,  isSyst=False)
                 p.add(outfidsigH.Clone(), title='non-fiducial',  color=ROOT.TColor.GetColor('#a6cee3'), isData=False, spImpose=True,  isSyst=False)
                 p.ratiorange=[0.88,1.12]
-                p.show('./',lumi,extraText='%s, %d#murad\\#mu_{95}(exp.)<%3.3f\\S(exp.)=%3.3f'%(channel,angle,r95,sig))
+                p.show('./',lumi,extraText='%s, %d#murad\\sub-category %d\\#mu_{95}(exp.)<%3.3f\\S(exp.)=%3.3f'%(channel,angle,icat,r95,sig))
 
                 colors=[ROOT.kGreen+1,ROOT.kAzure+3,ROOT.kRed+2]
 
@@ -279,24 +315,45 @@ def showShapes(resultsDir,name,title,mass,boson,r95,sig,lumi):
                 p.ytit='Events'
                 p.add(bkgH, title='background', color=1, isData=True,spImpose=False, isSyst=False)
                 ic=0
-                for syst in ['Up','SingleDiffUp']:
-                    p.add(fIn.Get('bkg_%s_a%d_%d_bkgShape%s'%(v,angle,icat,syst)), title=syst, color=colors[ic], isData=False, spImpose=False, isSyst=False)
+                for syst,title in [('Up','Pileup spec.'),
+                                   ('SingleDiffUp','Single diff.')]:
+                    p.add(fIn.Get('bkg_%s_a%d_%d_bkgShape%s'%(v,angle,icat,syst)), title=title, color=colors[ic], isData=False, spImpose=False, isSyst=False)
                     ic+=1
                 p.ratiorange=[0.76,1.24]
                 p.show('./',lumi,noStack=True,extraText='%s, %d#murad'%(channel,angle))
 
                 #signal systs
                 p=Plot('%s_%s_a%d_cat%d_sigunc'%(name,v,angle,icat))
+                fidsigH.Scale(1./5.)
                 p.noErrorsOnRatio=True
                 p.xtit='Missing mass [GeV]'
                 p.ytit='Events'
                 p.add(fidsigH, title='signal', color=1, isData=True,spImpose=False, isSyst=False)
                 ic=0
-                for syst in ['ShapeUp','CalibUp','PzModelUp']:
-                    p.add(fIn.Get('fidsig_%s_a%d_%d_m%d_sig%s'%(v,angle,icat,m,syst)), title=syst, color=colors[ic], isData=False, spImpose=False, isSyst=False)
+                for syst,title in [('ShapeUp','Pileup spec.'),
+                                   ('CalibUp','Time dependence'),
+                                   ('PzModelUp','p_{z}(pp)')]:
+                    p.add(fIn.Get('fidsig_%s_a%d_%d_m%d_sig%s'%(v,angle,icat,mass,syst)), title=title, color=colors[ic], isData=False, spImpose=False, isSyst=False)
                     ic+=1
                 p.ratiorange=[0.76,1.24]
-                p.show('./',lumi,noStack=True,extraText='%s, %d#murad\\m_{X}=%d GeV'%(channel,angle,m))
+                p.show('./',lumi,noStack=True,extraText='%s, %d#murad\\m_{X}=%d GeV'%(channel,angle,mass))
+
+                #out fiducial signal systs
+                p=Plot('%s_%s_a%d_cat%d_outfidsigunc'%(name,v,angle,icat))
+                outfidsigH.Scale(1./5.)
+                p.noErrorsOnRatio=True
+                p.xtit='Missing mass [GeV]'
+                p.ytit='Events'
+                p.add(outfidsigH, title='out-fid. signal', color=1, isData=True,spImpose=False, isSyst=False)
+                ic=0
+                for syst,title in [('ShapeUp','Pileup spec.'),
+                                   ('CalibUp','Time dependence'),
+                                   ('PzModelUp','p_{z}(pp)')]:
+                    p.add(fIn.Get('outfidsig_%s_a%d_%d_m%d_sig%s'%(v,angle,icat,mass,syst)), title=title, color=colors[ic], isData=False, spImpose=False, isSyst=False)
+                    ic+=1
+                p.ratiorange=[0.76,1.24]
+                p.show('./',lumi,noStack=True,extraText='%s, %d#murad\\m_{X}=%d GeV'%(channel,angle,mass))
+
 
             except Exception as e:
                 print e
@@ -314,10 +371,20 @@ def main():
 
     #loop over all results in output directory
     baseDir=sys.argv[1]
+    pickOptimPt=None
+    plotPFix=''
+    if len(sys.argv)>2:
+        pickOptimPt=int(sys.argv[2])
+        plotPFix='_pt%d'%pickOptimPt
+   
     results={'z':{},'g':{}}
+    toCheck=[]
     for optimPt in os.listdir(baseDir):
 
         pt = int(re.search('optim_(\d+)', optimPt).group(1))
+
+        #cherry pick a given optimPt
+        if pickOptimPt and pt!=pickOptimPt: continue
 
         optimDir=os.path.join(baseDir,optimPt)
         limitFiles=[os.path.join(optimDir,x) for x in os.listdir(optimDir) if 'PPzX.AsymptoticLimits' in x]
@@ -329,10 +396,18 @@ def main():
                 results['z'][mass]=[]
                 results['g'][mass]=[]            
         
-            results['z'][mass].append( (pt,getLimitsFrom(f)+getSignificanceFrom(f.replace('AsymptoticLimits','Significance'))) )
+            resultVals=getLimitsFrom(f)+getSignificanceFrom(f.replace('AsymptoticLimits','Significance'))
+            if resultVals[0]<900:
+                results['z'][mass].append( (pt,resultVals) )
+            else:
+                toCheck.append( (f,pt) )
 
-            fg=f.replace('PPzX','PPgX')        
-            results['g'][mass].append( (pt,getLimitsFrom(fg)+getSignificanceFrom(fg.replace('AsymptoticLimits','Significance'))) )
+            fg=f.replace('PPzX','PPgX')
+            resultVals=getLimitsFrom(fg)+getSignificanceFrom(fg.replace('AsymptoticLimits','Significance'))
+            if resultVals[0]<900:
+                results['g'][mass].append( (pt,resultVals) )
+            else:
+                toCheck.append( (fg,pt) )
 
 
     #print results and show limit plots
@@ -358,7 +433,7 @@ def main():
         
             if m in [800,1000,1200,1400]:
                 showShapes( resultsDir=os.path.join(baseDir,'optim_%d'%bestPoint),
-                            name='shapes_m%d'%m,
+                            name='shapes_m%d%s'%(m,plotPFix),
                             title=title,
                             mass=m,
                             boson=v,
@@ -370,12 +445,20 @@ def main():
             fOut.write('%10s r95<%3.3f S=%3.3f (p-val=%3.3f) %25s %25s %25s %d\n'%(str(m),limits[0],limits[5],limits[6],kinCuts[0] if v=='z' else kinCuts[1] ,rpCuts,categs,bestPoint))
             bestResults.append( (m,limits) )
 
-            showOptimizationScan(results[v][m],'optimscan_%s_m%d'%(v,m),title,lumi)
+            showOptimizationScan(results[v][m],'optimscan_%s_m%d%s'%(v,m,plotPFix),title,m,lumi)
 
-        showLimits(bestResults,'limits_%s'%v,title,lumi)
-        
+        showLimits(bestResults,'limits_%s%s'%(v,plotPFix),title,lumi)
+    
+    if len(toCheck)>0:
+        fOut.write('Some points are fishy - please check:')
+        for f,pt in toCheck:
+            fOut.write('\t %d %s\n'%(pt,f))
+
     fOut.close()
-    print 'Summary can be found in optimresults.dat'
+    
+    print 'Summary (and list of files to check) can be found in optimresults.dat'
+
+    
 
 
 if __name__ == "__main__":

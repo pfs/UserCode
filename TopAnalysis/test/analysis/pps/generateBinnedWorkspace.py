@@ -62,6 +62,7 @@ def defineProcessTemplates(histos,norm=False):
         for xbin in range(h.GetNbinsX()):
             if h.GetBinContent(xbin+1)>0: continue
             h.SetBinContent(xbin+1,1e-6)
+            h.SetBinError(xbin+1,1e-6)
             
     return templates
 
@@ -127,7 +128,6 @@ def fillBackgroundTemplates(opt):
                       'wgt*({0} && {1}mmiss>0 && mixType=={2})'.format(templCuts,pfix,mixType),
                       'goff')
             h=data.GetHistogram()
-            print name,mixType,pfix,totalBkg[icat],h.Integral()
             h.Scale(totalBkg[icat]/h.Integral())
             histos.append(h.Clone(name))
             histos[-1].SetDirectory(0)

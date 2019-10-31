@@ -94,6 +94,29 @@ double BTagSFUtil::getBtagWeight(std::vector<Jet> &jetColl, MiniEvent_t &ev,TStr
 }     
 
 //
+double BTagSFUtil::getSFUncertainty(Jet &j,MiniEvent_t &ev){
+
+  float jptForBtag(j.Pt()>1000. ? 999. : j.Pt()), jetaForBtag(fabs(j.Eta()));
+  int k=j.getJetIndex();
+  
+  BTagEntry::JetFlavor hadFlav=BTagEntry::FLAV_UDSG;
+  if(abs(ev.j_hadflav[k])==4) {
+    hadFlav=BTagEntry::FLAV_C;
+  }
+  else if(abs(ev.j_hadflav[k])==5) {
+    hadFlav=BTagEntry::FLAV_B;
+  }
+  
+  //expected and expected corrected efficiency
+  //if fails b-tag use the complementary probability
+  double expEff    = expBtagEff_[hadFlav]->Eval(jptForBtag); 
+  double expcorEff = expEff*btvCalibReaders_[hadFlav]->eval_auto_bounds( "central", hadFlav, jetaForBtag, jptForBtag);
+  double expcorEffUp = expEff*btvCalibReaders_[hadFlav]->eval_auto_bounds( "up", hadFlav, jetaForBtag, jptForBtag);
+
+  return expcorEffUp/expcorEff;
+}
+
+//
 void BTagSFUtil::updateBTagDecisions(MiniEvent_t &ev,std::string optionbc, std::string optionlight) {
   for (int k = 0; k < ev.nj; k++) {
     TLorentzVector jp4;

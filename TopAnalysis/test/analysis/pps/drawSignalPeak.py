@@ -3,6 +3,8 @@ import os
 import sys
 import re
 
+from generateBinnedWorkspace import SIGNALXSECS
+
 url=sys.argv[1]
 tkns=re.findall(r'\d+',os.path.basename(url))
 mass,xangle=tkns[0],tkns[1]
@@ -14,10 +16,10 @@ pu=fIn.Get('mmass_eerpin')
 pu_highpur=fIn.Get('mmass_eerpinhpur')
 data=fIn.Get('data')
 
-
-
 ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetOptTitle(0)
+ROOT.gROOT.SetBatch(True)
+
 c=ROOT.TCanvas('c','c',500,500)
 c.SetLeftMargin(0.12)
 c.SetRightMargin(0.04)
@@ -56,13 +58,15 @@ c.RedrawAxis()
 for ext in ['png','pdf']:
     c.SaveAs('mmass_{0}_xangle{1}_sig.{2}'.format(mass,xangle,ext))
 
-
-data.Draw("mixmmiss>>hout(50,0,2500)","wgt*((gen_pzpp<-300 || gen_pzpp>500) && mixmmiss>0)")
+fiducialCuts='gencsi1>0.03 & gencsi1<0.13 && gencsi2>0.03 && gencsi2<0.16'
+data.Draw("mmiss>>hout(50,0,2500)","wgt*(!(%s) && mmiss>0 && mixType==1)"%fiducialCuts)
 hout=c.GetPrimitive('hout')
 hout.SetDirectory(0)
-data.Draw("mixmmiss>>hin(50,0,2500)","wgt*(gen_pzpp>-300 && gen_pzpp<500 && mixmmiss>0)","histsame")
+data.Draw("mmiss>>hin(50,0,2500)","wgt*(%s && mmiss>0 && mixType==1)"%fiducialCuts,"histsame")
 hin=c.GetPrimitive('hin')
 hin.SetDirectory(0)
+hin.Scale(SIGNALXSECS[int(xangle)]*37500.)
+hout.Scale(SIGNALXSECS[int(xangle)]*37500.)
 hout.SetLineColor(1)
 hin.SetLineColor(2)
 hout.SetFillStyle(1001)
@@ -74,7 +78,7 @@ hin.Draw("histsame")
 hout.GetYaxis().SetTitleOffset(1.3)
 hout.GetYaxis().SetRangeUser(0,1.5*max(hout.GetMaximum(),hin.GetMaximum()))
 hout.GetXaxis().SetTitle('Missing mass [GeV]')
-hout.GetYaxis().SetTitle('PDF')
+hout.GetYaxis().SetTitle('Events')
 hin.SetLineWidth(2)
 leg=ROOT.TLegend(0.65,0.9,0.9,0.7)
 leg.SetBorderSize(0)
@@ -91,12 +95,14 @@ tex.SetTextFont(42)
 tex.SetTextSize(0.04)
 tex.SetNDC()
 tex.DrawLatex(0.12,0.96,'#bf{CMS} #it{simulation preliminary}')
-tex.SetTextAlign(31)
-tex.DrawLatex(0.95,0.96,'#scale[0.8]{{m={0} GeV #alpha={1}#murad}}'.format(mass,xangle))
+tex.SetTextAlign(ROOT.kHAlignRight+ROOT.kVAlignBottom)
+tex.DrawLatex(0.95,0.96,'#scale[0.8]{37.5 fb^{-1} (13 TeV)}')
+tex.DrawLatex(0.95,0.92,'#scale[0.8]{{m={0} GeV #alpha={1}#murad}}'.format(mass,xangle))
+
 c.Modified()
 c.Update()   
 c.RedrawAxis()
-raw_input()
+
 for ext in ['png','pdf']:
     c.SaveAs('mmass_{0}_xangle{1}_sigacc.{2}'.format(mass,xangle,ext))
 

@@ -94,7 +94,7 @@ def showRatios(ratios,outUrl):
     for key in ratios:
         p=Plot(key+'_ratio',com='13 TeV')
         p.doPoissonErrorBars=False
-        p.ratiorange=(0.38,1.64)
+        p.ratiorange=(0.68,1.34)
         p.spimposeWithErrors=True
         ic=0
         for h in ratios[key]:            

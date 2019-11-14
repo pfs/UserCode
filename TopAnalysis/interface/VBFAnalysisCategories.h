@@ -42,7 +42,6 @@ namespace vbf {
       if(HighVPt>0 && AllMJJ>0)                  {chTags.push_back(categoryNames[4]+chTag); }//cout<<categoryNames[4]<<endl;}
       if(LowVPt>0 && AllMJJ>0)                   {chTags.push_back(categoryNames[5]+chTag); }//cout<<categoryNames[5]<<endl;}
       if(LowVPt>0 && LooseVPt>0)                 {chTags.push_back(categoryNames[6]+chTag); }//cout<<categoryNames[5]<<endl;}
-
       if(HighVPt>0 && LooseVPt>0)                 {chTags.push_back(categoryNames[7]+chTag); }//cout<<categoryNames[5]<<endl;} 
       return chTags;
     }

@@ -160,8 +160,8 @@ void VBFVectorBoson::runAnalysis()
   ///////////////////////
   // LOOP OVER EVENTS //
   /////////////////////
-  for (Int_t iev=0;iev<nentries_;iev++)
-    // for (Int_t iev=0;iev<10000;iev++)    
+    for (Int_t iev=0;iev<nentries_;iev++)
+  // for (Int_t iev=0;iev<1000;iev++)    
     {
       t_->GetEntry(iev);
       if(debug_) cout << "Number of event: "<<iev<<endl;      
@@ -424,13 +424,14 @@ void VBFVectorBoson::runAnalysis()
         passHighVPtTrig=false;
         for(auto tname : highVPtPhotonTrigs_) passHighVPtTrig |= selector_->hasTriggerBit(tname,ev_.triggerBits);
       }
-      cat[3]  = (passLowVPtTrig && boson.Pt()>lowVPtCut_  && boson.Pt()<=highVPtCut_ && isBosonTrigSafe);
+      cat[3]  = (passLowVPtTrig && boson.Pt()>lowVPtCut_  && boson.Pt()<=highVPtCut_ && isBosonTrigSafe); 
       cat[4]  = (passHighVPtTrig && boson.Pt()>highVPtCut_ && isBosonTrigSafe);
       if(jets.size()>=2) {
-        cat[5]  =  (vbfVars_.mjj>looseMJJCut_  && vbfVars_.mjj<=lowMJJCut_);//LowMjj200-500
-        cat[6]  =  (vbfVars_.mjj>lowMJJCut_   &&vbfVars_.mjj<=highMJJCut_);//HighMjj500-1TeV
-	cat[7]  =  (vbfVars_.mjj>highMJJCut_);//1TeV
-	cat[8]  =  (vbfVars_.mjj>200. && vbfVars_.mjj<500.);
+
+	cat[5]  =  (vbfVars_.mjj>looseMJJCut_  && vbfVars_.mjj<=lowMJJCut_ );//LowMjj200-500
+        cat[6]  =  (vbfVars_.mjj>lowMJJCut_ && vbfVars_.mjj<=highMJJCut_  );//HighMjj500-1TeV
+	cat[7]  =  (vbfVars_.mjj>lowMJJCut_ );//500GeV
+	//	cat[8]  =  (vbfVars_.mjj>200. && vbfVars_.mjj<500.);
       }
 
       category_.set(cat);
@@ -441,16 +442,12 @@ void VBFVectorBoson::runAnalysis()
       //veto untriggerable events for photons
       if(chTag=="A" && cat[3]) {
         if(fabs(boson.Eta())>lowVPtMaxRapCut_
-           || vbfVars_.mjj<lowVPtMinMJJCut_
+	   // || vbfVars_.mjj<lowVPtMinMJJCut_
            || vbfVars_.detajj<lowVPtDetaJJCut_)
           chTags.clear();
       }
 
-
-
-     
-
-     
+   
      
       if(chTags.size()==0) continue;
 
@@ -475,9 +472,7 @@ void VBFVectorBoson::runAnalysis()
 	  if(doBlindAnalysis_ && ev_.isData && chTags[icat].EndsWith("A") && flat_vbfmva_[chTags[icat]]>0.8) flat_vbfmva_[chTags[icat]]=-1000;
 	  if(doBlindAnalysis_ && ev_.isData && chTags[icat].EndsWith("A") && vbfmva_[chTags[icat]]>0.8) vbfmva_[chTags[icat]]=-1000;
 	  
-	  //	std::cout << "in loop Debug:=vbfmva " << vbfmva_[chTags[icat]] << "  "  << 	flat_vbfmva_[chTags[icat]] << std::endl;
-
-
+	 
       }
      
 
@@ -524,7 +519,7 @@ void VBFVectorBoson::runAnalysis()
         //L1 prefire probability
         l1prefireProb=l1PrefireWR_->getCorrection(jets,photons_);
 
-	
+	wgt *= l1prefireProb.first;
 	//	std::cout << "Debug: L1 Prefire weight is multiplied, current wt:" << wgt << std::endl;	
 
         // photon trigger*selection weights        
@@ -541,12 +536,12 @@ void VBFVectorBoson::runAnalysis()
             selSF.first *= sel2SF.first;
             selSF.second = TMath::Sqrt( pow(selSF.second,2)+pow(sel2SF.second,2) );
           }
-        wgt *= l1prefireProb.first;
+       
         wgt *= puWgts[0]*trigSF.first*selSF.first;
 	//	std::cout << "Debug: puWt*trigSF*selecionSF are  multiplied, current wt:" << wgt << std::endl;	
         
         // generator level weights
-	std::cout << "Generator level weight:" << ev_.g_w[0] << std::endl;
+	//	std::cout << "Generator level weight:" << ev_.g_w[0] << std::endl;
 	wgt *= (ev_.g_nw>0 ? ev_.g_w[0] : 1.0);//if condition is true ? calculate otherwise do : 
 
 	//	std::cout << "Debug:  gen level weight is multiplied, current wt:" << wgt << std::endl;
@@ -735,33 +730,35 @@ void VBFVectorBoson::runAnalysis()
 
           //set the new category tag
 
-          bool isLowVPt = (passLowVPtTrig && iBoson.Pt()>lowVPtCut_ && iBoson.Pt()<=highVPtCut_ && isBosonTrigSafe);
+          bool isLowVPt = (passLowVPtTrig && iBoson.Pt()>lowVPtCut_ && iBoson.Pt()<=highVPtCut_ && isBosonTrigSafe); 
           bool isHighVPt = (passHighVPtTrig  && iBoson.Pt()>highVPtCut_ && isBosonTrigSafe );
-	  bool isLowMJJ(false), isHighMJJ(false), isAllMJJ(false), islooseMJJ(false);
+	  bool isLowMJJ(false), isHighMJJ(false), isAllMJJ(false); //islooseMJJ(false);
 	  if(ijets.size() >= 2){
-
 	    
-	    // islooseMJJ=  (vbfVars_.mjj>200. && vbfVars_.mjj<500.);
-	    isLowMJJ =  (vbfVars_.mjj>looseMJJCut_  && vbfVars_.mjj<=lowMJJCut_);//LowMjj200-500
-	    isHighMJJ =(vbfVars_.mjj>lowMJJCut_   &&vbfVars_.mjj<highMJJCut_);//HighMjj500-1TeV
-	    isAllMJJ =  (vbfVars_.mjj>highMJJCut_);//1TeV
+	   
+	    //islooseMJJ=  (vbfVars_.mjj>200. && vbfVars_.mjj<500.);
+	    isLowMJJ =  (vbfVars_.mjj>looseMJJCut_ && vbfVars_.mjj<=lowMJJCut_  );//LowMjj200-500
+	    isHighMJJ =(vbfVars_.mjj>lowMJJCut_  && vbfVars_.mjj<=highMJJCut_ );//HighMjj500-1TeV
+	    isAllMJJ =  (vbfVars_.mjj> lowMJJCut_);//500GeV
 	  }
 
 	  if(chTag=="A" && isLowVPt) {
 	    if(fabs(iBoson.Eta())>lowVPtMaxRapCut_
-           || vbfVars_.mjj<lowVPtMinMJJCut_
+	       //  || vbfVars_.mjj<lowVPtMinMJJCut_
 	       || vbfVars_.detajj<lowVPtDetaJJCut_)
 	      continue;
 	  }
-	  //	  /*-----*/if(vbfVars_.mjj < lowMJJCut_) continue;
+	  //  /*-----*/if(vbfVars_.mjj < lowMJJCut_) continue;
           if(isLowVPt) {
 	    if(isAllMJJ) myCat.push_back("LowVPt"+chTag);
 	    if(isLowMJJ) myCat.push_back("LowVPtLowMJJ"+chTag);
 	    if(isHighMJJ) myCat.push_back("LowVPtHighMJJ"+chTag);
+	    //  if (isLooseMJJ)myCat.push_back("LowVPtLowMJJ"+chTag);
 	  } else if(isHighVPt) {
 	    if(isAllMJJ) myCat.push_back("HighVPt"+chTag);
 	    if(isLowMJJ)  myCat.push_back("HighVPtLowMJJ"+chTag);
 	    if(isHighMJJ) myCat.push_back("HighVPtHighMJJ"+chTag);
+	    // if (isLooseMJJ)myCat.push_back("HighVPtLowMJJ"+chTag);
 	  }
 
           
@@ -891,7 +888,7 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("puwgtctr",      new TH1F("puwgtctr",         ";Weight sums;Events",                2,0,2));  
   ht_->addHist("qscale",        new TH1F("qscale",           ";Q^{2} scale;Events",                100,0,2000));  
   ht_->addHist("nvtx",          new TH1F("nvtx",             ";Vertex multiplicity;Events",        100,-0.5,99.5));  
-  ht_->addHist("vpt", 	       new TH1F("vectorbosonPt",    ";Boson p_{T}[GeV];Events",           25,50,550));  
+  ht_->addHist("vpt", 	       new TH1F("vectorbosonPt",    ";Boson p_{T}[GeV];Events",           20,50,550));  
   ht_->addHist("vy", 	       new TH1F("vectorbosony",     ";Boson rapidity;Events",             25,-3,3));  
   ht_->addHist("mindrl",        new TH1F("mindrl",           ";min #Delta R(boson,lepton);Events", 25,0,6));  
   ht_->addHist("mindrj",       new TH1F("mindrj",           ";min #Delta R(boson,jet);Events",    25,0,6));  
@@ -934,8 +931,8 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("jet_zg",        new TH1F("jet_zg",           ";Jet z_{g};Jets",                     50,0,1));  
   ht_->addHist("jet_gaptd",     new TH1F("jet_gaptd",        ";Jet p_{T}^{D};Jets",                 50,0,1));  
   ht_->addHist("jet_gawidth",   new TH1F("jet_gawidth",      ";Jet width;Jets",                     50,0,1));
-
-  ht_->addHist("mjj", 	        new TH1F("mjj",              ";Dijet invariant mass [GeV];Events", 40,0,4000));  
+  ht_->addHist("mjjlog",        new TH1F("mjjlog",              ";log10(Dijet invariant mass [GeV]);Events", 35,2.30,3.70));
+  ht_->addHist("mjj", 	        new TH1F("mjj",              ";Dijet invariant mass [GeV];Events", 40,0,4000));   
   ht_->addHist("genapt", 	new TH1F("genapt",           ";Generator level photon p_{T} [GeV];Events", 50,50,550));  
   ht_->addHist("genmjj", 	new TH1F("genmjj",           ";Generator level dijet invariant mass [GeV];Events", 40,0,4000));  
   ht_->addHist("matchedjpt", 	new TH1F("matchedjetpt",     ";Transverse momentum [GeV];Jets", 50,0,200));  
@@ -946,20 +943,22 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("njnmatchedsoft",new TH1F("njnmatchedsoft",   ";Matched jets;Jets", 5,0,5.));  
 
   ht_->addHist("detajj",        new TH1F("detajj" ,          ";#Delta#eta(J,J);Events",            20,0,8));  
-  ht_->addHist("dphijj",        new TH1F("dphijj" ,          ";#Delta#phi(J,J) [rad];Events",      20,-3.15,3.15));  
+  ht_->addHist("dphijj",        new TH1F("dphijj" ,          ";#Delta#phi(J,J) [rad];Events",      20,-3.15,3.15));
+  ht_->addHist("absdphijj",     new TH1F("absdphijj" ,          ";|#Delta#phi(J,J)| [rad];Events",      20,0,3.15)); 
   ht_->addHist("dijetpt",       new TH1F("dijetpt",          ";Dijet p_{T} [GeV];Events",          20,0,1000));  
   ht_->addHist("ht",            new TH1F("ht",               ";H_{T} [GeV];Events",                20,0,4000));
   ht_->addHist("Ght",            new TH1F("Ght",               ";(#gamma+jets) H_{T} [GeV];Events",                20,0,4000)); 
   ht_->addHist("mht",           new TH1F("mht",              ";Missing H_{T} [GeV];Events",        20,0,500));  
   ht_->addHist("dijetht",       new TH1F("dijetht",          ";Dijet H_{T} [GeV];Events",          20,0,4000));  
-  ht_->addHist("syspt",         new TH1F("syspt",            ";System p_{T} [GeV];Events",         20,0,1000));  
+  ht_->addHist("syspt",         new TH1F("syspt",            ";Dijet H_{T}+boson P_{T} [GeV];Events",         20,0,1000));  
 
   ht_->addHist("drj1b",         new TH1F("drj1b",            ";#DeltaR(j_{1},boson);Events",       25,0,8));  
   ht_->addHist("drj2b",         new TH1F("drj2b"   ,         ";#DeltaR(j_{2},boson);Events",       25,0,8));  
   ht_->addHist("vystar",        new TH1F("vectorbosonystar", ";y-(1/2)(y_{j1}+y_{j2});Events",     25,-5,5));  
   ht_->addHist("balance",       new TH1F("balance",          ";System p_{T} balance [GeV];Events", 20,0,300));  
   ht_->addHist("relbpt",        new TH1F("relbpt",           ";#Sigma p_{T}(j)/Boson p_{T};Events",25,0,2));  
-  ht_->addHist("dphibjj",       new TH1F("dphibjj",          ";#Delta#phi(JJ,boson) [rad];Events", 20,-3.15,3.15));  
+  ht_->addHist("dphibjj",       new TH1F("dphibjj",          ";#Delta#phi(JJ,boson) [rad];Events", 20,-3.15,3.15));
+  ht_->addHist("absdphibjj",    new TH1F("absdphibjj",          ";|#Delta#phi(JJ,boson)| [rad];Events", 20,0,3.15)); 
   ht_->addHist("sphericity",    new TH1F("sphericity",       ";Sphericity;Events",                 20,0,1.0));  
   ht_->addHist("aplanarity",    new TH1F("aplanarity",       ";Aplanarity;Events",                 20,0,1.0));  
   ht_->addHist("C",             new TH1F("C",                ";C;Events",                          20,0,1.0));  
@@ -970,7 +969,7 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("jjetas",        new TH1F("jjetas",           ";#eta_{j1}#eta_{j2};Events",50,-25,15));  
   ht_->addHist("centjy",	new TH1F("centjy",           ";Central jet rapidity;Jets",25,0,5));  
   ht_->addHist("ncentj",        new TH1F("ncentjj",          ";Number of central jets;Events",5,0,5));
-  ht_->addHist("dphivj0",       new TH1F("dphivj0",          ";#Delta#phi(V,lead jet);Jets",20,0,TMath::Pi()));  
+  ht_->addHist("dphivj0",       new TH1F("dphivj0",          ";#Delta#phi(V,lead jet);Jets",20,0,TMath::Pi()));
   ht_->addHist("dphivj1",       new TH1F("dphivj1",          ";#Delta#phi(V,sublead jet);Jets",20,0,TMath::Pi()));  
   ht_->addHist("dphivj2",       new TH1F("dphivj2",          ";#Delta#phi(V,extra jet);Jets",20,0,TMath::Pi()));  
   ht_->addHist("dphivj3",       new TH1F("dphivj3",          ";#Delta#phi(V,next extra jet);Jets",20,0,TMath::Pi()));
@@ -994,7 +993,7 @@ void VBFVectorBoson::bookHistograms() {
   ht_->addHist("vbfmvaAcc",       new TH1F("vbfmvaAcc",      ";VBF MVA;Events",50,-1,1));  
   ht_->addHist("acdfvbfmva",     new TH1F("acdfvbfmva",    ";CDF^{-1}(VBF MVA);Events",50,0,1));  
   ht_->addHist("tagjetresol", new TH1F("tagjetresol",";#Delta p_{T}/p_{T};Jets",50,-0.5,0.5));
-   ht_->addHist("ptcentj",          new TH2F("ptcentj",          ";Cent Jet p_{T}; #eta_{j}",25,20,280,25,0,5)); 
+   ht_->addHist("vbfmvamjj",          new TH2F("vbfmvamjj",          ";m_{jj}; vbfmva",20,0,4000,50,-1,1)); 
   //  ht_->addHist("vbfmvaHVPt",          new TH1F("vbfmvaHVPt",         ";VBF MVA;Events",50,-1,1));
   // ht_->addHist("vbfmvaLVPt",          new TH1F("vbfmvaLVPt",         ";VBF MVA;Events",50,-1,1));
 
@@ -1295,8 +1294,20 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   ht_->fill("dijetpt",      vbfVars_.jjpt,        cplotwgts,c);
   ht_->fill("detajj",       vbfVars_.detajj,      cplotwgts,c);
   ht_->fill("dphijj",       vbfVars_.dphijj,      cplotwgts,c);
+  ht_->fill("absdphijj",    fabs(vbfVars_.dphijj),      cplotwgts,c);
 
-  ht_->fill("mjj", 	    vbfVars_.mjj,         cplotwgts,c);   
+
+  bool  isLowMJJ(false);
+  if(jets.size()>=2){
+   isLowMJJ =  (vbfVars_.mjj>looseMJJCut_ && vbfVars_.mjj<=lowMJJCut_  );
+ }
+  if ( isLowMJJ ){
+  ht_->fill("mjjlog", 	   log10(vbfVars_.mjj),         cplotwgts,c);
+  }
+ 
+  ht_->fill("mjj", 	    vbfVars_.mjj,         cplotwgts,c);
+ 
+    
   ht_->fill("genmjj", 	    genMjj_,              cplotwgts,c);
   ht_->fill("genapt", 	    genAPt_,              cplotwgts,c);   
   if(genAPt_>0 && genMjj_<120){
@@ -1346,6 +1357,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
   //visible system histos
   ht_->fill("relbpt",       vbfVars_.relbpt,      cplotwgts,c);
   ht_->fill("dphibjj",      vbfVars_.dphibjj,     cplotwgts,c);
+  ht_->fill("absdphibjj",   fabs(vbfVars_.dphibjj),     cplotwgts,c);
   ht_->fill("vystar",       vbfVars_.ystar,              cplotwgts,c);        
   ht_->fill("balance",      vbfVars_.balance,            cplotwgts,c);
   ht_->fill("isotropy",     vbfVars_.isotropy,     cplotwgts,c);
@@ -1361,7 +1373,7 @@ void VBFVectorBoson::fillControlHistos(TLorentzVector boson, std::vector<Jet> je
 
   if(vbfmva_[c]>-1000)  {
     ht_->fill("vbfmva", vbfmva_[c], cplotwgts,c);
-   
+    ht_->fill2D("vbfmvamjj"  ,    vbfVars_.mjj,vbfmva_[c]        ,cplotwgts,c); 
     ht_->fill("acdfvbfmva", flat_vbfmva_[c], cplotwgts,c);
     std::vector<double> AccWeights(1,1);
     AccWeights[0]*=(ev_.g_nw>0 ? ev_.g_w[0] : 1.0);

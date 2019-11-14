@@ -227,7 +227,9 @@ def profilePOI(data,outdir,axis=0,sigma=5):
 def doContour(data,
               bestFitX,
               bestFitY,
-              outdir,              
+              outdir,
+              myFinalstate,
+              mjjcat,
               method='linear',
               levels=[2.30,4.61,9.21],
               levelLabels=['68.3%','90%','99%'],
@@ -272,7 +274,25 @@ def doContour(data,
     ax.errorbar([bestFitX[0]], [bestFitY[0]], xerr=bestFitX[1:2], yerr=bestFitY[1:2], 
                 markersize=12, color='k', fmt='--o',label='Best fit (1D)')
 
+    #0=mumu/1=ee/>2=nothing
+    fsTag=""
+    if myFinalstate==0 :
+        fsTag=" #mu#mu"
+    elif myFinalstate==1 :
+        fsTag=" ee"
+    else :
+        print "warning: wrong sfTag input"
 
+    #add information for all  categories
+    #0=lowVbf/1=Hightpt/>2=200to500
+    #ax.text(0,1.02 ,  "2016 samples with #mu final state", transform=ax.transAxes, fontsize=16)
+    if mjjcat == 0 :
+        ax.text(0,1.02 ,  "Low" + fsTag, transform=ax.transAxes, fontsize=16)
+    elif mjjcat == 1:
+        ax.text(0,1.02,"HighVPt  Pt_{z}>200 200<M_{jj}<500GeV" + fsTag,transform=ax.transAxes, fontsize=16)
+    else:
+           ax.text(0,1.02,"HighVPt  M_{jj}>500GeV" + fsTag,transform=ax.transAxes, fontsize=16) 
+        
     #add theory prediction
     theory=getTheoryPrediction()
     plt.plot(theory[0],theory[1],'-',color='lightgray',label='Theory NLO')
@@ -318,6 +338,19 @@ def main():
                       help='recover [%default]',  
                       default=False,
                       action='store_true')
+
+    parser.add_option('-m', '--mjjcat',
+                      dest='mjjcat',
+                      help='enum for mjj category, 0=LVBF, 1=High, 2=Middle [%default]',  
+                      default=0,
+                      type=int)
+    
+    parser.add_option( '--fsTag',
+                      dest='fsTag',
+                      help='enum for final state, 0=mumu, 1=ee, 2=wrong [%default]',  
+                      default=0,
+                      type=int)
+    
     (opt, args) = parser.parse_args()
 
 
@@ -373,7 +406,7 @@ def main():
         fitres=np.array(fitres)
         bestFitX=profilePOI(fitres,outdir=opt.outdir,axis=0,sigma=opt.filterSigma)
         bestFitY=profilePOI(fitres,outdir=opt.outdir,axis=1,sigma=opt.filterSigma)
-        doContour(fitres,bestFitX,bestFitY,outdir=opt.outdir)
+        doContour(fitres,bestFitX,bestFitY,outdir=opt.outdir,opt.fsTag, opt.mjjcat)
     except Exception as e:
         print '<'*50
         print e

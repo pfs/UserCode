@@ -47,6 +47,7 @@ A wrapper to store data and MC histograms for comparison
 """
 class Plot(object):
 
+    
     def __init__(self,name,com='13 TeV'):
         self.name = name
         self.cmsLabel='#bf{CMS} #it{preliminary}'
@@ -76,7 +77,37 @@ class Plot(object):
         self.noErrorsOnRatio=False
         ROOT.TGaxis.SetMaxDigits(4)
         self.nominalDistForSystsName='t#bar{t}'
-
+       
+        
+        self.label = self.name.split("_")[0]
+        self.cat = self.name.split("_")[0]
+        if self.name.split("_")[0].startswith("LowVPtLowMJJ") :
+            self.label = '75<P_{T}<200 200<m_{jj}<500'
+        elif self.name.split("_")[0].startswith("HighVPtLowMJJ") :
+            self.label = 'P_{T}>200 200<m_{jj}<500'
+        elif self.name.split("_")[0].startswith("HighVPtHighMJJ") :
+            self.label = 'P_{T}>200 500<m_{jj}<1TeV'
+        elif self.name.split("_")[0].startswith("LowVPtHighMJJ") :
+            self.label = '75<P_{T}<200 500<m_{jj}<1TeV'
+        if self.name.split("_")[0]==("LowVPtEE") :
+            self.label = '75<P_{T}<200 m_{jj}>500'
+        elif self.name.split("_")[0]==("LowVPtMM") :
+            self.label = '75<P_{T}<200 m_{jj}>500'
+        elif self.name.split("_")[0]==("LowVPtA") :
+            self.label = '75<P_{T}<200 m_{jj}>500'
+        if self.name.split("_")[0]==("HighVPtMM") :
+            self.label = 'P_{T}>200 m_{jj}>500'
+        elif self.name.split("_")[0]==("HighVPtEE") :
+            self.label = 'P_{T}>200 m_{jj}>500'
+        elif self.name.split("_")[0]==("HighVPtA") :
+            self.label = 'P_{T}>200 m_{jj}>500'
+        if self.name.split("_")[0].endswith("MM") :
+            self.cat = ' dimuon'
+        elif self.name.split("_")[0].endswith("EE") :
+            self.cat = ' di-electron'
+        elif self.name.split("_")[0].endswith("A") :
+            self.cat = ' #gamma'
+            
     def normToData(self):
         if not self.dataH : return
         total_data=self.dataH.Integral()
@@ -179,7 +210,10 @@ class Plot(object):
             self.data=ROOT.TGraphErrors(self.dataH)
 
     def appendTo(self,outUrl):
+        
         outF = ROOT.TFile.Open(outUrl,'UPDATE')
+        if not outF:
+            print "OutFile pointer is null!!"
         if not outF.cd(self.name):
             outDir = outF.mkdir(self.name)
             outDir.cd()
@@ -257,7 +291,7 @@ class Plot(object):
         leg.SetBorderSize(0)
         leg.SetFillStyle(0)
         leg.SetTextFont(42)
-        leg.SetTextSize(0.045 if self.wideCanvas else 0.04)
+        leg.SetTextSize(0.035 if self.wideCanvas else 0.04)
         if noRatio : leg.SetTextSize(0.035)
         nlegCols = 0
 
@@ -480,13 +514,20 @@ class Plot(object):
         txt=ROOT.TLatex()
         txt.SetNDC(True)
         txt.SetTextFont(42)
-        txt.SetTextSize(0.045)
+        txt.SetTextSize(0.035)
         txt.SetTextAlign(12)
         iniy=0.88 if self.wideCanvas else 0.88
- 
+        #information for each categories
+
+        ycat=0.9
         ycms=0.9
         if noRatio or self.dataH is None or len(self.mc)==0: ycms=0.88
         txt.DrawLatex(0.16,ycms,self.cmsLabel)
+      
+        ycat=0.95
+        txt.DrawLatex(0.18,ycat,self.label +  self.cat)
+        #txt.DrawLatex(0.25,ycat,self.cat)
+        
         txt.SetTextAlign(ROOT.kHAlignRight+ROOT.kVAlignCenter)
         if lumi<1:
             txt.DrawLatex(0.95,0.97,'#scale[0.8]{%3.1f nb^{-1} (%s)}' % (lumi*1000.,self.com) )

@@ -25,7 +25,7 @@ if [ -z "$WHAT" ]; then
     exit 1; 
 fi
 
-githash=3129835
+githash=ab05162
 eosdir=/store/cmst3/group/top/RunIIReReco/${githash}
 fulllumi=41367
 vbflumi=7661
@@ -60,14 +60,14 @@ case $WHAT in
                
 
 
-        json=data/era${ERA}/vbf_DY_FXFX_mlm.json
+        json=data/era${ERA}/vbf_samples.json
 	
         #tag=MC13TeV_2016_DY50toInf_1J_mlm
         tag=MC13TeV_2017_DY50toInf_2J_fxfx
 
         if [[ ${ERA} == "2016" ]]; then
           # tag==MC13TeV_2016_DY50toInf_2J_fxfx
-           tag=MC13TeV_2016_DY50toInf_2J_mlm
+           tag=MC13TeV_2016_DY50toInf_2J_fxfx
         fi
 
         input=${eosdir}/${tag}/Chunk_0_ext0.root        
@@ -108,7 +108,7 @@ case $WHAT in
 
 
 
-        json=data/era${ERA}/vbf_DY_FXFX_mlm.json #,data/era${ERA}/vbf_syst_samples.json
+        json=data/era${ERA}/vbf_samples.json,data/era${ERA}/vbf_syst_samples.json
 	#json=data/era${ERA}/vbf_syst_samples.json
 
 
@@ -128,7 +128,7 @@ case $WHAT in
 	
         echo ${json}
 	python scripts/runLocalAnalysis.py \
-	    -i ${eosdir} --only ${json}\
+	    -i ${eosdir} --only ${json} \
             -o ${outdir}/${githash}/${EXTRA}${QCD} \
             --farmappendix ${githash}${QCD} \
             -q ${queue} --genWeights genweights_${githash}.root \
@@ -190,8 +190,8 @@ case $WHAT in
     PLOT )
 	
 
-        json=data/era${ERA}/vbf_DY_FXFX_mlm.json;
-#	 json=data/era${ERA}/vbf_samples.json;
+#        json=data/era${ERA}/vbf_DY_FXFX_mlm.json;
+	 json=data/era${ERA}/vbf_samples.json;
 	 syst_json=data/era${ERA}/vbf_syst_samples.json;
         gjets_json=data/era${ERA}/gjets_samples.json;
 	fake_json=data/era${ERA}/vbf_fake_samples.json;
@@ -208,7 +208,7 @@ case $WHAT in
 
 #	python scripts/plotter.py ${commonOpts} -j ${json} --only HighMJJ,LowMJJ ${kFactors} --rawYields -o acceptance_plotter.root
 #	python scripts/plotter.py ${commonOpts} -j ${json} --only evcount ${kFactors} --saveTeX -o evcout_plotter.root
-#	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only newcat,HighVPtA,LowVPtA,HighVPtMM,LowVPtMM,HighVPtEE,LowVPtEE  --silent -o syst_plotter.root
+	python scripts/plotter.py ${commonOpts} -j ${syst_json} ${kFactors} --only HighVPtA,LowVPtA,HighVPtMM,LowVPtMM,HighVPtEE,LowVPtEE  --silent -o syst_plotter.root
 #	python scripts/plotter.py ${commonOpts} -j ${json},${fake_json} --only HighMJJ,LowMJJ ${kFactors} ${fake} -o fake_plotter.root
 
 

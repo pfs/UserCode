@@ -19,7 +19,7 @@ namespace vbf{
 
     float scalarht,mht,dijetht,syspt;
     float ncentj;
-
+   
     //addition production and colour flow
     float cosqj1, cosqjj;
     float beta_v_j2,  beta_j1_j2, beta_v_j3, beta_closej_j3;
@@ -114,14 +114,14 @@ namespace vbf{
 
     //filler method
     inline void fillDiscriminatorVariables(TLorentzVector &boson,std::vector<Jet> &jets,MiniEvent_t &ev) {
-
+     
       if(jets.size()>0){
         leadj_pt      = jets[0].Pt();
 	leadj_eta      = fabs(jets[0].Eta());
         leadj_gawidth = ev.j_gawidth[jets[0].getJetIndex()];
         leadj_c2_02   = ev.j_c2_02[jets[0].getJetIndex()];
         leadj_qg      = ev.j_qg[jets[0].getJetIndex()];
-        dphivj0       = fabs(jets[0].DeltaPhi(boson));
+        dphivj0       = (jets[0].DeltaPhi(boson));
 
         centraleta    = jets[0].Eta();
       }
@@ -132,7 +132,7 @@ namespace vbf{
         subleadj_gawidth = ev.j_gawidth[jets[1].getJetIndex()];
         subleadj_c2_02   = ev.j_c2_02[jets[1].getJetIndex()];
         subleadj_qg      = ev.j_qg[jets[1].getJetIndex()];
-        dphivj1          = fabs(jets[1].DeltaPhi(boson));
+        dphivj1          = (jets[1].DeltaPhi(boson));
 	if (jets.size()>2) dphivj2 = fabs(jets[2].DeltaPhi(boson));
 	if (jets.size()>3) dphivj3 = fabs(jets[3].DeltaPhi(boson));
         centraleta       = min(fabs(jets[0].Eta()),fabs(jets[1].Eta()));
@@ -142,13 +142,13 @@ namespace vbf{
         TLorentzVector jj(jets[0]+jets[1]);
         mjj     = jj.M();
         detajj  = fabs(jets[0].Eta()-jets[1].Eta());
-        dphijj  = jets[0].DeltaPhi(jets[1]);
+	dphijj  = (jets[0].DeltaPhi(jets[1]));
         jjpt    = jj.Pt();
         jjetas  = jets[0].Eta()*jets[1].Eta();
         ystar   = boson.Rapidity()-0.5*(jets[0].Rapidity()+jets[1].Rapidity());
         balance = (boson+jj).Pt();
         relbpt  = (jets[0].Pt()+jets[1].Pt())/boson.Pt();
-        dphibjj = boson.DeltaPhi( jets[0]+jets[1] );    
+	dphibjj = (boson.DeltaPhi( jets[0]+jets[1] ));  
         cosqj1      = TMath::TanH( 0.5*(boson.Rapidity()-jets[0].Rapidity()) );
         cosqjj      = TMath::TanH( 0.5*(boson.Rapidity()-jj.Rapidity()) );
         beta_v_j2   = fabs(boson.DeltaPhi(jets[1]))/((boson.Eta()<0 ? -1 : 1)*(jets[1].Eta()-boson.Eta()+1e-6));

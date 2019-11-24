@@ -104,6 +104,21 @@ python scripts/convertLumiTable.py --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-po
 python scripts/convertLumiTable.py -o data/era2016/ -y 2016 --lumi /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt
 ```
 
+## Running ntuplizer on condor
+
+You can use this option also, although there won't be a lumi report in the end to run brilcalc on.
+Check the options with
+```
+python scripts/submitLocalNtuplizer.py -h
+
+```
+
+After jobs run, check the integrity by doing
+```
+python scripts/checkLocalNtuplizerInteg.py condor_file
+```
+
+
 ## Preparing the analysis 
 
 Correction and uncertainty files are stored under data by era directories (e.g data/era2017) in order no to mix different periods.

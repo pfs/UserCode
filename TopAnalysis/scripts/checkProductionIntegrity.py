@@ -19,7 +19,11 @@ def main():
         if ores[0] is None: continue
         print 'Will redo',outf,'out of ',len(t)-1,'inputs'
         args=' '.join(t)
-        os.system('sh %s/custom_merge.sh %s'%(FARMDIR,args))
+
+        with open('temp.list','w') as cache:
+            cache.write(args)
+        os.system('cat temp.list | xargs sh %s/custom_merge.sh'%(FARMDIR))
+        #os.system('rm temp.list')
 
 if __name__ == "__main__":
     sys.exit(main())

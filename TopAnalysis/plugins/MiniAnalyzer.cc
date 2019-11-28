@@ -754,13 +754,13 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
   for (const pat::Electron &e : *electrons)
     {
 
-      float enSF(1.0);
-      try{
-        enSF=e.userFloat("ecalTrkEnergyPostCorr");
-      }catch(...){
-      }
+      //float enSF(1.0);
+      //try{
+      //  enSF=e.userFloat("ecalTrkEnergyPostCorr");
+      //}catch(...){
+      //}
 
-      auto corrP4  = e.p4() * enSF / e.energy();
+      auto corrP4  = e.p4(); // * enSF / e.energy();
 
       //kinematics cuts
       bool passPt(corrP4.pt() > 15.0);
@@ -843,13 +843,23 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
       ev_.l_eta[ev_.nl]      = corrP4.eta();
       ev_.l_phi[ev_.nl]      = corrP4.phi();
       ev_.l_mass[ev_.nl]     = corrP4.mass();
-      ev_.l_scaleUnc1[ev_.nl] = 0.5*(e.userFloat("energyScaleStatUp")-e.userFloat("energyScaleStatDown"));
-      ev_.l_scaleUnc2[ev_.nl] = 0.5*(e.userFloat("energyScaleGainUp")-e.userFloat("energyScaleGainDown"));
-      ev_.l_scaleUnc3[ev_.nl] = 0.5*(e.userFloat("energyScaleSystUp")-e.userFloat("energyScaleSystDown"));
-      ev_.l_scaleUnc4[ev_.nl] = 0.5*(e.userFloat("energySigmaUp")-e.userFloat("energySigmaDown"));
-      ev_.l_scaleUnc5[ev_.nl] = 0.5*(e.userFloat("energySigmaPhiUp")-e.userFloat("energySigmaPhiDown"));
-      ev_.l_scaleUnc6[ev_.nl] = 0.5*(e.userFloat("energySigmaRhoUp")-e.userFloat("energySigmaRhoDown"));
-      ev_.l_scaleUnc7[ev_.nl] = 0.5*(e.userFloat("energyScaleUp")-e.userFloat("energyScaleDown"));
+      try{
+        ev_.l_scaleUnc1[ev_.nl] = 0.5*(e.userFloat("energyScaleStatUp")-e.userFloat("energyScaleStatDown"));
+        ev_.l_scaleUnc2[ev_.nl] = 0.5*(e.userFloat("energyScaleGainUp")-e.userFloat("energyScaleGainDown"));
+        ev_.l_scaleUnc3[ev_.nl] = 0.5*(e.userFloat("energyScaleSystUp")-e.userFloat("energyScaleSystDown"));
+        ev_.l_scaleUnc4[ev_.nl] = 0.5*(e.userFloat("energySigmaUp")-e.userFloat("energySigmaDown"));
+        ev_.l_scaleUnc5[ev_.nl] = 0.5*(e.userFloat("energySigmaPhiUp")-e.userFloat("energySigmaPhiDown"));
+        ev_.l_scaleUnc6[ev_.nl] = 0.5*(e.userFloat("energySigmaRhoUp")-e.userFloat("energySigmaRhoDown"));
+        ev_.l_scaleUnc7[ev_.nl] = 0.5*(e.userFloat("energyScaleUp")-e.userFloat("energyScaleDown"));
+      }catch(...){
+        ev_.l_scaleUnc1[ev_.nl]=0;
+        ev_.l_scaleUnc2[ev_.nl]=0;
+        ev_.l_scaleUnc3[ev_.nl]=0;
+        ev_.l_scaleUnc4[ev_.nl]=0;
+        ev_.l_scaleUnc5[ev_.nl]=0;
+        ev_.l_scaleUnc6[ev_.nl]=0;
+        ev_.l_scaleUnc7[ev_.nl]=0;
+      }
       ev_.l_miniIso[ev_.nl]  = getMiniIsolation(pfcands,&e,0.05, 0.2, 10., false);
       ev_.l_relIso[ev_.nl]   = (e.chargedHadronIso()+ max(0., e.neutralHadronIso() + e.photonIso()  - 0.5*e.puChargedHadronIso()))/corrP4.pt();
       ev_.l_chargedHadronIso[ev_.nl] = e.chargedHadronIso();
@@ -920,13 +930,24 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
       ev_.gamma_pt[ev_.ngamma]  = corrP4.pt();
       ev_.gamma_eta[ev_.ngamma] = corrP4.eta();
       ev_.gamma_phi[ev_.ngamma] = corrP4.phi();
-      ev_.gamma_scaleUnc1[ev_.ngamma] = 0.5*(g.userFloat("energyScaleStatUp")-g.userFloat("energyScaleStatDown"));
-      ev_.gamma_scaleUnc2[ev_.ngamma] = 0.5*(g.userFloat("energyScaleGainUp")-g.userFloat("energyScaleGainDown"));
-      ev_.gamma_scaleUnc3[ev_.ngamma] = 0.5*(g.userFloat("energyScaleSystUp")-g.userFloat("energyScaleSystDown"));
-      ev_.gamma_scaleUnc4[ev_.ngamma] = 0.5*(g.userFloat("energySigmaUp")-g.userFloat("energySigmaDown"));
-      ev_.gamma_scaleUnc5[ev_.ngamma] = 0.5*(g.userFloat("energySigmaPhiUp")-g.userFloat("energySigmaPhiDown"));
-      ev_.gamma_scaleUnc6[ev_.ngamma] = 0.5*(g.userFloat("energySigmaRhoUp")-g.userFloat("energySigmaRhoDown"));
-      ev_.gamma_scaleUnc7[ev_.ngamma] = 0.5*(g.userFloat("energyScaleUp")-g.userFloat("energyScaleDown"));
+      try{
+        ev_.gamma_scaleUnc1[ev_.ngamma] = 0.5*(g.userFloat("energyScaleStatUp")-g.userFloat("energyScaleStatDown"));
+        ev_.gamma_scaleUnc2[ev_.ngamma] = 0.5*(g.userFloat("energyScaleGainUp")-g.userFloat("energyScaleGainDown"));
+        ev_.gamma_scaleUnc3[ev_.ngamma] = 0.5*(g.userFloat("energyScaleSystUp")-g.userFloat("energyScaleSystDown"));
+        ev_.gamma_scaleUnc4[ev_.ngamma] = 0.5*(g.userFloat("energySigmaUp")-g.userFloat("energySigmaDown"));
+        ev_.gamma_scaleUnc5[ev_.ngamma] = 0.5*(g.userFloat("energySigmaPhiUp")-g.userFloat("energySigmaPhiDown"));
+        ev_.gamma_scaleUnc6[ev_.ngamma] = 0.5*(g.userFloat("energySigmaRhoUp")-g.userFloat("energySigmaRhoDown"));
+        ev_.gamma_scaleUnc7[ev_.ngamma] = 0.5*(g.userFloat("energyScaleUp")-g.userFloat("energyScaleDown"));
+      }catch(...){
+        ev_.gamma_scaleUnc1[ev_.ngamma] = 0.;
+        ev_.gamma_scaleUnc2[ev_.ngamma] = 0.;
+        ev_.gamma_scaleUnc3[ev_.ngamma] = 0.;
+        ev_.gamma_scaleUnc4[ev_.ngamma] = 0.;
+        ev_.gamma_scaleUnc5[ev_.ngamma] = 0.;
+        ev_.gamma_scaleUnc6[ev_.ngamma] = 0.;
+        ev_.gamma_scaleUnc7[ev_.ngamma] = 0.;
+      }
+
       ev_.gamma_chargedHadronIso[ev_.ngamma] = g.chargedHadronIso();
       ev_.gamma_neutralHadronIso[ev_.ngamma] = g.neutralHadronIso();
       ev_.gamma_photonIso[ev_.ngamma]        = g.photonIso();

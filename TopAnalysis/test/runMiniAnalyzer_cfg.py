@@ -88,9 +88,9 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('Configuration.StandardSequences.GeometryDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 
-#EGM customization (energy corrections not needed in UL)
+#EGM customization
 from TopLJets2015.TopAnalysis.customizeEGM_cff import customizeEGM
-customizeEGM(process=process,era=options.era,runWithAOD=options.runWithAOD,runEnergyCorrections=False)
+customizeEGM(process=process,era=options.era,runWithAOD=options.runWithAOD)
 
 # global tag
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')

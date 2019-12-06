@@ -183,4 +183,5 @@ analysis = cms.EDAnalyzer("MiniAnalyzer",
                           pfCands                = cms.InputTag('packedPFCandidates'),
                           ctppsLocalTracks       = cms.InputTag('ctppsLocalTrackLiteProducer'),
                           tagRecoProtons         = cms.InputTag('ctppsProtons:singleRP'),
-                          )
+                          tagMultiRecoProtons    = cms.InputTag('ctppsProtons:multiRP')
+)

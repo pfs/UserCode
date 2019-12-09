@@ -7,7 +7,7 @@ def getEraConfiguration(era,isData,dataset=None):
     globalTags = {
         'era2016':('102X_mc2017_realistic_v6',       '106X_dataRun2_v11'),
         'era2017':('102X_mc2017_realistic_v6',       '106X_dataRun2_v11'),
-        'era2018':('102X_upgrade2018_realistic_v19', '102X_dataRun2_v11')
+        'era2018':('102X_upgrade2018_realistic_v20', '102X_dataRun2_v11')
         }
     jecFiles    = {
         'era2016':('Summer16_07Aug2017_V11_MC',   'Summer16_07Aug2017All_V11_DATA', 'Summer16_07Aug2017_V11_MC_UncertaintySources_AK4PFchs'),
@@ -32,7 +32,7 @@ def getEraConfiguration(era,isData,dataset=None):
     jerTag    = '_'.join( jerFile.split('_')[0:-1] )
     jerDB     = 'jer_DATA.db'  if isData else 'jer_MC.db'
     qgDBFile  = 'QGL_AK4chs_94X.db'
-    ctppsDBFile= 'CTPPSRPRealAlignment_table_v26Apr.db'
+    #ctppsDBFile= 'CTPPSRPAlignment_real_offline_v7.db'
     muonDBFile = muonFiles[era]
 
     #customize based on dataset
@@ -47,7 +47,7 @@ def getEraConfiguration(era,isData,dataset=None):
     os.system('cp ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/data/%s/%s.db %s'%(era,jerFile,jerDB))
     os.system('cp ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/data/%s/%s.txt jecUncSources.txt'%(era,jecFiles[era][2]))
     os.system('cp ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/data/%s qg_db.db'%(qgDBFile))
-    os.system('cp ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/data/%s ctpps_db.db'%(ctppsDBFile))
+    #os.system('cp ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/data/%s ctpps_db.db'%(ctppsDBFile))
     os.system('cp ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/data/%s/%s muoncorr_db.txt'%(era,muonDBFile))
 
 
@@ -55,7 +55,7 @@ def getEraConfiguration(era,isData,dataset=None):
     print 'JER tag: ',jerTag,'to be read from',jerDB
     print 'Muon corrections to be read from muoncorr_db.txt'
     print 'q/g discriminator to be read from qg_db.db'
-    print 'CTPPS config to be read from ctpps_db.db'
+    #print 'CTPPS config to be read from ctpps_db.db'
 
     return globalTag, jecTag, jecDB, jerTag, jerDB
     

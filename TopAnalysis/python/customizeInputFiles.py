@@ -72,4 +72,5 @@ def customTestInputFiles(process,era,runOnData,runWithAOD):
                     '/store/data/Run2018C/SingleMuon/RAW/v1/000/320/007/00000/B4B0ADA6-E88C-E811-B65F-FA163E105698.root'
                 ])
         else:
-            print 'FIXME: add a MC test file for 2018...'
+            process.source.fileNames = cms.untracked.vstring('/store/mc/RunIIAutumn18MiniAOD/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15_ext2-v1/50001/FD88E288-BFD2-F444-AD4C-844482719AA2.root')
+            

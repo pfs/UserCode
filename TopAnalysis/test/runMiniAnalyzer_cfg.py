@@ -37,6 +37,11 @@ options.register('outFilename', 'MiniEvents.root',
                  VarParsing.varType.string,
                  "Output file name"
                  )
+options.register('globalTag', None,
+                 VarParsing.multiplicity.singleton,
+                 VarParsing.varType.string,
+                 "Override with this global tag, if none use default"
+                 )
 options.register('baseJetCollection','slimmedJets',
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.string,
@@ -81,6 +86,10 @@ process = cms.Process("MiniAnalysis", eras.ctpps_2016)
 #get the configuration to apply
 from TopLJets2015.TopAnalysis.EraConfig import getEraConfiguration
 globalTag, jecTag, jecDB, jerTag, jerDB = getEraConfiguration(era=options.era,isData=options.runOnData)
+if options.globalTag:
+      globalTag=options.globalTag
+      print 'Forcing global tag to',globalTag
+
 
 # Load the standard set of configuration modules
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")

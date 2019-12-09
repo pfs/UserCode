@@ -9,7 +9,7 @@ creates the crab cfg and submits the job
 def submitProduction(tag,lfnDirBase,dataset,isData,cfg,workDir,lumiMask,era='era2017',submit=False,addParents=False,rawParents=False):
     
     from TopLJets2015.TopAnalysis.EraConfig import getEraConfiguration
-    globalTag, jecTag, jecDB, jerTag, jerDB = getEraConfiguration(era=era,isData=bool(isData))
+    globalTag, jecTag, jecDB, jerTag, jerDB = getEraConfiguration(era=era,isData=bool(isData),dataset=dataset)
 
     isZeroBias=True if 'ZeroBias' in dataset else False
 
@@ -33,20 +33,20 @@ def submitProduction(tag,lfnDirBase,dataset,isData,cfg,workDir,lumiMask,era='era
     config_file.write('config.JobType.disableAutomaticOutputCollection = False\n')
     if isZeroBias:
         print 'This is a ZeroBias sample will save everything...'
-        config_file.write('config.JobType.pyCfgParams = [\'applyFilt=False\', \'runOnData=%s\',\'era=%s\']\n' % (bool(isData),era))
+        config_file.write('config.JobType.pyCfgParams = [\'applyFilt=False\', \'runOnData=%s\',\'era=%s\',\'globalTag=%s\']\n' % (bool(isData),era,globalTag))
     else:
         if isData:
             if addParents:
                 if rawParents:
                     print 'Parent is RAW'
-                    config_file.write('config.JobType.pyCfgParams = [\'runOnData=True\',\'era=%s\',\'redoProtonRecoFromRAW=True\']\n' % era )
+                    config_file.write('config.JobType.pyCfgParams = [\'runOnData=True\',\'era=%s\',\'redoProtonRecoFromRAW=True\',\'globalTag=%s\']\n' % (era,globalTag) )
                 else:
                     print 'Parent is AOD'
-                    config_file.write('config.JobType.pyCfgParams = [\'runOnData=True\',\'era=%s\',\'runWithAOD=True\']\n' % era )
+                    config_file.write('config.JobType.pyCfgParams = [\'runOnData=True\',\'era=%s\',\'runWithAOD=True\',\'globalTag=%s\']\n' % (era,globalTag) )
             else:
-                config_file.write('config.JobType.pyCfgParams = [\'runOnData=True\',\'era=%s\']\n' % era )
+                config_file.write('config.JobType.pyCfgParams = [\'runOnData=True\',\'era=%s\',\'globalTag=%s\']\n' % (era,globalTag) )
         else:
-            config_file.write('config.JobType.pyCfgParams = [\'runOnData=False\',\'era=%s\']\n' % era )
+            config_file.write('config.JobType.pyCfgParams = [\'runOnData=False\',\'era=%s\',\'globalTag=%s\']\n' % (era,globalTag) )
 
     #config_file.write('config.JobType.inputFiles = [\'{0}/{1}\',\'{0}/{2}\',\'{0}/muoncorr_db.txt\',\'{0}/jecUncSources.txt\']\n'.format(cmssw,jecDB,jerDB))
     

@@ -9,12 +9,15 @@ marked with the `##OPTIONAL/##END OPTIONAL` markers.
 If compilation fails for some reason repeat the scram b...
 
 ```
-cmsrel CMSSW_10_6_0
-cd CMSSW_10_6_0/src
+cmsrel CMSSW_10_6_2
+cd CMSSW_10_6_2/src
 cmsenv
 
 #EGM id
 git cms-merge-topic cms-egamma:EgammaPostRecoTools
+git cms-addpkg EgammaAnalysis/ElectronTools
+rm EgammaAnalysis/ElectronTools/data -rf
+git clone git@github.com:cms-data/EgammaAnalysis-ElectronTools.git EgammaAnalysis/ElectronTools/data
 scram b -j 8
 
 #B-fragmentation analyzer

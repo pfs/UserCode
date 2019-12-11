@@ -1,5 +1,5 @@
-#ifndef _photontrigeff_h_
-#define _photontrigeff_h_
+#ifndef _photonfakerate_h_
+#define _photonfakerate_h_
 
 #include "TLorentzVector.h"
 #include "TopLJets2015/TopAnalysis/interface/ObjectTools.h"
@@ -11,5 +11,13 @@ void RunPhotonTrigEff(TString filename,
                       TH1F *genPU,
                       TString era,
                       bool debug=false); 
+
+
+void RunPhotonFakeRate(TString filename,
+                       TString outname,
+                       TH1F *normH, 
+                       TH1F *genPU,
+                       TString era,
+                       bool debug=false); 
 
 #endif

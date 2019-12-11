@@ -4,7 +4,7 @@
 #include "TopLJets2015/TopAnalysis/interface/ExclusiveZX.h"
 #include "TopLJets2015/TopAnalysis/interface/TOP-17-010.h"
 #include "TopLJets2015/TopAnalysis/interface/VBFVectorBoson.h"
-#include "TopLJets2015/TopAnalysis/interface/PhotonTrigEff.h"
+#include "TopLJets2015/TopAnalysis/interface/PhotonAnalyzers.h"
 #include "TopLJets2015/TopAnalysis/interface/TopSummer2019.h"
 
 #include "TH1F.h"

@@ -103,6 +103,7 @@ The following script runs brilcalc inclusively and per trigger path, and stores 
 It takes a bit to run, depending on the number of triggers configured to use in the analysis
 
 ```
+python scripts/convertLumiTable.py --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json --lumi /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt -y 2018 -o data/era2018
 python scripts/convertLumiTable.py --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json 
 python scripts/convertLumiTable.py -o data/era2016/ -y 2016 --lumi /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt
 ```

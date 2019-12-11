@@ -57,6 +57,9 @@ case $WHAT in
                
         json=test/analysis/vbf/samples_${ERA}.json
         tag=Data13TeV_${year}C_SinglePhoton
+        if [[ ${year} == "2018" ]]; then
+            tag=Data13TeV_${year}C_EGamma
+        fi
         input=${eosdir}/${tag}/Chunk_1_ext0.root
         output=${tag}.root 
 
@@ -68,12 +71,16 @@ case $WHAT in
         ;;
 
     SELTRIGEFF )
+        tags=SinglePhoton,EWKAJJ
+        if [[ ${year} == "2018" ]]; then
+            tags=EGamma,EWKAJJ
+        fi
 	python scripts/runLocalAnalysis.py \
-	    -i ${eosdir} --only SinglePhoton,EWKAJJ\
-            -o ${outdir}/trig/${githash}/${EXTRA} \
+	    -i ${eosdir} --only ${tags} \
+            -o ${outdir}/trig/${githash} \
             --farmappendix trig${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \
-            --era era${ERA} -m PhotonTrigEff::RunPhotonTrigEff --ch 0 --runSysts ${extraOpts};
+            --era era${ERA} -m PhotonTrigEff::RunPhotonTrigEff --ch 0;
 	;;
 
     CHECKTRIGEFFINTEG )

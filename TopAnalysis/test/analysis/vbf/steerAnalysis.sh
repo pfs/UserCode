@@ -11,24 +11,28 @@ done
 
 if [ -z "$WHAT" ]; then 
     echo "steerVBFVectorBoson.sh -o <SEL/MERGE/...>  -y 2016/7/8";
-    echo "        TRIGEFF      - trigger efficiency"
+    echo "   {TESTSEL,SEL,CHECK,MERGE,DO,WWW}TRIGEFF - trigger efficiency studies"
     exit 1; 
 fi
 
 
 if [[ ${ERA} == "2016" ]]; then
+    year="2016"
     githash=0c522df
     eosdir=/store/cmst3/group/top/RunIIReReco/2016/${githash}  
 fi
 if [[ ${ERA} == "2017" ]]; then
+    year="2017"
     githash=ab05162
     eosdir=/store/cmst3/group/top/RunIIReReco/${githash}
 fi
 if [[ ${ERA} == "2017ul" ]]; then
+    year="2017"
     githash=7120040_ul
     eosdir=/store/cmst3/group/top/RunIIReReco/2017/${githash}
 fi
 if [[ ${ERA} == "2018" ]]; then
+    year="2018"
     githash=219fd1e
     eosdir=/store/cmst3/group/top/RunIIReReco/2018/${githash}
 fi
@@ -52,7 +56,7 @@ case $WHAT in
     TESTSELTRIGEFF )
                
         json=test/analysis/vbf/samples_${ERA}.json
-        tag=Data13TeV_${ERA}C_SinglePhoton
+        tag=Data13TeV_${year}C_SinglePhoton
         input=${eosdir}/${tag}/Chunk_1_ext0.root
         output=${tag}.root 
 
@@ -80,7 +84,7 @@ case $WHAT in
 	./scripts/mergeOutputs.py ${outdir}/trig/${githash}/${EXTRA};
 	;;
 
-    TRIGEFF )
+    DOTRIGEFF )
         python test/analysis/computeTriggerEff.py ${outdir}/trig/${githash}/${EXTRA};
         ;;
 

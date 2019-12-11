@@ -8,7 +8,7 @@
 #include <TGraphAsymmErrors.h>
 
 #include "TopLJets2015/TopAnalysis/interface/CommonTools.h"
-#include "TopLJets2015/TopAnalysis/interface/PhotonTrigEff.h"
+#include "TopLJets2015/TopAnalysis/interface/PhotonAnalyzers.h"
 
 #include <vector>
 #include <set>
@@ -34,6 +34,8 @@ void RunPhotonTrigEff(TString filename,
   MiniEvent_t ev;
 
   bool is2016(era.Contains("2016"));
+  bool is2017(era.Contains("2017"));
+  bool is2018(era.Contains("2018"));
 
   //READ TREE FROM FILE
   TFile *f = TFile::Open(filename);  
@@ -46,16 +48,40 @@ void RunPhotonTrigEff(TString filename,
 
   cout << "...producing " << outname << " from " << nentries << " events" << endl;
   
-   //BOOK HISTOGRAMS
-  HistTool ht;
-  ht.setNsyst(0);
-  Float_t phoBins[]={25,50,60,65,70,75,80,85,90,100,110,120,140,150,160,170,180,190,200,220,240,260,300,500};
-  Int_t nphoBins=sizeof(phoBins)/sizeof(Float_t);
-  Float_t mjjBins[]={120,200,400,600,800,1000,1500,2000,5000};
-  Int_t nmjjBins=sizeof(mjjBins)/sizeof(Float_t);
-  ht.addHist("apt",      new TH1F("apt",      ";Photon transverse momentum [GeV];Events",nphoBins-1,phoBins));
-  ht.addHist("mjj",      new TH1F("mjj",      ";Dijet invariant mass [GeV];Events",nmjjBins-1,mjjBins));
-  ht.addHist("aptvsmjj", new TH2F("aptvsmjj", ";Photon transverse momentum [GeV];Dijet invariant mass [GeV];Events",nphoBins-1,phoBins,nmjjBins-1,mjjBins));
+  //PREPARE OUTPUT
+  TString baseName=gSystem->BaseName(outname); 
+  TString dirName=gSystem->DirName(outname);
+  TFile *fOut=TFile::Open(dirName+"/"+baseName,"RECREATE");
+  fOut->cd();
+  TTree *outT=new TTree("tree","tree");
+  Bool_t passHighPtCtrlTrig(false), passLowPtCtrlTrig(false), passLowPtHighMJJCtrlTrig(false), passHighPtTrig(false), passLowPtHighMJJTrig(false),passLowPtCtrlTrigNoId(false);
+  Bool_t lowPtHighMJJCtrTrigActive(true);
+  Float_t wgt,vpt,veta,vphi,r9,hoe,chiso,nhiso,phoiso,mjj,detajj,j1pt,j1eta,j2pt,j2eta;
+  Int_t VBFreq(0);
+  outT->Branch("passHighPtCtrlTrig",        &passHighPtCtrlTrig,        "passHighPtCtrlTrig/O");
+  outT->Branch("passLowPtCtrlTrig",         &passLowPtCtrlTrig,         "passLowPtCtrlTrig/O");
+  outT->Branch("passLowPtHighMJJCtrlTrig",  &passLowPtHighMJJCtrlTrig,  "passLowPtHighMJJCtrlTrig/O");
+  outT->Branch("passHighPtTrig",            &passHighPtTrig,            "passHighPtTrig/O");
+  outT->Branch("passLowPtHighMJJTrig",      &passLowPtHighMJJTrig,      "passLowPtHighMJJTrig/O");
+  outT->Branch("passLowPtCtrlTrigNoId",     &passLowPtCtrlTrigNoId,     "passLowPtCtrlTrigNoId/O");
+  outT->Branch("lowPtHighMJJCtrTrigActive", &lowPtHighMJJCtrTrigActive, "lowPtHighMJJCtrTrigActive/O");
+  outT->Branch("wgt",    &wgt,    "wgt/F");
+  outT->Branch("vpt",    &vpt,    "vpt/F");
+  outT->Branch("veta",   &veta,   "veta/F");
+  outT->Branch("r9",     &r9,     "r9/F");
+  outT->Branch("hoe",    &hoe,    "hoe/F");
+  outT->Branch("chiso",  &chiso,  "chiso/F");
+  outT->Branch("phoiso", &phoiso, "phoiso/F");
+  outT->Branch("nhiso",  &nhiso,  "nhiso/F");
+  outT->Branch("vphi",   &vphi,   "vphi/F");
+  outT->Branch("mjj",    &mjj,    "mjj/F");
+  outT->Branch("detajj", &detajj, "detajj/F");
+  outT->Branch("j1pt",   &j1pt,   "j1pt/F");
+  outT->Branch("j1eta",  &j1eta,  "j1eta/F");
+  outT->Branch("j2pt",   &j2pt,   "j2pt/F");
+  outT->Branch("j2eta",  &j2eta,  "j2eta/F");
+  outT->Branch("VBFreq", &VBFreq, "VBFreq/I");
+  outT->SetDirectory(fOut);
 
   std::cout << "init done" << std::endl;
   if (debug){std::cout<<"\n DEBUG MODE"<<std::endl;}
@@ -74,16 +100,11 @@ void RunPhotonTrigEff(TString filename,
       if(iev%1000==0) { printf("\r [%3.0f%%] done", 100.*(float)iev/(float)nentries); fflush(stdout); }
         
       //start weights and pu weight control
-      float wgt(1.0);
+      wgt=1.0;
       std::vector<double>plotwgts(1,wgt);
-      double puWgt(1.0);
-      if(!ev.isData){
-        ht.fill("puwgtctr",0,plotwgts);
+      if(!ev.isData){       
         TString period = lumi.assignRunPeriod();
-        puWgt=(lumi.pileupWeight(ev.g_pu,period)[0]);
-        std::vector<double>puPlotWgts(1,puWgt);
-        ht.fill("puwgtctr",1,puPlotWgts);
-
+        double puWgt=(lumi.pileupWeight(ev.g_pu,period)[0]);
         wgt=(normH? normH->GetBinContent(1) : 1.0);
         wgt*=puWgt;
         wgt*=(ev.g_nw>0 ? ev.g_w[0] : 1.0);
@@ -97,73 +118,76 @@ void RunPhotonTrigEff(TString filename,
       std::vector<Particle> photons=selector.flaggedPhotons(ev);
       photons=selector.selPhotons(photons,SelectionTool::TIGHT,leptons,50.,2.4);
       if(photons.size()==0 ) continue;
+      vpt=photons[0].Pt();
+      veta=photons[0].Eta();
+      vphi=photons[0].Phi();
+      int pidx = photons[0].originalReference();
+      r9       = ev.gamma_r9[pidx];
+      hoe      = ev.gamma_hoe[pidx];
+      chiso    = ev.gamma_chargedHadronIso[pidx];
+      nhiso    = ev.gamma_neutralHadronIso[pidx];
+      phoiso   = ev.gamma_photonIso[pidx];
+
 
       //jets
       std::vector<Jet> allJets = selector.getGoodJets(ev,50.,4.7,leptons,photons);
-      float mjj(allJets.size()>=2 ? (allJets[0]+allJets[1]).M() : -1 );
-      float detajj(allJets.size()>=2 ? fabs(allJets[0].eta()-allJets[1].eta()) : -1 );
-	  
+      mjj=(allJets.size()>=2 ? (allJets[0]+allJets[1]).M() : -1 );
+      detajj=(allJets.size()>=2 ? fabs(allJets[0].eta()-allJets[1].eta()) : -1 );
+      j1pt=(allJets.size()>=1 ? allJets[0].Pt() : -999);
+      j2pt=(allJets.size()>=2 ? allJets[1].Pt() : -999);
+      j1eta=(allJets.size()>=1 ? allJets[0].Eta() : -999);
+      j2eta=(allJets.size()>=2 ? allJets[1].Eta() : -999);
+
+      //in 2016,2017 there is no cross cleaning between the photon and jet candidates...
+      VBFreq=0;
+      if(allJets.size()>=2) {
+        TLorentzVector vj1(photons[0]+allJets[0]);
+        float detavj1(fabs(photons[0].Eta()-allJets[0].Eta()));
+        TLorentzVector vj2(photons[0]+allJets[1]);
+        float detavj2(fabs(photons[0].Eta()-allJets[1].Eta()));
+        if(mjj>500 && detajj>3)    VBFreq |= 1;
+        if(vj1.M()>500 && detavj1) VBFreq |= (1<<1);
+        if(vj2.M()>500 && detavj2) VBFreq |= (1<<2);
+      }
+      
       //online categories
-      bool passHighPtCtrlTrig(false), passLowPtCtrlTrig(false), passLowPtHighMJJCtrlTrig(false);      
-      bool passHighPtTrig(false),     passLowPtHighMJJTrig(false);
+      passHighPtCtrlTrig=false; passLowPtCtrlTrig=false; passLowPtHighMJJCtrlTrig=false;      
+      passHighPtTrig=false;     passLowPtHighMJJTrig=false;
+      passLowPtCtrlTrigNoId=false;
+      lowPtHighMJJCtrTrigActive=true;
       if(is2016) {
-        passHighPtCtrlTrig       = selector.hasTriggerBit("HLT_Photon90_v",ev.triggerBits);                
-        passHighPtTrig           = selector.hasTriggerBit("HLT_Photon175_v",ev.triggerBits);
+        passLowPtCtrlTrigNoId    = selector.hasTriggerBit("HLT_Photon50_v",  ev.triggerBits);                
+        passHighPtCtrlTrig       = selector.hasTriggerBit("HLT_Photon90_v",  ev.triggerBits);                
+        passHighPtTrig           = selector.hasTriggerBit("HLT_Photon175_v", ev.triggerBits);
         passLowPtCtrlTrig        = selector.hasTriggerBit("HLT_Photon50_R9Id90_HE10_IsoM_v",ev.triggerBits);
         passLowPtHighMJJCtrlTrig = selector.hasTriggerBit("HLT_Photon75_R9Id90_HE10_IsoM_v",ev.triggerBits);
         passLowPtHighMJJTrig     = selector.hasTriggerBit("HLT_Photon75_R9Id90_HE10_Iso40_EBOnly_VBF",ev.triggerBits);
-      }else{
+      }else if(is2017){
+        if(ev.run<305405 || ev.run>306460) lowPtHighMJJCtrTrigActive=false;
         passHighPtCtrlTrig       = selector.hasTriggerBit("HLT_Photon150_v",ev.triggerBits);
-        passHighPtTrig       = selector.hasTriggerBit("HLT_Photon200_v",ev.triggerBits);
+        passHighPtTrig           = selector.hasTriggerBit("HLT_Photon200_v",ev.triggerBits);
         passLowPtCtrlTrig        = selector.hasTriggerBit("HLT_Photon50_R9Id90_HE10_IsoM_v",ev.triggerBits);
         passLowPtHighMJJCtrlTrig = selector.hasTriggerBit("HLT_Photon75_R9Id90_HE10_IsoM_v",ev.triggerBits);
-        passLowPtHighMJJTrig = selector.hasTriggerBit("HLT_Photon75_R9Id90_HE10_IsoM_EBOnly_PFJetsMJJ300DEta3_v",ev.triggerBits);
+        passLowPtHighMJJTrig     = selector.hasTriggerBit("HLT_Photon75_R9Id90_HE10_IsoM_EBOnly_PFJetsMJJ300DEta3_v",ev.triggerBits);
+      }else if(is2018) {
+        passLowPtCtrlTrigNoId    = selector.hasTriggerBit("HLT_Photon50_v",  ev.triggerBits);                
+        passHighPtCtrlTrig       = selector.hasTriggerBit("HLT_Photon90_v",  ev.triggerBits);                
+        passHighPtTrig           = selector.hasTriggerBit("HLT_Photon200_v", ev.triggerBits);
+        passLowPtCtrlTrig        = selector.hasTriggerBit("HLT_Photon50_R9Id90_HE10_IsoM_v",ev.triggerBits);
+        passLowPtHighMJJCtrlTrig = selector.hasTriggerBit("HLT_Photon75_R9Id90_HE10_IsoM_v",ev.triggerBits);
+        passLowPtHighMJJTrig     = selector.hasTriggerBit("HLT_Photon75_R9Id90_HE10_IsoM_EBOnly_PFJetsMJJ300DEta3_v",ev.triggerBits);
+      }
+      else{
+        continue;
       }
 
-      //offline categories
-      bool passHighPtOff(false), passLowPtOff(false), passLowPtHighMJJOff(false);
-      if(photons[0].Pt()>200 && fabs(photons[0].Eta())<2.4)    passHighPtOff=true;
-      if(photons[0].Pt()>75  && fabs(photons[0].Eta())<1.442)  passLowPtOff=true;
-      if(passLowPtOff && mjj>300 && detajj>3)                  passLowPtHighMJJOff=true;
- 
-      std::vector<TString> cats;
-      if(passHighPtCtrlTrig){
-        if(passHighPtOff)                               cats.push_back("hptoff");
-        if(passHighPtTrig && passHighPtOff)             cats.push_back("hpttrig_hptoff");
-      }
-      if(passLowPtCtrlTrig){
-        if(passLowPtOff)                                cats.push_back("lptoff");
-        if(passLowPtCtrlTrig && passLowPtOff)           cats.push_back("lpttrig_lptoff");
-      }
-      if(passLowPtHighMJJCtrlTrig){
-        if(passLowPtHighMJJOff)                         cats.push_back("lpthmjjoff");
-        if(passLowPtHighMJJTrig && passLowPtHighMJJOff) cats.push_back("lpthmjjtrig_lpthmjjoff");
-      }
-      if(cats.size()==0) continue;
 
-      plotwgts[0]=wgt;
-      ht.fill("apt",        photons[0].pt(),       plotwgts,cats);
-      ht.fill("mjj",        mjj,                   plotwgts,cats);
-      ht.fill2D("aptvsmjj", photons[0].pt(), mjj,  plotwgts,cats);
+      outT->Fill();
     }
       
-  //close input file
+  //close files
   f->Close();
-  
-  //PREPARE OUTPUT
-  TString baseName=gSystem->BaseName(outname); 
-  TString dirName=gSystem->DirName(outname);
-  TFile *fOut=TFile::Open(dirName+"/"+baseName,"RECREATE");
   fOut->cd();
-  for (auto& it : ht.getPlots())  { 
-    if(!it.second) continue;
-    if(it.second->GetEntries()==0) continue;
-    it.second->SetDirectory(fOut); it.second->Write(); 
-  }
-  for (auto& it : ht.get2dPlots())  { 
-    if(!it.second) continue;
-    if(it.second->GetEntries()==0) continue;
-    it.second->SetDirectory(fOut); it.second->Write(); 
-  }
+  outT->Write();
   fOut->Close();
 }

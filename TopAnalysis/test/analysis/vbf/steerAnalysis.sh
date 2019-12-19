@@ -128,7 +128,7 @@ case $WHAT in
 ###################################
 
     TESTSEL )             
-        tag=MC13TeV_2016_EWKAJJ
+        tag=MC13TeV_${year}_EWKAJJ
         input=${eosdir}/${tag}/Chunk_0_ext0.root
 	python scripts/runLocalAnalysis.py \
             -i ${input} -o testsmp19005_sel.root\
@@ -153,7 +153,6 @@ case $WHAT in
 	./scripts/mergeOutputs.py ${outdir}/analysis;
 	;;
 
-
     WWW )
         pdirs=(gen trig)
         for d in ${pdirs[@]}; do           
@@ -165,5 +164,9 @@ case $WHAT in
         cp test/index.php ${wwwdir}/${year}_${githash};
         cp test/index.php ${wwwdir};
 	;;
+ 
+    *) 
+        echo "Operation $WHAT is unknown"
+        ;;
 
 esac

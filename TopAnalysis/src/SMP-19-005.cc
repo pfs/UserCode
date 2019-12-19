@@ -83,6 +83,10 @@ void RunSMP19005(TString filename,
     if(filename.Contains("GJets")) proc="GJets";
     thSysts=getWeightSysts(f,proc);
     cout << thSysts.size() << " theory weights assuming " << proc << endl;
+    TH1F *hsysts=new TH1F("thsysts",";Theory uncertainty;",thSysts.size(),0,thSysts.size());
+    for(size_t i=0; i<thSysts.size(); i++) hsysts->GetXaxis()->SetBinLabel(i+1,thSysts[i].first);
+    hsysts->SetDirectory(fOut);
+    hsysts->Write();
   }
   if(skimtree) {
     recT=new TTree("rec","rec");

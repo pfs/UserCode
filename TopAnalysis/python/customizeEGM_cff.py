@@ -9,7 +9,7 @@ def customizeEGM(process,era,runWithAOD=False):
         runEnergyCorrections=False
     if '2017' in era:
         egmEra='2017-Nov17ReReco'   
-        runEnergyCorrections=False
+        runEnergyCorrections=True
     if '2018' in era: 
         egmEra="2018-Prompt"
         runEnergyCorrections=True

@@ -23,6 +23,7 @@ class HistoTool:
 
         """if available fills the histo, otherwise it starts a new one"""
 
+        if None in val : return
         if not key in self.histos: return
         for cat in cats:
             if pfix: cat=cat+pfix
@@ -32,7 +33,11 @@ class HistoTool:
                 self.histos[key][cat].Reset('ICE')
             self.histos[key][cat].Fill(*val)
             
-
+    def postNormalize(self,wgt):
+        for name in self.histos:
+            for cat in self.histos[name]:
+                self.histos[name][cat].Scale(wgt)
+                    
     def writeToFile(self,outFileName):
 
         """dumps all histograms to a file"""

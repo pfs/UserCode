@@ -217,7 +217,6 @@ bool SelectionTool::hasTriggerBit(TString triggerName,unsigned int word)
   std::map<TString,unsigned int>::iterator it=triggerBits_.find(triggerName);
   if(it==triggerBits_.end()) return false;
   unsigned int bit=it->second;
-  if(bit>=32) bit-=32;
   return ((word>>bit)&0x1); 
 }
 
@@ -350,19 +349,24 @@ std::vector<Particle> SelectionTool::flaggedPhotons(MiniEvent_t &ev)
     int pid(ev.gamma_pid[ig]);
     int addpid(ev.gamma_idFlags[ig]);
 
+    //bool passCSEV( (addpid & 0x1) );
+    bool hasPixelSeed( ((addpid>>1) & 0x1) );
+    bool hasmvaWP80( ((addpid>>2) & 0x1) );
+    bool hasmvaWP90( ((addpid>>3) & 0x1) );
+    
     //see bits in plugins/MiniAnalyzer.cc
-
     int qualityFlagsWord(0);
     if( pt>30 && eta<2.4)
       {
-        if( (pid&0x7f)==0x7f )            qualityFlagsWord |= (0x1 << LOOSE);
-        if( ((pid>>10)&0x7f)==0x7f   )    qualityFlagsWord |= (0x1 << MEDIUM);
-        if( ((pid>>20)&0x7f)==0x7f   )    qualityFlagsWord |= (0x1 << TIGHT);
-        if( ((addpid>>2)&0x1)        )    qualityFlagsWord |= (0x1 << MVA80);
-        if( ((addpid>>3)&0x1) )           qualityFlagsWord |= (0x1 << MVA90);
-	if( isInclusivePhoton(ev,ig) )    qualityFlagsWord |= (0x1 << CONTROL);
-	if( isQCDTemplate(ev,ig))         qualityFlagsWord |= (0x1 << QCDTEMP);
-	if( isRelaxedTight(ev,ig)    )    qualityFlagsWord |= (0x1 << RELAXEDTIGHT);
+        if( !hasPixelSeed && (pid&0x7f)==0x7f         ) qualityFlagsWord |= (0x1 << LOOSE);
+        if( !hasPixelSeed && ((pid>>10)&0x7f)==0x7f   ) qualityFlagsWord |= (0x1 << MEDIUM);
+        if( !hasPixelSeed && ((pid>>20)&0x7f)==0x7f   ) qualityFlagsWord |= (0x1 << TIGHT);
+        if( !hasPixelSeed && ((pid>>20) &0x7d)==0x7d  ) qualityFlagsWord |= (0x1 << TIGHTIDNOSIHIH);
+        if( !hasPixelSeed && hasmvaWP80 )   qualityFlagsWord |= (0x1 << MVA80);
+        if( !hasPixelSeed && hasmvaWP90 )   qualityFlagsWord |= (0x1 << MVA90);
+	if( isInclusivePhoton(ev,ig) ) qualityFlagsWord |= (0x1 << CONTROL);
+	if( isQCDTemplate(ev,ig))      qualityFlagsWord |= (0x1 << QCDTEMP);
+	if( isRelaxedTight(ev,ig)    ) qualityFlagsWord |= (0x1 << RELAXEDTIGHT);
       }
     if(qualityFlagsWord==0) continue;
 
@@ -398,10 +402,10 @@ std::vector<Particle> SelectionTool::selPhotons(std::vector<Particle> &photons,i
     {
       //check quality flag
       if( !photons[i].hasQualityFlag(qualBit) ) continue;
-      //      cout<<"Id Passed!"<<endl;
+
       //check kinematics
       if(photons[i].pt()<minPt || fabs(photons[i].eta())>maxEta) continue;
-      //      cout<<"Kinematics Passed!"<<endl;
+
       //check if this lepton should be vetoed by request      
       bool skipThisPhoton(false);
       for(auto &vetoL : veto){
@@ -410,15 +414,15 @@ std::vector<Particle> SelectionTool::selPhotons(std::vector<Particle> &photons,i
         break;
       }
       if(skipThisPhoton) continue;
-      //      cout<<"Not-Veto Passed!"<<endl;     
-      // cross-cleaning with leptos
+
+      // cross-cleaning with leptons
       bool overlapsWithPhysicsObject(false);
       for (auto& lepton : leptons) {
 	if(photons[i].p4().DeltaR(lepton.p4())<0.4) overlapsWithPhysicsObject=true;
       }
       
       if(overlapsWithPhysicsObject) continue;
-      //      cout<<"No overlap Passed!"<<endl;
+
       //photon is selected
       selPhotons.push_back(photons[i]);
     }

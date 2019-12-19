@@ -5,6 +5,7 @@ from array import array
 def getData2MC(data,mc):
 
     """computes the ratio of two efficiency graphs"""
+    if data is None or mc is None : return None
 
     gr=data.Clone('%s_SF'%data.GetName())
     gr.Set(0)
@@ -44,6 +45,8 @@ def fillTrigHisto(var,hdef,tag,probe,data,effOpt):
     """projects the tree to build a specific histogram before and after the probe cut"""
 
     histos=[]
+    if data.GetEntries()==0 : return None
+
     for hname,cut in [ ('tagdata',    tag),
                        ('probedata',  '%s && %s'%(tag,probe))]:
         data.Draw('{0} >> {1}'.format(var,hdef.GetName()),'wgt*({0})'.format(cut),'goff')
@@ -93,6 +96,20 @@ def showTriggerEfficiency(histos,hname,extraTxt,xtitle,outdir):
 
     """plots a standard canvas with the trigger efficiencies and scale factors"""
 
+    ref=None
+    for key in histos:
+        if histos[key] is None : continue
+        ref=histos[key][0]
+        break
+    if ref is None:
+        print 'Unable to plot trigger efficiency for',hname
+        return
+
+    sfgr=None
+    if histos['data'] and histos['mc']:
+        sfgr=getData2MC(histos['data'][-1],histos['mc'][-1])
+
+
     c=ROOT.TCanvas('c','c',500,500)
     c.SetBottomMargin(0)
     c.SetTopMargin(0)
@@ -100,7 +117,7 @@ def showTriggerEfficiency(histos,hname,extraTxt,xtitle,outdir):
     c.SetRightMargin(0)
     
     c.cd()
-    p1=ROOT.TPad('p1','p1',0,0.5,1,1.0)
+    p1=ROOT.TPad('p1','p1',0,0.5 if sfgr else 0.0,1,1.0)
     p1.Draw()
     p1.SetRightMargin(0.03)
     p1.SetLeftMargin(0.12)
@@ -109,7 +126,7 @@ def showTriggerEfficiency(histos,hname,extraTxt,xtitle,outdir):
     p1.SetGridy()
     p1.cd()
 
-    frame=histos['mc'][0].Clone('frame')
+    frame=ref.Clone('frame')
     frame.Reset('ICE')
     frame.Draw()
     frame.GetXaxis().SetTitleSize(0.0)
@@ -121,17 +138,18 @@ def showTriggerEfficiency(histos,hname,extraTxt,xtitle,outdir):
     frame.GetYaxis().SetRangeUser(0.04,1.)
 
     mg=ROOT.TMultiGraph()
-    histos['mc'][-1].SetMarkerStyle(24)
-    histos['mc'][-1].SetMarkerColor(ROOT.kAzure+1)
-    histos['mc'][-1].SetLineColor(ROOT.kAzure+1)
-    mg.Add(histos['mc'][-1],'p')
+    if histos['mc']:
+        histos['mc'][-1].SetMarkerStyle(24)
+        histos['mc'][-1].SetMarkerColor(ROOT.kAzure+1)
+        histos['mc'][-1].SetLineColor(ROOT.kAzure+1)
+        mg.Add(histos['mc'][-1],'p')
 
-    histos['data'][-1].SetMarkerStyle(20)
-    for i in range(histos['data'][-1].GetN()):
-        histos['data'][-1].SetPointEXhigh(i,0)
-        histos['data'][-1].SetPointEXlow(i,0)
-
-    mg.Add(histos['data'][-1],'p')
+    if histos['data']:
+        histos['data'][-1].SetMarkerStyle(20)
+        for i in range(histos['data'][-1].GetN()):
+            histos['data'][-1].SetPointEXhigh(i,0)
+            histos['data'][-1].SetPointEXlow(i,0)
+        mg.Add(histos['data'][-1],'p')
     mg.Draw('p')
 
     leg=ROOT.TLegend(0.55,0.12,0.95,0.17)
@@ -156,60 +174,60 @@ def showTriggerEfficiency(histos,hname,extraTxt,xtitle,outdir):
     p1.RedrawAxis()
 
     c.cd()
-    p2=ROOT.TPad('p2','p2',0,0,1,0.5)
-    p2.SetRightMargin(0.03)
-    p2.SetLeftMargin(0.12)
-    p2.SetTopMargin(0.01)
-    p2.SetBottomMargin(0.18)
-    p2.SetGridy()
-    p2.Draw()
-    p2.cd()
-
-    rframe=histos['mc'][0].Clone('rframe')
-    rframe.Reset('ICE')
-    rframe.Draw()
-    rframe.GetXaxis().SetTitleSize(0.08)
-    rframe.GetXaxis().SetLabelSize(0.08)
-    rframe.GetYaxis().SetTitleSize(0.08)
-    rframe.GetYaxis().SetLabelSize(0.08)
-    rframe.GetYaxis().SetTitleOffset(0.7)
-    rframe.GetYaxis().SetTitle('Data / MC')
-    rframe.GetXaxis().SetTitle(xtitle)
-    rframe.GetYaxis().SetRangeUser(0.0,1.04)
-
-    sfgr=getData2MC(histos['data'][-1],histos['mc'][-1])
-    sfgr.Draw('p')
     
-    """  
-    minX=150
-    if 'vbf' in effGr[i].GetName(): minX=50
-    sff=ROOT.TF1('sff','0.5*[0]*(1.+TMath::Erf((x-[1])/(TMath::Sqrt(2.)*[2])))',minX,frame.GetYaxis().GetXmax())    
-    sff.SetParLimits(0,0.1,1)
-    if 'hptoff_apt' in effGr[i].GetName():
+    if sfgr:
+        p2=ROOT.TPad('p2','p2',0,0,1,0.5)
+        p2.SetRightMargin(0.03)
+        p2.SetLeftMargin(0.12)
+        p2.SetTopMargin(0.01)
+        p2.SetBottomMargin(0.18)
+        p2.SetGridy()
+        p2.Draw()
+        p2.cd()
+
+        rframe=ref.Clone('rframe')
+        rframe.Reset('ICE')
+        rframe.Draw()
+        rframe.GetXaxis().SetTitleSize(0.08)
+        rframe.GetXaxis().SetLabelSize(0.08)
+        rframe.GetYaxis().SetTitleSize(0.08)
+        rframe.GetYaxis().SetLabelSize(0.08)
+        rframe.GetYaxis().SetTitleOffset(0.7)
+        rframe.GetYaxis().SetTitle('Data / MC')
+        rframe.GetXaxis().SetTitle(xtitle)
+        rframe.GetYaxis().SetRangeUser(0.0,1.04)
+        sfgr.Draw('p')
+    
+        """  
+        minX=150
+        if 'vbf' in effGr[i].GetName(): minX=50
+        sff=ROOT.TF1('sff','0.5*[0]*(1.+TMath::Erf((x-[1])/(TMath::Sqrt(2.)*[2])))',minX,frame.GetYaxis().GetXmax())    
+        sff.SetParLimits(0,0.1,1)
+        if 'hptoff_apt' in effGr[i].GetName():
         sff.SetParLimits(1,150,210)
         sff.SetParLimits(2,1,50)
-    elif 'lptoff_apt' in effGr[i].GetName():
+        elif 'lptoff_apt' in effGr[i].GetName():
         sff.SetParLimits(1,70,80)
         sff.SetParLimits(2,1,50)
-    else:
+        else:
         sff.SetParLimits(1,200,1500)
         sff.SetParLimits(2,100,500)
         sfgr.Fit(sff,'M','')
         sfVal=sff.GetParameter(0)
         scaleGr(effGr[i],1./sfVal)
         sfgr=getData2MC(effGr[i],mcEffGr[i])
-
-    sfgr.Fit(sff,'M+')
-
-    txt=ROOT.TLatex()
-    txt.SetNDC(True)
-    txt.SetTextFont(42)
-    txt.SetTextSize(0.07)
-    txt.SetTextAlign(12)
-    for ip in range(3):
+        
+        sfgr.Fit(sff,'M+')
+        
+        txt=ROOT.TLatex()
+        txt.SetNDC(True)
+        txt.SetTextFont(42)
+        txt.SetTextSize(0.07)
+        txt.SetTextAlign(12)
+        for ip in range(3):
         txt.DrawLatex(0.15,0.9-0.07*ip,'p_{%d}=%3.3f'%(ip+1,sff.GetParameter(ip)))
-    p2.RedrawAxis()
-    """
+        p2.RedrawAxis()
+        """
 
     c.cd()
     c.Modified()
@@ -253,7 +271,7 @@ binDef={'lowvpt':{'pt' :   [70,72.5,75,77.5,80,85,90,100,120,150,200],
                    'probe': 'passHighPtTrig'                   
                    },
         }
-if year==2017 :
+if year==2017 or year==2018:
     binDef['highvpt']['pt']=[195,197.5,200,202.5,205,210,220,230,240,250,300,400,500]
 
 varTitles={'vpt':'Photon p_{T} [GeV]',
@@ -292,7 +310,13 @@ for cat in ['lowvpt']: # binDef:
                                            probecut.replace('&& lowPtHighMJJCtrTrigActive',''),
                                            mc,  
                                            'central')}
-            sfgr=getData2MC(histos['data'][-1],histos['mc'][-1])
+            
+            sfgr=None
+            if histos['data'] and histos['mc']:
+                sfgr=getData2MC(histos['data'][-1],histos['mc'][-1])
+            if sfgr is None:
+                print 'Unable to compute SF for',cat
+                continue
 
             #copy to the appropriate row in the final scale factor histogram
             xval,sfval=ROOT.Double(0),ROOT.Double(0)
@@ -302,12 +326,13 @@ for cat in ['lowvpt']: # binDef:
                 xbin=hptvsmjj.GetXaxis().FindBin(float(xval))
                 hptvsmjj.SetBinContent(xbin,im,float(sfval))
                 hptvsmjj.SetBinError(xbin,im,sfvalunc)
-                   
-        show2DSFs(h2d=hptvsmjj,
-                  extraTxt='%3.1f<|#eta|<%3.1f (%d)'%(etamin,etamax,year),
-                  outdir=outdir)
-        finalSFs.append(hptvsmjj)
-        finalSFs[-1].SetDirectory(0)
+
+        if hptvsmjj.GetEntries()>0:
+            show2DSFs(h2d=hptvsmjj,
+                      extraTxt='%3.1f<|#eta|<%3.1f (%d)'%(etamin,etamax,year),
+                      outdir=outdir)
+            finalSFs.append(hptvsmjj)
+            finalSFs[-1].SetDirectory(0)
 
         #plot vs pt or mjj inclusively
         for key in hbase:
@@ -329,6 +354,7 @@ for cat in ['lowvpt']: # binDef:
                                            probecut.replace('&& lowPtHighMJJCtrTrigActive',''),
                                            mc,  
                                            'central')}
+            print histos,data.GetEntries()
             showTriggerEfficiency(histos=histos,
                                   hname='%s_%d_%s'%(key,i,cat),
                                   extraTxt='%3.1f<|#eta|<%3.1f (%d)'%(etamin,etamax,year),

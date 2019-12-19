@@ -885,13 +885,13 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
   iEvent.getByToken(photonToken_, photons);
   for (const pat::Photon &g : *photons)
     {
-      float enSF(1.0);
+      float enPostCorr(g.energy());
       try{
-        enSF=g.userFloat("ecalEnergyPostCorr");
+        enPostCorr=g.userFloat("ecalEnergyPostCorr");
       }catch(...){
       }
 
-      auto corrP4  = g.p4() * enSF / g.energy();
+      auto corrP4  = g.p4() * enPostCorr / g.energy();
 
       //kinematics cuts
       bool passPt(corrP4.pt() > 30.0);

@@ -162,7 +162,7 @@ class Plot(object):
                         h.SetLineColor(ROOT.kGray+3)
                     else:
                         h.SetLineColor(ROOT.TColor.GetColorDark(color))
-                    h.SetLineWidth(1)
+                    h.SetLineWidth(2)
                     h.SetFillColor(color)
                     h.SetFillStyle(1001)
                     self.mc[title]=h
@@ -385,16 +385,22 @@ class Plot(object):
         if frame.InheritsFrom('TH1'):
             maxY=frame.GetMaximum()
             if noStack:
-                if self.dataH:   maxY=self.dataH.GetMaximum()*1.25 
-                elif stack: maxY=stack.GetStack().At(0).GetMaximum()/1.25
-                else:       maxY=frame.GetMaximum()*1.25
+                if self.dataH:   
+                    maxY=self.dataH.GetMaximum()*1.25 
+                elif len(self.mc)>0:
+                    maxY=0
+                    for ih in self.mc:
+                        maxY=max(self.mc[ih].GetMaximum(),maxY)
+                    #maxY=maxY*1.25
+                else:       
+                    maxY=frame.GetMaximum()*1.25
             elif totalMC:
                 maxY = totalMC.GetMaximum()
                 if self.dataH:
                     if maxY<self.dataH.GetMaximum():
                         maxY=self.dataH.GetMaximum()                                     
             frame.Draw()
-            frame.GetYaxis().SetRangeUser(self.frameMin,self.frameMax*maxY)
+            frame.GetYaxis().SetRangeUser(self.frameMin,self.frameMax*maxY)            
             frame.SetDirectory(0)
             frame.Reset('ICE')
 

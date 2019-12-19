@@ -9,30 +9,23 @@
 #include <vector>
 #include <map>
 
-#include "TopLJets2015/TopAnalysis/interface/ObjectTools.h"
-
 typedef std::pair<float,float> EffCorrection_t;
 
 class EfficiencyScaleFactorsWrapper 
 {
  public:
   EfficiencyScaleFactorsWrapper(bool isData,TString era);
-  EfficiencyScaleFactorsWrapper(bool isData,TString era,std::map<TString,TString> cfgMap);
-  EffCorrection_t getDileptonTriggerCorrection(std::vector<Particle> &leptons);
-  EffCorrection_t getPhotonTrigCorrection(float apt,float mjj);
-  EffCorrection_t getTriggerCorrection(std::vector<Particle> leptons={}, 
-                                       std::vector<Particle> photons={},
-                                       std::vector<Particle> jets={},
-                                       TString period = "");
-  EffCorrection_t getOfflineCorrection(Particle p,TString period="");
-  EffCorrection_t getOfflineCorrection(int pdgId,float pt, float eta,TString period = "");
+  EffCorrection_t getMuonSF(float pt,float eta);
+  EffCorrection_t getElectronSF(float pt,float eta);
+  EffCorrection_t getPhotonSF(float pt,float eta);
   ~EfficiencyScaleFactorsWrapper();  
+
  private:
   void init(TString era);
   int era_;
   std::map<TString,TH2 *> scaleFactorsH_;
+  std::map<TString,TH1 *> scaleFactors1DH_;
   std::map<TString,TGraphAsymmErrors *> scaleFactorsGr_;
-  std::map<TString,TString> cfgMap_;
 };
 
 #endif

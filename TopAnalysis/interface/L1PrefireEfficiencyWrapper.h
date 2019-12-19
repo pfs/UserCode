@@ -3,6 +3,7 @@
 
 #include "TH2.h"
 #include "TString.h"
+#include "TopLJets2015/TopAnalysis/interface/ObjectTools.h"
 #include "TopLJets2015/TopAnalysis/interface/EfficiencyScaleFactorsWrapper.h"
 
 class L1PrefireEfficiencyWrapper 

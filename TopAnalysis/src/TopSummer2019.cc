@@ -50,13 +50,7 @@ void RunTopSummer2019(const TString in_fname,
   std::map<Int_t,Float_t> lumiPerRun=lumi.lumiPerRun();
   
   //CORRECTIONS: LEPTON EFFICIENCIES
-  std::map<TString,TString> cfgMap;
-  cfgMap["g_id"]="MVAwp90";
-  cfgMap["m_id"]="TightID";
-  cfgMap["m_iso"]="TightRelIso";
-  cfgMap["m_id4iso"]="TightIDandIPCut";
-  cfgMap["e_id"]="MVA90";
-  EfficiencyScaleFactorsWrapper lepEffH(in_fname.Contains("Data13TeV"),era,cfgMap);
+  EfficiencyScaleFactorsWrapper lepEffH(in_fname.Contains("Data13TeV"),era);
 
   //CORRECTIONS: L1-prefire 
   L1PrefireEfficiencyWrapper l1PrefireWR(in_fname.Contains("Data13TeV"),era);
@@ -161,7 +155,7 @@ void RunTopSummer2019(const TString in_fname,
         float normWgt(normH? normH->GetBinContent(1) : 1.0);        
         TString period = lumi.assignRunPeriod();
         double puWgt(lumi.pileupWeight(ev.g_pu,period)[0]);
-        EffCorrection_t selSF = lepEffH.getOfflineCorrection(leptons[0], period);
+        EffCorrection_t selSF(1.0,0.0);// = lepEffH.getOfflineCorrection(leptons[0], period);
         EffCorrection_t l1prefireProb=l1PrefireWR.getCorrection(allJets,{});
 
         evWgt  = normWgt*puWgt*selSF.first*l1prefireProb.first;

@@ -1,8 +1,0 @@
-{
-"Data13TeV_2017B_ZeroBias"           : [1,       1, "/ZeroBias/Run2017B-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017C_ZeroBias"           : [1,       1, "/ZeroBias/Run2017C-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017D_ZeroBias"           : [1,       1, "/ZeroBias/Run2017D-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017E_ZeroBias"           : [1,       1, "/ZeroBias/Run2017E-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017F_ZeroBias"           : [1,       1, "/ZeroBias/Run2017F-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0]
-}
-

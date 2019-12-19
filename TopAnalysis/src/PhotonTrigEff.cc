@@ -116,7 +116,9 @@ void RunPhotonTrigEff(TString filename,
 
       //select offline photons
       std::vector<Particle> photons=selector.flaggedPhotons(ev);
+      cout << photons.size() << "->";
       photons=selector.selPhotons(photons,SelectionTool::TIGHT,leptons,50.,2.4);
+      cout << photons.size() << endl;
       if(photons.size()==0 ) continue;
       vpt=photons[0].Pt();
       veta=photons[0].Eta();
@@ -131,6 +133,7 @@ void RunPhotonTrigEff(TString filename,
 
       //jets
       std::vector<Jet> allJets = selector.getGoodJets(ev,50.,4.7,leptons,photons);
+      cout << allJets.size() << endl;
       mjj=(allJets.size()>=2 ? (allJets[0]+allJets[1]).M() : -1 );
       detajj=(allJets.size()>=2 ? fabs(allJets[0].eta()-allJets[1].eta()) : -1 );
       j1pt=(allJets.size()>=1 ? allJets[0].Pt() : -999);
@@ -181,7 +184,7 @@ void RunPhotonTrigEff(TString filename,
         continue;
       }
 
-
+      cout << passHighPtTrig << " " << passLowPtHighMJJTrig << endl;
       outT->Fill();
     }
       

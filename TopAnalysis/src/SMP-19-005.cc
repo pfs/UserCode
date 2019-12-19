@@ -185,22 +185,22 @@ void RunSMP19005(TString filename,
         if(passRecVBF && !isData){
 
           //pileup
-          puWgtUp *= (puWgts[0]!=0 ? puWgts[1]/puWgts[0] : 0); 
-          puWgtDn *= (puWgts[0]!=0 ? puWgts[2]/puWgts[0] : 0);
+          puWgtUp = (puWgts[0]!=0 ? puWgts[1]/puWgts[0] : 0); 
+          puWgtDn = (puWgts[0]!=0 ? puWgts[2]/puWgts[0] : 0);
 
           //trigger
           //TODO
 
           //id
           EffCorrection_t photonSF=effSF.getPhotonSF(photons[0].pt(),photons[0].eta());
-          idSF=photonSF.first;
-          idSFUnc=photonSF.second;
+          idSF    = photonSF.first;
+          idSFUnc = photonSF.second;
           
           //L1-prefire
           if(is2016 || is2017){
             EffCorrection_t l1prefSF=l1prefire.getCorrection(alljets,photons);
-            l1prefireSF=l1prefSF.first;
-            l1prefireSFUnc=l1prefSF.second;
+            l1prefireSF    = l1prefSF.first;
+            l1prefireSFUnc = l1prefSF.second;
           }
 
           //q-g discriminator
@@ -224,7 +224,7 @@ void RunSMP19005(TString filename,
             if(thSysts.size()>0 && normH) {
               for(size_t is=0; is<thSysts.size(); is++) {
                 size_t idx=thSysts[is].second;
-                thWgt[is]=(ev.g_w[idx]/ev.g_w[0])*(normH->GetBinContent(idx+1)/normH->GetBinContent(1));
+                thWgt[is] = (ev.g_w[idx]/ev.g_w[0])*(normH->GetBinContent(idx+1)/normH->GetBinContent(1));
               }
             }
           }

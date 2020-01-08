@@ -140,13 +140,13 @@ case $WHAT in
               
 	python scripts/runLocalAnalysis.py \
             -i ${eosdir} -o ${outdir}/analysis \
-            --farmappendix analysis${githash} \
+            --farmappendix ${year}${githash} \
             -q ${queue} --genWeights genweights_${githash}.root \
             --era era${ERA} -m SMP-19-005::SMP-19-005 --ch 0 --skimtree --runSysts;
         ;;
 
     CHECKSEL )
-        python scripts/checkLocalAnalysisInteg.py ../../../FARManalysis${githash}/
+        python scripts/checkLocalAnalysisInteg.py ../../../FARManalysis${year}${githash}/
         ;;
     
     MERGESEL )

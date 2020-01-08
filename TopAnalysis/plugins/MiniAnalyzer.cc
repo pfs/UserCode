@@ -561,7 +561,8 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
           ev_.zeroBiasPS=prescale*l1prescale;
 	}
     }
-  bool passTrigger(ev_.isData ? ev_.triggerBits!=0 : true);
+  int totTrig(ev_.triggerBits + ev_.addTriggerBits);
+  bool passTrigger(ev_.isData ? totTrig!=0 : true);
   if(!passTrigger) return;
 
   //PF candidates

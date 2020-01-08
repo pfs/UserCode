@@ -154,9 +154,14 @@ void RunSMP19005(TString filename,
       for(auto &j: alljets) {
  
         int idx=j.getJetIndex();
-        float emf=ev.j_emf[idx];
+
+        //pileup jet id
+        int jid=ev.j_id[idx];
+        bool passLoosePu((jid>>2)&0x1);
+        if(!passLoosePu) continue;
 
         //ECAL noise (2017)
+        float emf=ev.j_emf[idx];
         if(is2017 && fabs(j.Eta())>2.650 && fabs(j.Eta())<3.139 && emf>0.55) continue;
 
         //HEM 15/16 issue (2018)

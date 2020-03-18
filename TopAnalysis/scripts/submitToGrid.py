@@ -28,6 +28,7 @@ def submitProduction(tag,lfnDirBase,dataset,isData,cfg,workDir,lumiMask,era='era
     #config_file.write('config.General.transferLogs=True\n')
     config_file.write('\n')
     config_file.write('config.section_("JobType")\n')
+    #config_file.write('config.JobType.allowUndistributedCMSSW = True\n')
     config_file.write('config.JobType.pluginName = "Analysis"\n')
     config_file.write('config.JobType.psetName = "'+cfg+'"\n')
     config_file.write('config.JobType.disableAutomaticOutputCollection = False\n')

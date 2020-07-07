@@ -144,6 +144,12 @@ void createMiniEventTree(TTree *t,MiniEvent_t &ev,Int_t njecUncs)
   t->Branch("j_tau32",    ev.j_tau32,   "j_tau32[nj]/F");
   t->Branch("j_tau21",    ev.j_tau21,   "j_tau21[nj]/F");
   t->Branch("j_deepcsv",  ev.j_deepcsv, "j_deepcsv[nj]/F");
+  t->Branch("j_probc",    ev.j_probc,   "j_probc[nj]/F");
+  t->Branch("j_probudsg", ev.j_probudsg,"j_probudsg[nj]/F");
+  t->Branch("j_probb",    ev.j_probb,   "j_probb[nj]/F");
+  t->Branch("j_probbb",   ev.j_probbb,  "j_probbb[nj]/F");
+  t->Branch("j_CvsL",     ev.j_CvsL,    "j_CvsL[nj]/F");
+  t->Branch("j_CvsB",     ev.j_CvsB,    "j_CvsB[nj]/F");
   t->Branch("j_vtxpx",    ev.j_vtxpx,   "j_vtxpx[nj]/F");
   t->Branch("j_vtxpy",    ev.j_vtxpy,   "j_vtxpy[nj]/F");
   t->Branch("j_vtxpz",    ev.j_vtxpz,   "j_vtxpz[nj]/F");
@@ -342,6 +348,12 @@ void attachToMiniEventTree(TTree *t,MiniEvent_t &ev,bool full)
   t->SetBranchAddress("j_tau32",    ev.j_tau32);
   t->SetBranchAddress("j_tau21",    ev.j_tau21);
   t->SetBranchAddress("j_deepcsv",  ev.j_deepcsv);  
+  t->SetBranchAddress("j_probc",    ev.j_probc);
+  t->SetBranchAddress("j_probudsg", ev.j_probudsg);
+  t->SetBranchAddress("j_probb",    ev.j_probb);
+  t->SetBranchAddress("j_probbb",   ev.j_probbb);
+  t->SetBranchAddress("j_CvsL",     ev.j_CvsL);
+  t->SetBranchAddress("j_CvsB",     ev.j_CvsB);
   t->SetBranchAddress("j_vtxpx",    ev.j_vtxpx);
   t->SetBranchAddress("j_vtxpy",    ev.j_vtxpy);
   t->SetBranchAddress("j_vtxpz",    ev.j_vtxpz);

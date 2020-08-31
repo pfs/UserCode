@@ -925,8 +925,8 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
 	  break;
 	}
 
-      ev_.gamma_mva[ev_.ngamma]=g.userFloat("PhotonMVAEstimatorRunIIFall17v1Values");
-      ev_.gamma_mvaCats[ev_.ngamma]=g.userInt("PhotonMVAEstimatorRunIIFall17v1Categories");
+      ev_.gamma_mva[ev_.ngamma]=g.userFloat("PhotonMVAEstimatorRunIIFall17v2Values");
+      ev_.gamma_mvaCats[ev_.ngamma]=g.userInt("PhotonMVAEstimatorRunIIFall17v2Categories");
       ev_.gamma_idFlags[ev_.ngamma]= g.passElectronVeto() | (g.hasPixelSeed()<<1) | (ismvawp80<<2) | (ismvawp90<<3);
       ev_.gamma_pid[ev_.ngamma]= ( (looseBits & 0x3ff)
                                    | ((mediumBits & 0x3ff)<<10)

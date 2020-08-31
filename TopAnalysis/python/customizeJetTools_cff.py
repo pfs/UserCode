@@ -33,10 +33,10 @@ def customizeJetTools(process,jecDB,jecTag,jerDB,jerTag,baseJetCollection,runOnD
                                                                 tag = cms.string('JR_%s_PtResolution_AK4PFchs'%jerTag),
                                                                 label = cms.untracked.string('AK4PFchs_pt')
                                                                 ),
-                                                       cms.PSet(record = cms.string('JetResolutionRcd'),
-                                                                tag = cms.string('JR_%s_PhiResolution_AK4PFchs'%jerTag),
-                                                                label = cms.untracked.string('AK4PFchs_phi')
-                                                                ),
+                                                       #cms.PSet(record = cms.string('JetResolutionRcd'),
+                                                       #         tag = cms.string('JR_%s_PhiResolution_AK4PFchs'%jerTag),
+                                                       #         label = cms.untracked.string('AK4PFchs_phi')
+                                                       #         ),
                                                        cms.PSet(record = cms.string('JetResolutionScaleFactorRcd'),
                                                                 tag = cms.string('JR_%s_SF_AK4PFchs'%jerTag),
                                                                 label = cms.untracked.string('AK4PFchs')

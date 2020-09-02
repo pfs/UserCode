@@ -81,6 +81,9 @@
 #include "CondFormats/RunInfo/interface/LHCInfo.h"
 #include "CondFormats/DataRecord/interface/LHCInfoRcd.h"
 
+#include "SimDataFormats/GeneratorProducts/interface/GenLumiInfoHeader.h"
+#include "FWCore/Framework/interface/LuminosityBlock.h"
+
 #include "TLorentzVector.h"
 #include "TH1.h"
 #include "TH1F.h"
@@ -112,10 +115,14 @@ public:
   ~MiniAnalyzer();
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
   virtual void endRun(const edm::Run&,const edm::EventSetup&);
+  string scanId_public;
 private:
   virtual void beginJob() override;
   void genAnalysis(const edm::Event& iEvent, const edm::EventSetup& iSetup);
   void recAnalysis(const edm::Event& iEvent, const edm::EventSetup& iSetup);
+
+  virtual void beginLuminosityBlock(edm::LuminosityBlock const& iLumi, const edm::EventSetup& iSetup) override;//
+
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   virtual void endJob() override;
   float getMiniIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
@@ -129,6 +136,9 @@ private:
   // member data
   edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
   edm::EDGetTokenT<GenEventInfoProduct> generatorevtToken_;
+
+  edm::EDGetTokenT<GenLumiInfoHeader> genLumiHeaderToken_;
+
   edm::EDGetTokenT<LHEEventProduct> generatorlheToken_;
   edm::EDGetTokenT<LHERunInfoProduct> generatorRunInfoToken_;
   edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puToken_;
@@ -194,6 +204,9 @@ private:
 MiniAnalyzer::MiniAnalyzer(const edm::ParameterSet& iConfig) :
   generatorToken_(consumes<GenEventInfoProduct>(edm::InputTag("generator"))),
   generatorevtToken_(consumes<GenEventInfoProduct>(edm::InputTag("generator",""))),
+
+  genLumiHeaderToken_(consumes<GenLumiInfoHeader,edm::InLumi>(edm::InputTag("generator")) ),
+
   generatorlheToken_(consumes<LHEEventProduct>(edm::InputTag("externalLHEProducer",""))),
   generatorRunInfoToken_(consumes<LHERunInfoProduct,edm::InRun>({"externalLHEProducer"})),
   puToken_(consumes<std::vector<PileupSummaryInfo>>(edm::InputTag("slimmedAddPileupInfo"))),
@@ -620,7 +633,7 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
             ev_.fwdtrk_vy[ev_.nfwdtrk]        = proton.vy();
             ev_.fwdtrk_vz[ev_.nfwdtrk]        = proton.vz();
             ev_.fwdtrk_time[ev_.nfwdtrk]      = proton.time();
-            ev_.fwdtrk_timeError[ev_.nfwdtrk] = proton.timeError();            
+            ev_.fwdtrk_timeError[ev_.nfwdtrk] = proton.timeError();
             ev_.fwdtrk_xi[ev_.nfwdtrk]        = proton.xi();
             ev_.fwdtrk_xiError[ev_.nfwdtrk]   = proton.xiError();
             ev_.fwdtrk_t[ev_.nfwdtrk]         = proton.t();
@@ -634,9 +647,9 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
   }
 
   //
-  //LEPTON SELECTION 
-  ev_.nl=0; 
-  
+  //LEPTON SELECTION
+  ev_.nl=0;
+
   //MUON SELECTION: cf. https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2
   edm::Handle<pat::MuonCollection> muons;
   iEvent.getByToken(muonToken_, muons);
@@ -772,17 +785,17 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
       if(!passPt || !passEta) continue;
 
       //full id+iso decisions
-      bool isVeto( e.electronID("cutBasedElectronID-Fall17-94X-V1-veto") );
-      int vetoBits( e.userInt("cutBasedElectronID-Fall17-94X-V1-veto")  );
+      bool isVeto( e.electronID("cutBasedElectronID-Fall17-94X-V2-veto") );
+      int vetoBits( e.userInt("cutBasedElectronID-Fall17-94X-V2-veto")  );
       bool passVetoId( (vetoBits | 0xc0)== 0x3ff);  //mask isolation cuts and require all bits active
-      bool isLoose( e.electronID("cutBasedElectronID-Fall17-94X-V1-loose") );
-      int looseBits( e.userInt("cutBasedElectronID-Fall17-94X-V1-loose")  );
+      bool isLoose( e.electronID("cutBasedElectronID-Fall17-94X-V2-loose") );
+      int looseBits( e.userInt("cutBasedElectronID-Fall17-94X-V2-loose")  );
       bool passLooseId( (looseBits | 0xc0)== 0x3ff);  //mask isolation cuts and require all bits active
-      bool isMedium( e.electronID("cutBasedElectronID-Fall17-94X-V1-medium") );
-      int mediumBits( e.userInt("cutBasedElectronID-Fall17-94X-V1-medium")  );
+      bool isMedium( e.electronID("cutBasedElectronID-Fall17-94X-V2-medium") );
+      int mediumBits( e.userInt("cutBasedElectronID-Fall17-94X-V2-medium")  );
       bool passMediumId( (mediumBits | 0xc0)== 0x3ff);  //mask isolation cuts and require all bits active
-      bool isTight( e.electronID("cutBasedElectronID-Fall17-94X-V1-tight") );
-      int tightBits( e.userInt("cutBasedElectronID-Fall17-94X-V1-tight") );
+      bool isTight( e.electronID("cutBasedElectronID-Fall17-94X-V2-tight") );
+      int tightBits( e.userInt("cutBasedElectronID-Fall17-94X-V2-tight") );
       bool passTightId( (tightBits | 0xc0)== 0x3ff);  //mask isolation cuts and require all bits active
 
       bool mvawp80(e.electronID("mvaEleID-Fall17-iso-V2-wp80"));
@@ -926,7 +939,7 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
 	}
 
       ev_.gamma_mva[ev_.ngamma]=g.userFloat("PhotonMVAEstimatorRunIIFall17v2Values");
-      ev_.gamma_mvaCats[ev_.ngamma]=g.userInt("PhotonMVAEstimatorRunIIFall17v2Categories");
+      ev_.gamma_mvaCats[ev_.ngamma]=g.userInt("PhotonMVAEstimatorRunIIFall17v1p1Categories");
       ev_.gamma_idFlags[ev_.ngamma]= g.passElectronVeto() | (g.hasPixelSeed()<<1) | (ismvawp80<<2) | (ismvawp90<<3);
       ev_.gamma_pid[ev_.ngamma]= ( (looseBits & 0x3ff)
                                    | ((mediumBits & 0x3ff)<<10)
@@ -1261,7 +1274,20 @@ bool MiniAnalyzer::isMediumMuon2016ReReco(const reco::Muon & recoMu)
   return isMedium;
 }
 
-
+void MiniAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const& iLumi, const edm::EventSetup& iSetup)
+{
+  try{
+    edm::Handle<GenLumiInfoHeader> gen_header;
+	  iLumi.getByToken(genLumiHeaderToken_, gen_header);
+    std::string scanId_ = gen_header->configDescription(); 
+    if (scanId_.length()){
+      scanId_public = scanId_;
+      scanId_.clear();
+    }
+   }
+   catch(...){
+   }
+}
 
 // ------------ method called for each event  ------------
 void MiniAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -1299,6 +1325,27 @@ void MiniAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   ev_.lumi    = iEvent.luminosityBlock();
   ev_.event   = iEvent.id().event();
   ev_.isData  = iEvent.isRealData();
+  if (scanId_public.length()){
+    std::size_t pos1 = scanId_public.find("MA-")+3;
+    std::size_t pos2 = scanId_public.find("_TuneCP5");
+    std::size_t stlen = pos2-pos1;
+    std::string tmp_str = scanId_public.substr(pos1,stlen);
+    ev_.scan_mass = atoi(tmp_str.c_str());
+    std::size_t pos3 = scanId_public.find("-r")+4;
+    std::size_t pos4 = scanId_public.find("-madgraph");
+    std::size_t stlen2 = pos4-pos3;
+    std::string tmp_str2 = scanId_public.substr(pos3,stlen2);
+    std::string tmp_str3 = tmp_str2.insert(1,".");
+    ev_.scan_rho = stof(tmp_str3);
+    std::size_t pos5 = scanId_public.find("-r")+2;
+    std::string tmp_str4 = scanId_public.substr(pos5,2);
+    int coupling_type = 0;
+    if (!tmp_str4.compare("tu")) coupling_type = 1;
+    if (!tmp_str4.compare("tc")) coupling_type = 2;
+    if (!tmp_str4.compare("tt")) coupling_type = 3;
+    ev_.scan_coup = coupling_type;
+    scanId_public.clear();
+  }
   tree_->Fill();
 }
 

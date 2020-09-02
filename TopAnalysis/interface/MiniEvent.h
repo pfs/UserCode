@@ -16,6 +16,9 @@ struct MiniEvent_t
   ULong64_t event;
   Float_t beamXangle, instLumi;
 
+  Int_t scan_mass, scan_coup;
+  Float_t scan_rho;
+
   //gen level event
   Int_t g_id1, g_id2;
   Float_t g_x1, g_x2, g_qscale;

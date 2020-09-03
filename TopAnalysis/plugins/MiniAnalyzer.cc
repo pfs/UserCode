@@ -1015,10 +1015,10 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
               float dPt = j->pt()-genj_pt;
               jerSF[i] = std::max(float(1.0 + (jerSF[i] - 1.) * dPt / j->pt()),float(0.));
             }
-
-            //make up/down variations relative
-            if(jerSF[0]>0) { jerSF[1]/=jerSF[0]; jerSF[2]/=jerSF[0]; }
           }
+
+          //make up/down variations relative (only after the loop)
+          if(jerSF[0]>0) { jerSF[1]/=jerSF[0]; jerSF[2]/=jerSF[0]; }          
         }
 
       auto corrP4  = j->p4() * jerSF[0];

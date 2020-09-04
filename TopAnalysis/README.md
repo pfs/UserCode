@@ -9,8 +9,9 @@ marked with the `##OPTIONAL/##END OPTIONAL` markers.
 If compilation fails for some reason repeat the scram b...
 
 ```
-cmsrel CMSSW_10_6_3
-cd CMSSW_10_6_3/src
+export SCRAM_ARCH=slc7_amd64_gcc700
+cmsrel CMSSW_10_6_5
+cd CMSSW_10_6_5/src
 cmsenv
 
 #EGM id

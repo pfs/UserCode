@@ -193,9 +193,10 @@ void createMiniEventTree(TTree *t,MiniEvent_t &ev,Int_t njecUncs)
   t->Branch("ppstrk_ty",        ev.ppstrk_ty,        "ppstrk_ty[nppstrk]/F");
   t->Branch("ppstrk_txUnc",     ev.ppstrk_txUnc,     "ppstrk_txUnc[nppstrk]/F");
   t->Branch("ppstrk_tyUnc",     ev.ppstrk_tyUnc,     "ppstrk_tyUnc[nppstrk]/F");
+  t->Branch("ppstrk_recoInfo",  ev.ppstrk_recoInfo,  "ppstrk_recoInfo[nppstrk]/S");
   t->Branch("ppstrk_chisqnorm", ev.ppstrk_chisqnorm, "ppstrk_chisqnorm[nppstrk]/F");
-  //t->Branch("ppstrk_t",         ev.ppstrk_t,         "ppstrk_t[nppstrk]/F");
-  //t->Branch("ppstrk_tUnc",      ev.ppstrk_tUnc,      "ppstrk_tUnc[nppstrk]/F");
+  t->Branch("ppstrk_t",         ev.ppstrk_t,         "ppstrk_t[nppstrk]/F");
+  t->Branch("ppstrk_tUnc",      ev.ppstrk_tUnc,      "ppstrk_tUnc[nppstrk]/F");
   t->Branch("nfwdtrk",         &ev.nfwdtrk,          "nfwdtrk/S");
   t->Branch("fwdtrk_pot",       ev.fwdtrk_pot,       "fwdtrk_pot[nfwdtrk]/S");
   t->Branch("fwdtrk_method",    ev.fwdtrk_method,    "fwdtrk_method[nfwdtrk]/S");
@@ -413,9 +414,10 @@ void attachToMiniEventTree(TTree *t,MiniEvent_t &ev,bool full)
   t->SetBranchAddress("ppstrk_ty",        ev.ppstrk_ty);
   t->SetBranchAddress("ppstrk_txUnc",     ev.ppstrk_txUnc);
   t->SetBranchAddress("ppstrk_tyUnc",     ev.ppstrk_tyUnc);
+  t->SetBranchAddress("ppstrk_recoInfo",  ev.ppstrk_recoInfo);
   t->SetBranchAddress("ppstrk_chisqnorm", ev.ppstrk_chisqnorm);
-  //t->SetBranchAddress("ppstrk_t",         ev.ppstrk_t);
-  //t->SetBranchAddress("ppstrk_tUnc",      ev.ppstrk_tUnc);
+  t->SetBranchAddress("ppstrk_t",         ev.ppstrk_t);
+  t->SetBranchAddress("ppstrk_tUnc",      ev.ppstrk_tUnc);
   t->SetBranchAddress("nfwdtrk",         &ev.nfwdtrk);
   t->SetBranchAddress("fwdtrk_pot",       ev.fwdtrk_pot);
   t->SetBranchAddress("fwdtrk_method",    ev.fwdtrk_method);

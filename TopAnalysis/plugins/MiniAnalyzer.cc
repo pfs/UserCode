@@ -589,10 +589,9 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
         ev_.ppstrk_txUnc[ev_.nppstrk]     = trk.getTxUnc();
         ev_.ppstrk_tyUnc[ev_.nppstrk]     = trk.getTyUnc();
         ev_.ppstrk_chisqnorm[ev_.nppstrk] = trk.getChiSquaredOverNDF();
-        /* UFSD only (2018)
-        ev_.ppstrk_t[ev_.nppstrk] = trk.getTime();
-        ev_.ppstrk_tUnc[ev_.nppstrk] = trk.getTimeUnc();
-        */
+        ev_.ppstrk_recoInfo[ev_.nppstrk]  = (Short_t) trk.getPixelTrackRecoInfo();
+        ev_.ppstrk_t[ev_.nppstrk]         = trk.getTime();
+        ev_.ppstrk_tUnc[ev_.nppstrk]      = trk.getTimeUnc();
         ev_.nppstrk++;
       }
   }
@@ -612,7 +611,7 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
 
             CTPPSDetId detid( (*(proton.contributingLocalTracks().begin()))->getRPId() );
             ev_.fwdtrk_pot[ev_.nfwdtrk]       = 100*detid.arm()+10*detid.station()+detid.rp();
-            ev_.fwdtrk_chisqnorm[ev_.nfwdtrk] = proton.normalizedChi2();
+            ev_.fwdtrk_chisqnorm[ev_.nfwdtrk] = proton.normalizedChi2();            
             ev_.fwdtrk_method[ev_.nfwdtrk]    = Short_t(proton.method());
             ev_.fwdtrk_thetax[ev_.nfwdtrk]    = proton.thetaX();
             ev_.fwdtrk_thetay[ev_.nfwdtrk]    = proton.thetaY();

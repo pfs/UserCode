@@ -83,11 +83,11 @@ struct MiniEvent_t
     fwdtrk_chisqnorm[50],fwdtrk_xi[50],fwdtrk_xiError[50],fwdtrk_t[50];
 
   //PPS tracks (needed for low PU run)
-  Short_t nppstrk,ppstrk_pot[50];
+  Short_t nppstrk,ppstrk_pot[50],ppstrk_recoInfo[50];
   Float_t ppstrk_x[50],ppstrk_y[50], ppstrk_xUnc[50],ppstrk_yUnc[50],
     ppstrk_tx[50],ppstrk_ty[50],ppstrk_txUnc[50],ppstrk_tyUnc[50],
-    ppstrk_chisqnorm[50];
-  //ppstrk_t[50],ppstrk_tUnc[50]; // UFSD only (2018)
+    ppstrk_chisqnorm[50],
+    ppstrk_t[50],ppstrk_tUnc[50]; // UFSD only (2018)
 
   //these are crazy variables for the cross check
   Int_t nrawmu;

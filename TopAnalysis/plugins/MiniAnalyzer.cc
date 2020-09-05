@@ -609,8 +609,34 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
           {
             if(!proton.validFit()) continue;
 
-            CTPPSDetId detid( (*(proton.contributingLocalTracks().begin()))->getRPId() );
+            const CTPPSLocalTrackLiteRefVector &trks=proton.contributingLocalTracks();       
+            CTPPSDetId detid( (*(trks.begin()))->getRPId() );
             ev_.fwdtrk_pot[ev_.nfwdtrk]       = 100*detid.arm()+10*detid.station()+detid.rp();
+            ev_.fwdtrk_x[ev_.nfwdtrk]         = (*(trks.begin()))->getX();
+            ev_.fwdtrk_y[ev_.nfwdtrk]         = (*(trks.begin()))->getY();
+            ev_.fwdtrk_tx[ev_.nfwdtrk]        = (*(trks.begin()))->getTx();
+            ev_.fwdtrk_ty[ev_.nfwdtrk]        = (*(trks.begin()))->getTy();
+            ev_.fwdtrk_recoInfo[ev_.nfwdtrk]  = (Short_t)(*(trks.begin()))->getPixelTrackRecoInfo();;
+
+            //special procedure for multiRP (we want the info about the pixel track in 2017)
+            if(proton.method()==reco::ForwardProton::ReconstructionMethod::multiRP) {
+              for(const auto &t:trks) {
+                CTPPSDetId detid( t->getRPId() );
+                unsigned int arm=detid.arm(); // 0 = sector 4-5 ; 1 = sector 5-6     
+                unsigned int sta=detid.station(); // 0 = near pot ; 2 = far pot
+                unsigned int pot=detid.rp();
+                const unsigned short pot_raw_id = 100*arm+10*sta+pot;
+                if(pot_raw_id!=123 && pot_raw_id!=23) continue;
+                ev_.fwdtrk_pot[ev_.nfwdtrk]       = pot_raw_id;
+                ev_.fwdtrk_x[ev_.nfwdtrk]         = t->getX();
+                ev_.fwdtrk_y[ev_.nfwdtrk]         = t->getY();
+                ev_.fwdtrk_tx[ev_.nfwdtrk]        = t->getTx();
+                ev_.fwdtrk_ty[ev_.nfwdtrk]        = t->getTy();
+                ev_.fwdtrk_recoInfo[ev_.nfwdtrk]  = (Short_t) t->getPixelTrackRecoInfo();
+                break;
+              }
+            }
+
             ev_.fwdtrk_chisqnorm[ev_.nfwdtrk] = proton.normalizedChi2();            
             ev_.fwdtrk_method[ev_.nfwdtrk]    = Short_t(proton.method());
             ev_.fwdtrk_thetax[ev_.nfwdtrk]    = proton.thetaX();
@@ -623,6 +649,7 @@ void MiniAnalyzer::recAnalysis(const edm::Event& iEvent, const edm::EventSetup& 
             ev_.fwdtrk_xi[ev_.nfwdtrk]        = proton.xi();
             ev_.fwdtrk_xiError[ev_.nfwdtrk]   = proton.xiError();
             ev_.fwdtrk_t[ev_.nfwdtrk]         = proton.t();
+
             ev_.nfwdtrk++;
           }
       }

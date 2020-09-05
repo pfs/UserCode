@@ -37,7 +37,7 @@
 "MC13TeV_2017_TTZH"                  : [1, 0, "TTZH_TuneCP5_13TeV-madgraph-pythia8", "", 920, true, false, 1],
 "MC13TeV_2017_TTHH"                  : [1, 0, "TTHH_TuneCP5_13TeV-madgraph-pythia8", "", 920, true, false, 1],
 "MC13TeV_2017_TTGamma_Dilept"        : [1, 0, "TTGamma_Dilept_TuneCP5_PSweights_13TeV_madgraph_pythia8", "", 920, true, false, 1],
-"MC13TeV_2017_TAToTTQ_MA200_G2HDM_rtc04" : [1, 0, "/TAToTTQ_MA-200_TuneCP5_13TeV_G2HDM-rtc04-madgraphMLM-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v1/MINIAODSIM", "", 920, true, false, 1]
+"MC13TeV_2017_TAToTTQ_MA200_G2HDM_rtc04" : [1, 0, "/TAToTTQ_MA-200_TuneCP5_13TeV_G2HDM-rtc04-madgraphMLM-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v1/MINIAODSIM", "", 920, true, false, 1],
 "Data13TeV_2017B_SinglePhoton"       : [1,       1, "/SinglePhoton/Run2017B-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017C_SinglePhoton"       : [1,       1, "/SinglePhoton/Run2017C-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017D_SinglePhoton"       : [1,       1, "/SinglePhoton/Run2017D-31Mar2018-v1/MINIAOD", "Data", 1, false, false, 0],
@@ -67,7 +67,7 @@
 "Data13TeV_2017C_SingleElectron"     : [1,       1, "/SingleElectron/Run2017C-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017D_SingleElectron"     : [1,       1, "/SingleElectron/Run2017D-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017E_SingleElectron"     : [1,       1, "/SingleElectron/Run2017E-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017F_SingleElectron"     : [1,       1, "/SingleElectron/Run2017F-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0]
+"Data13TeV_2017F_SingleElectron"     : [1,       1, "/SingleElectron/Run2017F-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017H_SingleMuon_v2"      : [1,       1, "/SingleMuon/Run2017H-17Nov2017-v2/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017H_HighEGJet"          : [1,       1, "/HighEGJet/Run2017H-17Nov2017-v1/MINIAOD",  "Data", 1, false, false, 0],
 "Data13TeV_2017H_DoubleMuon"         : [1,       1, "/DoubleMuon/Run2017H-17Nov2017-v1/MINIAOD", "Data", 1, false, false, 0]

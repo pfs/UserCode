@@ -76,9 +76,10 @@ struct MiniEvent_t
   Float_t sumPFHt[8],sumPFEn[8],sumPFPz[8],sumPFChHt[8],sumPFChEn[8],sumPFChPz[8];
 
   //CTPPS protons
-  Short_t nfwdtrk,fwdtrk_pot[50],fwdtrk_method[50];
+  Short_t nfwdtrk,fwdtrk_pot[50],fwdtrk_method[50],fwdtrk_recoInfo[50];
   Float_t fwdtrk_thetax[50],fwdtrk_thetay[50],
     fwdtrk_vx[50],fwdtrk_vy[50],fwdtrk_vz[50],
+    fwdtrk_x[50],fwdtrk_y[50],fwdtrk_tx[50],fwdtrk_ty[50],
     fwdtrk_time[50],fwdtrk_timeError[50],
     fwdtrk_chisqnorm[50],fwdtrk_xi[50],fwdtrk_xiError[50],fwdtrk_t[50];
 

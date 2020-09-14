@@ -11,6 +11,11 @@ void createMiniEventTree(TTree *t,MiniEvent_t &ev,Int_t njecUncs)
   t->Branch("beamXangle",  &ev.beamXangle,   "beamXangle/F");
   t->Branch("instLumi",    &ev.instLumi,     "instLumi/F");
 
+  t->Branch("scan_mass",  &ev.scan_mass,  "scan_mass/I");
+  t->Branch("scan_rho", &ev.scan_rho,  "scan_rho/F");
+  t->Branch("scan_coup", &ev.scan_coup,  "scan_coup/I");
+
+
   //generator level information
   t->Branch("g_pu",      &ev.g_pu,     "g_pu/I");
   t->Branch("g_putrue",  &ev.g_putrue, "g_putrue/I");
@@ -234,6 +239,10 @@ void attachToMiniEventTree(TTree *t,MiniEvent_t &ev,bool full)
   t->SetBranchAddress("lumi",      &ev.lumi);
   t->SetBranchAddress("beamXangle",  &ev.beamXangle);
   t->SetBranchAddress("instLumi",    &ev.instLumi);
+
+  t->SetBranchAddress("scan_mass", &ev.scan_mass);
+  t->SetBranchAddress("scan_rho", &ev.scan_rho);
+  t->SetBranchAddress("scan_coup", &ev.scan_coup);
 
   //generator level event
   t->SetBranchAddress("g_pu",      &ev.g_pu);

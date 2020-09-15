@@ -81,7 +81,7 @@ options.parseArguments()
 
 #start process
 from Configuration.StandardSequences.Eras import eras
-process = cms.Process("MiniAnalysis", eras.ctpps_2016)      
+process = cms.Process("MiniAnalysis", eras.Run2_2017)      
 
 #get the configuration to apply
 from TopLJets2015.TopAnalysis.EraConfig import getEraConfiguration

@@ -9,17 +9,17 @@ marked with the `##OPTIONAL/##END OPTIONAL` markers.
 If compilation fails for some reason repeat the scram b...
 
 ```
-export SCRAM_ARCH=slc7_amd64_gcc700
-cmsrel CMSSW_10_6_5
-cd CMSSW_10_6_5/src
+cmsrel CMSSW_10_6_16
+cd CMSSW_10_6_16/src
 cmsenv
+git cms-init
 
 #EGM id
-git cms-init
-git clone git@github.com:cms-egamma/EgammaPostRecoTools.git  EgammaUser/EgammaPostRecoTools
-cd  EgammaUser/EgammaPostRecoTools
-git checkout master
-cd -
+git cms-merge-topic jainshilpi:ULV1_backport10616_forUsers
+git clone https://github.com/jainshilpi/EgammaPostRecoTools.git -b ULV0 
+mv EgammaPostRecoTools/python/EgammaPostRecoTools.py RecoEgamma/EgammaTools/python/.
+git clone https://github.com/jainshilpi/EgammaAnalysis-ElectronTools.git -b UL2017SSV2 EgammaAnalysis/ElectronTools/data/
+git cms-addpkg EgammaAnalysis/ElectronTools
 scram b -j 8
 
 #B-fragmentation analyzer

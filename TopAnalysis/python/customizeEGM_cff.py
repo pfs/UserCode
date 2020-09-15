@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
-from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
-# EGM corrections : https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes#106X
+from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+# EGM corrections : https://hypernews.cern.ch/HyperNews/CMS/get/egamma/2405/1/1/1.html
 
 def customizeEGM(process,era,runWithAOD=False):
 

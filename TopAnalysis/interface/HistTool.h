@@ -24,6 +24,8 @@ class HistTool {
   void fill2D(TString title, double valueX, double valueY, std::vector<double> weights,TString cat="");
   void fill(TString title, double value, double weight,TString cat="") { fill(title,value,std::vector<double>(1,weight),cat); }
   void fill(TString title, double value, double weight,std::vector<TString> cats) { fill(title,value,std::vector<double>(1,weight),cats); }
+  void fill2D(TString title, double valueX, double valueY, double weight,TString cat="") { fill2D(title, valueX, valueY,std::vector<double>(1,weight),cat); }
+  void fill2D(TString title, double valueX, double valueY, double weight,std::vector<TString> cats) { fill2D(title, valueX, valueY,std::vector<double>(1,weight),cats); }
   std::map<TString, TH1 *> &getPlots()   { return allPlots_; }
   std::map<TString, TH2 *> &get2dPlots() { return all2dPlots_; }
   

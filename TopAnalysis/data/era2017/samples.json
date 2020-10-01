@@ -14,7 +14,7 @@
 "MC13TeV_2017_WZ"                    : [47.13, 0,   "/WZ_TuneCP5_13TeV-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "Multiboson", 815, false, false, 1],
 "MC13TeV_2017_WW"                    : [12.178, 0,  "/WW_TuneCP5_13TeV-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "Multiboson", 815, false, false, 1],
 "MC13TeV_2017_WJets_mlm"             : [61526.7, 0,  "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "W", 797,false,false,1],
-"MC13TeV_2017_W1Jets_mlm"            : [1, 0, "/W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "W1J", 797, false, false, 1],
+"MC13TeV_2017_W1Jets_mlm"            : [8873.0, 0, "/W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "W1J", 797, false, false, 1],
 "MC13TeV_2017_W2Jets_mlm"            : [2793.0, 0, "/W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "W2J", 797, false, false, 1],
 "MC13TeV_2017_W3Jets_mlm"            : [992.5, 0, "/W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "W3J", 797, false, false, 1],
 "MC13TeV_2017_W4Jets_mlm"            : [544.3, 0, "/W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "W4J", 797, false, false, 1], 

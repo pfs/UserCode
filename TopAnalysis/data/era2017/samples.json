@@ -68,10 +68,10 @@
 "Data13TeV_2017D_MuonEG"             : [1,       1, "/MuonEG/Run2017D-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017E_MuonEG"             : [1,       1, "/MuonEG/Run2017E-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017F_MuonEG"             : [1,       1, "/MuonEG/Run2017F-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017B_SingleElectron"     : [1,       1, "/SingleElectron/Run2017B-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017C_SingleElectron"     : [1,       1, "/SingleElectron/Run2017C-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017D_SingleElectron"     : [1,       1, "/SingleElectron/Run2017D-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017E_SingleElectron"     : [1,       1, "/SingleElectron/Run2017E-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017F_SingleElectron"     : [1,       1, "/SingleElectron/Run2017F-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0]
+"Data13TeV_2017B_SingleElectron"     : [1,       1, "/SingleElectron/Run2017B-09Aug2019_UL2017_EcalRecovery-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_2017C_SingleElectron"     : [1,       1, "/SingleElectron/Run2017C-09Aug2019_UL2017_EcalRecovery-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_2017D_SingleElectron"     : [1,       1, "/SingleElectron/Run2017D-09Aug2019_UL2017_EcalRecovery-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_2017E_SingleElectron"     : [1,       1, "/SingleElectron/Run2017E-09Aug2019_UL2017_EcalRecovery-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_2017F_SingleElectron"     : [1,       1, "/SingleElectron/Run2017F-09Aug2019_UL2017_EcalRecovery-v1/MINIAOD", "Data", 1, false, false, 0]
 }
 

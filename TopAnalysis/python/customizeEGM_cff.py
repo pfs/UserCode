@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+
 # EGM corrections : https://hypernews.cern.ch/HyperNews/CMS/get/egamma/2405/1/1/1.html
 
 def customizeEGM(process,era,runWithAOD=False):
@@ -24,5 +25,5 @@ def customizeEGM(process,era,runWithAOD=False):
         process.electronMVAValueMapProducer.src = cms.InputTag("")
         process.photonMVAValueMapProducer.src = cms.InputTag("")
         process.photonIDValueMapProducer.src = cms.InputTag("")
-    
+
     process.egammaPostReco=cms.Path(process.egammaPostRecoSeq)

@@ -1,5 +1,8 @@
 {
 "MC13TeV_2017_TTJets"                : [832, 0,     "/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "t#bar{t}", 920, true, false, 1],
+"MC13TeV_2017_TTTo2L2Nu"             : [88.29, 0,     "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "t#bar{t}2l", 920, true, false, 1],
+"MC13TeV_2017_TTToSemiLeptonic"      : [365.34, 0,     "/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v2/MINIAODSIM", "t#bar{t}1l", 920, true, false, 1],
+
 "MC13TeV_2017_TTGJets"               : [4.078, 0,   "/TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v1/MINIAODSIM", "t#bar{t}#gamma", 920, true, false, 1],
 "MC13TeV_2017_tW"                    : [35.85, 0,   "/ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v3/MINIAODSIM", "Single top", 920, true, false, 1],
 "MC13TeV_2017_tbarW"                 : [35.85, 0,   "/ST_tW_antitop_5f_DS_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v1/MINIAODSIM", "Single top", 920, true, false, 1],
@@ -30,7 +33,6 @@
 "MC13TeV_2017_TTWJetsToLNu"          : [0.2198, 0, "/TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v1/MINIAODSIM", "", 920, true, false, 1],
 "MC13TeV_2017_tZq_ll"                : [0.07358, 0, "/tZq_ll_4f_ckm_NLO_TuneCP5_13TeV-amcatnlo-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v1/MINIAODSIM", "", 920, true, false, 1],
 "MC13TeV_2017_TTTJ"                  : [0.0003974, 0, "TTTJ_TuneCP5_13TeV-madgraph-pythia8", "", 920, true, false, 1],
-"MC13TeV_2017_TTTW"                  : [0.0007314, 0, "TTTW_TuneCP5_13TeV-madgraph-pythia8", "", 920, true, false, 1],
 "MC13TeV_2017_TTTT"                  : [0.008213, 0, "TTTT_TuneCP5_PSweights_13TeV-amcatnlo-pythia8_correctnPartonsInBorn", "", 920, true, false, 1],
 "MC13TeV_2017_ttHToNonbb_M125"       : [0.5638, 0, "ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8", "", 920, true, false, 1],
 "MC13TeV_2017_TTToHadronic"          : [382.72, 0, "/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer19UL17MiniAOD-106X_mc2017_realistic_v6-v4/MINIAODSIM", "", 920, true, false, 1],
@@ -68,10 +70,10 @@
 "Data13TeV_2017D_MuonEG"             : [1,       1, "/MuonEG/Run2017D-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017E_MuonEG"             : [1,       1, "/MuonEG/Run2017E-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017F_MuonEG"             : [1,       1, "/MuonEG/Run2017F-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017B_SingleElectron"     : [1,       1, "/SingleElectron/Run2017B-09Aug2019_UL2017_EcalRecovery-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_2017B_SingleElectron"     : [1,       1, "/SingleElectron/Run2017B-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017C_SingleElectron"     : [1,       1, "/SingleElectron/Run2017C-09Aug2019_UL2017_EcalRecovery-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017D_SingleElectron"     : [1,       1, "/SingleElectron/Run2017D-09Aug2019_UL2017_EcalRecovery-v1/MINIAOD", "Data", 1, false, false, 0],
-"Data13TeV_2017E_SingleElectron"     : [1,       1, "/SingleElectron/Run2017E-09Aug2019_UL2017_EcalRecovery-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_2017D_SingleElectron"     : [1,       1, "/SingleElectron/Run2017D-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
+"Data13TeV_2017E_SingleElectron"     : [1,       1, "/SingleElectron/Run2017E-09Aug2019_UL2017-v1/MINIAOD", "Data", 1, false, false, 0],
 "Data13TeV_2017F_SingleElectron"     : [1,       1, "/SingleElectron/Run2017F-09Aug2019_UL2017_EcalRecovery-v1/MINIAOD", "Data", 1, false, false, 0]
 }
 

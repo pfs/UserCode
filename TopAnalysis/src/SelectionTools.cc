@@ -2,7 +2,6 @@
 #include "DataFormats/MuonReco/interface/Muon.h"
 
 #include <iostream>
-
 using namespace std;
 
 //
@@ -31,183 +30,423 @@ SelectionTool::SelectionTool(TString dataset_,bool debug,TH1 *triggerList, Analy
 //
 
 //
-bool SelectionTool::passSingleLeptonTrigger(MiniEvent_t &ev) {
+bool SelectionTool::passSingleLeptonTrigger(MiniEvent_t & ev) 
+{
   //check if triggers have fired and are consistent with the offline selection
-  bool hasETrigger(  hasTriggerBit("HLT_Ele35_eta2p1_WPTight_Gsf_v",           ev.triggerBits) ||
-                     hasTriggerBit("HLT_Ele28_eta2p1_WPTight_Gsf_HT150_v",     ev.triggerBits) ||
+  bool hasETrigger(  hasTriggerBit("HLT_Ele35_eta2p1_WPTight_Gsf_v",                               ev.triggerBits) ||
+                     hasTriggerBit("HLT_Ele28_eta2p1_WPTight_Gsf_HT150_v",                         ev.triggerBits) ||
                      hasTriggerBit("HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned_v",     ev.triggerBits) );
   bool hasMTrigger(  //hasTriggerBit("HLT_IsoMu24_2p1_v",                                        ev.triggerBits) || 
-		     hasTriggerBit("HLT_IsoMu27_v",                                            ev.triggerBits) );
+		     hasTriggerBit("HLT_IsoMu27_v",                                                ev.triggerBits) );
 
-  if(!hasETrigger && !hasMTrigger) return false;
-  if(ev.isData) {
-	if(hasETrigger && !hasMTrigger) { if(!isSingleElectronPD_) return false; }
- 	if(!hasETrigger && hasMTrigger) { if(!isSingleMuonPD_)     return false; }
-  	if(hasETrigger && hasMTrigger)  { if(!isSingleMuonPD_)     return false; }
+  if (!hasETrigger && !hasMTrigger) return false;
+  if (ev.isData) 
+    {
+	if (hasETrigger && !hasMTrigger) { if(!isSingleElectronPD_) return false; }
+ 	if (!hasETrigger && hasMTrigger) { if(!isSingleMuonPD_)     return false; }
+  	if (hasETrigger && hasMTrigger)  { if(!isSingleMuonPD_)     return false; }
   }
   return true;
 }
 
+std::vector<Particle> SelectionTool::getTopFlaggedLeptons(MiniEvent_t &ev)
+{
+  std::vector<Particle> leptons;
+  for (int il = 0; il < ev.nl; il++) 
+    {
+
+      const float pt(ev.l_pt[il]);
+      const float eta(fabs(ev.l_eta[il]));
+      const int   pid(ev.l_pid[il]);
+      const float relIso(ev.l_relIso[il]);
+
+      int topLeptonQualityFlagsWord(0);
+      if (abs(ev.l_id[il]) == 11)
+	{
+	  if ( pt > 20.0 && eta < 2.4 && ((pid >> 7) & 0x1))                                     topLeptonQualityFlagsWord |= (0x1 << PASSLLID);
+	  if ( pt > 34.0 && eta < 2.1 && ((pid >> 7) & 0x1))                                     topLeptonQualityFlagsWord |= (0x1 << PASSLID);
+	  if ( pt > 15.0 && eta < 2.4 && ((pid >> 2) & 0x1))                                     topLeptonQualityFlagsWord |= (0x1 << PASSLVETO);
+	  if ( pt > 26.0 && eta < 2.1 && ((pid >> 5) & 0x1) && ((pid >> 4) & 0x1) == 0 && relIso > 0.4) topLeptonQualityFlagsWord |= (0x1 << PASSLIDNONISO);
+	}
+      else
+	{
+	  if ( pt > 20.0 && eta < 2.4 && ((pid >> 4) & 0x1) && relIso < 0.15)  topLeptonQualityFlagsWord |= (0x1 << PASSLLID);
+	  if ( pt > 26.0 && eta < 2.4 && ((pid >> 4) & 0x1) && relIso < 0.15)  topLeptonQualityFlagsWord |= (0x1 << PASSLID);
+	  if ( pt > 15.0 && eta < 2.4 && ((pid >> 1) & 0x1) && relIso < 0.25)  topLeptonQualityFlagsWord |= (0x1 << PASSLVETO);
+	  if ( pt > 26.0 && eta < 2.1 && ((pid >> 4) & 0x1) && relIso > 0.25)  topLeptonQualityFlagsWord |= (0x1 << PASSLIDNONISO);
+	}
+
+      if (debug_) cout << "Lepton #" << il << " id=" << ev.l_id[il] 
+		       << " pt=" << pt << " eta=" << eta << " relIso=" << relIso 
+		       << " charge=" << ev.l_charge[il]
+		       << " flag=0x" << std::hex << topLeptonQualityFlagsWord << std::dec << endl;
+
+      if (topLeptonQualityFlagsWord == 0) continue;
+
+      TLorentzVector lp4;
+      lp4.SetPtEtaPhiM(ev.l_pt[il], ev.l_eta[il], ev.l_phi[il], ev.l_mass[il]);
+      leptons.push_back(Particle(lp4, ev.l_charge[il], ev.l_id[il], topLeptonQualityFlagsWord, il, 1.0) );
+    }
+  
+  return leptons;
+}
+
+std::vector<Particle> SelectionTool::getLeptons(std::vector<Particle> & leptons, int qualBit, double minPt, double maxEta, std::vector<Particle> * vetoParticles)
+{
+  // printf("%f %f\n", minPt, maxEta);
+  // getchar();
+  std::vector<Particle> selLeptons;
+
+  for(size_t ind = 0; ind < leptons.size(); ind ++)
+    {
+      //check quality flag
+      if ( !leptons[ind].hasQualityFlag(qualBit) ) continue;
+
+      //check kinematics
+      if (leptons[ind].pt() < minPt || fabs(leptons[ind].eta()) > maxEta) continue;
+
+      //check if this lepton should be vetoed by request
+      if(vetoParticles)
+	{
+        bool skipThisLepton(false);
+        for(auto & vetoL : *vetoParticles){
+          if (vetoL.originalReference() != leptons[ind].originalReference()) continue;
+          skipThisLepton = true;
+          break;
+        }
+        if (skipThisLepton) continue;
+      }
+
+      //lepton is selected
+      selLeptons.push_back(leptons[ind]);
+    }
+
+  //all done here
+  return selLeptons;
+}
+
+
+// TString SelectionTool::flagFinalState_old(MiniEvent_t & ev, std::vector<Particle> preselleptons) 
+// {
+
+//   //clear vectors
+//   leptons_.clear(); 
+//   vetoLeptons_.clear();
+//   jets_.clear();
+//   jet_indices_.clear();
+//   gen_jet_indices_.clear();
+//   //if no set of pre-selected leptons has been passed, use standard top selections
+//   if (preselleptons.size() == 0) preselleptons = getTopFlaggedLeptons(ev);
+
+//   //decide the channel based on the lepton multiplicity and set lepton collections
+//   std::vector<Particle> passllid( getLeptons(preselleptons, PASSLLID) ), passlid( getLeptons(preselleptons, PASSLID) );
+//   TString chTag("");
+//   if (passllid.size() >= 2)
+//     {
+//       const int ch( abs(passllid[0].id() * passllid[1].id()) );
+//       if      (ch == 11*13) chTag = "EM";
+//       else if (ch == 13*13) chTag = "MM";
+//       else if (ch == 11*11) chTag = "EE";
+//       leptons_ = passllid;
+//     }
+//   else if (passlid.size() == 1)
+//     {
+//       const int ch(abs(passlid[0].id()) );
+//       if      (ch == 13) chTag = "M";
+//       else if (ch == 11) chTag = "E";
+//       leptons_ = passlid;
+//       vetoLeptons_ = getLeptons(preselleptons, SelectionTool::PASSLVETO, 0.0, 99.0, & leptons_);
+//     }
+
+//   //select jets based on the leptons
+//   jets_ = getGoodJets_old(ev, 30.0, 2.4, leptons_);
+
+//   //build the met
+//   met_.SetPtEtaPhiM( ev.met_pt, 0.0, ev.met_phi, 0.0 );
+
+
+//   //check if triggers have fired
+//   bool hasETrigger(  hasTriggerBit("HLT_Ele32_eta2p1_WPTight_Gsf_v",                       ev.triggerBits) );
+//   bool hasMTrigger(  hasTriggerBit("HLT_IsoMu24_v",                                        ev.triggerBits) || 
+//                      hasTriggerBit("HLT_IsoTkMu24_v",                                      ev.triggerBits) );
+//   bool hasEMTrigger( hasTriggerBit("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",     ev.triggerBits) ||
+//      	             hasTriggerBit("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",    ev.triggerBits) ||
+// 		     hasTriggerBit("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v", ev.triggerBits) ||
+// 		     hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",    ev.triggerBits) ||
+// 		     hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v", ev.triggerBits) );
+//   bool hasMMTrigger( hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",                ev.triggerBits) ||
+// 		     hasTriggerBit("HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",              ev.triggerBits) );
+//   bool hasEETrigger( hasTriggerBit("HLT_DoubleEle24_22_eta2p1_WPLoose_Gsf_v",              ev.triggerBits) ||
+// 		     hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",          ev.triggerBits) );
+//   if(ev.isData)
+//     {
+//       hasEMTrigger = false;
+//       if(ev.run <= 280385)
+// 	{
+// 	  hasEMTrigger |= hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",     ev.triggerBits);
+// 	  hasEMTrigger |= hasTriggerBit("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",      ev.triggerBits);
+// 	}
+//       if(ev.run >= 278273 && ev.run <= 280385)
+// 	{
+// 	  hasEMTrigger |= hasTriggerBit("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",     ev.triggerBits);
+// 	}
+//       if(ev.run >= 278273)
+// 	{
+// 	  hasEMTrigger |= hasTriggerBit("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",   ev.triggerBits);
+// 	  hasEMTrigger |= hasTriggerBit("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",  ev.triggerBits);
+// 	  hasEMTrigger |= hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",  ev.triggerBits);
+// 	}
+//     }
+
+
+//   //check consistency with data
+//   if (chTag == "EM")
+//     {
+//       if (!hasEMTrigger && !hasETrigger && !hasMTrigger)                            chTag = "";
+//       if (isDoubleEGPD_      || isDoubleMuonPD_)                                    chTag = "";
+//       if (isSingleElectronPD_ && (hasEMTrigger || !hasETrigger))                    chTag = "";
+//       if (isSingleMuonPD_    && (hasEMTrigger  || hasETrigger || !hasMTrigger))     chTag = "";
+//       if (isMuonEGPD_        && !hasEMTrigger)                                      chTag = "";
+//     }
+//   if (chTag == "EE")
+//     {
+//       if (!hasEETrigger && !hasETrigger)                                            chTag = "";
+//       if (isMuonEGPD_ || isSingleMuonPD_ || isDoubleMuonPD_)                        chTag = "";
+//       if (isSingleElectronPD_ && (hasEETrigger || !hasETrigger) )                   chTag = "";
+//       if (isDoubleEGPD_      && !hasEETrigger)                                      chTag = "";
+//     }
+//   if (chTag == "MM")
+//     {
+//       if (!hasMMTrigger && !hasMTrigger)                                            chTag = "";
+//       if (isMuonEGPD_ || isSingleElectronPD_ || isDoubleEGPD_)                      chTag = "";
+//       if (isSingleMuonPD_ && (hasMMTrigger || !hasMTrigger) )                       chTag = "";
+//       if (isDoubleMuonPD_ && !hasMMTrigger)                                         chTag = "";
+//     }
+//   if (chTag == "M")
+//     {
+//       if (!hasMTrigger)                                                             chTag = "";
+//       if (isMuonEGPD_ || isDoubleMuonPD_ || isDoubleEGPD_ || isSingleElectronPD_)   chTag = "";
+//       if (isSingleMuonPD_ && !hasMTrigger)                                          chTag = "";
+//     }
+//   if (chTag == "E")
+//     {
+//       if (!hasETrigger)                                                             chTag = "";
+//       if (isMuonEGPD_ || isDoubleMuonPD_ || isDoubleEGPD_ || isSingleMuonPD_)       chTag = "";
+//       if (isSingleElectronPD_ && !hasETrigger)                                      chTag = "";
+//     }
+      
+
+//   if (debug_) cout << "[flagFinalState] chTag=" << chTag << endl
+//   		   << "\t Pre-selection lepton mult." << preselleptons.size() << endl
+// 		   << "\t 2l cands=" << passllid.size() << " 1l cands=" << passlid.size() << endl
+// 		   << "\t Trig bits. e=" << hasETrigger << " m=" << hasMTrigger << " em=" << hasEMTrigger << " mm=" << hasMMTrigger << " ee=" << hasEETrigger << endl
+// 		   << "\t Sel mult. l=" << leptons_.size() << " vl=" << vetoLeptons_.size() << " j=" << jets_.size() << endl;
+
+//   //all done
+//   return chTag;
+// }
+
 
 //
-TString SelectionTool::flagFinalState(MiniEvent_t &ev, std::vector<Particle> preselLeptons,std::vector<Particle> preselPhotons, bool isCR, bool isQCDTemp, bool isSRfake) {
+TString SelectionTool::flagFinalState(MiniEvent_t & ev, std::vector<Particle> preselLeptons, std::vector<Particle> preselPhotons, bool isCR, bool isQCDTemp, bool isSRfake) 
+{
 
- //clear vectors
+  //clear vectors
   leptons_.clear(); 
   photons_.clear();
   vetoLeptons_.clear();
   jets_.clear();
 
   //if no set of pre-selected leptons has been passed, use standard top selections
-  if(preselLeptons.size()==0) preselLeptons=flaggedLeptons(ev);
-  if(preselPhotons.size()==0) preselPhotons=flaggedPhotons(ev);
+  if (preselLeptons.size() == 0) 
+    preselLeptons = flaggedLeptons(ev);
+  if (preselPhotons.size() == 0) 
+    preselPhotons = flaggedPhotons(ev);
 
   //decide the channel based on the lepton multiplicity and set lepton collections
-  std::vector<Particle> tightLeptons( selLeptons(preselLeptons,TIGHT,MVA80) );
-  std::vector<Particle> tightPhotons( selPhotons(preselPhotons,offlinePhoton_, tightLeptons) );
-  std::vector<Particle> inclusivePhotons( selPhotons(preselPhotons,CONTROL, tightLeptons) );
-  tmpPhotons          = selPhotons(preselPhotons,QCDTEMP, tightLeptons);
-  relaxedTightPhotons = selPhotons(preselPhotons,RELAXEDTIGHT, tightLeptons);
+  printf("preselleptons %lu\n", preselLeptons.size());
+  std::vector<Particle> tightLeptons( selLeptons(preselLeptons, PASSLID, PASSLID/*TIGHT, TIGHT /*MVA80*/) );
+  printf("tight leptons size %lu %u %u\n", tightLeptons.size(), TIGHT, MVA80);
+  getchar();
+  std::vector<Particle> tightPhotons( selPhotons(preselPhotons, offlinePhoton_, tightLeptons) );
+  std::vector<Particle> inclusivePhotons( selPhotons(preselPhotons, CONTROL, tightLeptons) );
+  tmpPhotons          = selPhotons(preselPhotons, QCDTEMP, tightLeptons);
+  relaxedTightPhotons = selPhotons(preselPhotons, RELAXEDTIGHT, tightLeptons);
   std::vector<Particle> fakePhotons;
-  for(auto a : inclusivePhotons) {
-    int idx = a.originalReference();
-    if (!this->isFakePhoton(ev,idx)) continue;
-    fakePhotons.push_back(a);
-  }
-  TString chTag("");
-  if(anType_==TOP)
+  for(auto a : inclusivePhotons) 
     {
-      if(tightLeptons.size()>=2){
-        int ch( abs(tightLeptons[0].id()*tightLeptons[1].id()) );
-        if      (ch==11*13) chTag = "EM";
-        else if (ch==13*13) chTag = "MM";
-        else if (ch==11*11) chTag = "EE";
-        leptons_=tightLeptons;
-      }
-      else if(tightLeptons.size()==1){
-        int ch(abs(tightLeptons[0].id()) );
-        if      (ch==13) chTag = "M";
-        else if (ch==11) chTag = "E";
-        leptons_=tightLeptons;
-        vetoLeptons_=selLeptons(preselLeptons,VETO, VETO, 0., 99., leptons_);
-      }
-    } else if(anType_==VBF){ 
-      if (!isCR){
-	if(tightLeptons.size()==2){
-	  int ch( abs(tightLeptons[0].id()*tightLeptons[1].id()) );
-	  float mll( (tightLeptons[0]+tightLeptons[1]).M() );
-	  if( ch==13*13 && fabs(mll-91)<15 && (tightLeptons[0].pt()>30 || tightLeptons[1].pt()>30)) chTag="MM";          
-	  leptons_=tightLeptons;
-	} else {
-	  bool passPhoton = (!isSRfake && tightPhotons.size()>=1) || (isSRfake && fakePhotons.size()>=1);
-	  if(passPhoton){
-	    chTag="A";
-	    leptons_   =tightLeptons;
-	  }
-	  if(isSRfake) photons_   = fakePhotons;
-	  else         photons_   = tightPhotons;
+      const int idx = a.originalReference();
+      if (!this -> isFakePhoton(ev, idx)) 
+	continue;
+      fakePhotons.push_back(a);
+    }
+  TString chTag("");
+  if(anType_ == TOP)
+    {
+      // printf("probe\n");
+      // getchar();
+      if (tightLeptons.size() >= 2)
+	{
+	  const int ch( abs(tightLeptons[0].id() * tightLeptons[1].id()) );
+	  if (ch == 11*13) 
+	    chTag = "EM";
+	  else if (ch == 13*13) 
+	    chTag = "MM";
+	  else if (ch == 11*11) 
+	    chTag = "EE";
+	  leptons_ = tightLeptons;
 	}
-      } else {
-	if(isSRfake) return "";
-	bool passPhoton = (!isQCDTemp && inclusivePhotons.size()>=1) || (isQCDTemp && tmpPhotons.size()>=1);
-	if(passPhoton) {
-	  chTag="A";
-	  if(!isQCDTemp)      photons_   =inclusivePhotons;
-	  else                photons_   =tmpPhotons;
-	  //cout<< "Number of very loose photons: "<<photons_.size()<<endl;
-	  leptons_   =tightLeptons;
-	} else 	if(tightLeptons.size()==2){
-	  int ch( abs(tightLeptons[0].id()*tightLeptons[1].id()) );
-	  float mll( (tightLeptons[0]+tightLeptons[1]).M() );
-	  if( ch==13*13 && fabs(mll-91)<15 && (tightLeptons[0].pt()>30 || tightLeptons[1].pt()>30)) chTag="MM";          
-	  leptons_=tightLeptons;
+      else if (tightLeptons.size() == 1)
+	{
+	  const int ch(abs(tightLeptons[0].id()) );
+	  printf("ch %u\n", ch);
+	  if      (ch == 13) 
+	    chTag = "M";
+	  else if (ch == 11) 
+	    chTag = "E";
+	  leptons_     = tightLeptons;
+	  vetoLeptons_ = selLeptons(preselLeptons, VETO, VETO, 0.0, 99.0, leptons_);
+	  printf("probe [%s]\n", chTag.Data()); 
 	}
-      }
+    } 
+  else if (anType_ == VBF)
+    { 
+      if (!isCR)
+	{
+	  if (tightLeptons.size() == 2)
+	    {
+	      const int ch( abs(tightLeptons[0].id() * tightLeptons[1].id()) );
+	      const float mll( (tightLeptons[0] + tightLeptons[1]).M() );
+	      if( ch == 13*13 && fabs(mll - 91.0) < 15.0 && (tightLeptons[0].pt() > 30.0 || tightLeptons[1].pt() > 30.0)) 
+		chTag = "MM";          
+	      leptons_ = tightLeptons;
+	    } 
+	  else 
+	    {
+	      const bool passPhoton = (!isSRfake && tightPhotons.size() >= 1) || (isSRfake && fakePhotons.size() >= 1);
+	      if (passPhoton)
+		{
+		  chTag = "A";
+		  leptons_   =tightLeptons;
+		}
+	      if (isSRfake) 
+		photons_   = fakePhotons;
+	      else         
+		photons_   = tightPhotons;
+	    }
+	} 
+      else 
+	{
+	  if (isSRfake) 
+	    return "";
+	  const bool passPhoton = (!isQCDTemp && inclusivePhotons.size() >= 1) || (isQCDTemp && tmpPhotons.size() >= 1);
+	  if (passPhoton) 
+	    {
+	      chTag = "A";
+	      if (!isQCDTemp)      
+		photons_   = inclusivePhotons;
+	      else                
+		photons_   = tmpPhotons;
+	      //cout<< "Number of very loose photons: "<<photons_.size()<<endl;
+	      leptons_   = tightLeptons;
+	    } 
+	  else if (tightLeptons.size() == 2)
+	      {
+		const int ch( abs(tightLeptons[0].id() * tightLeptons[1].id()) );
+		const float mll( (tightLeptons[0] + tightLeptons[1]).M() );
+		if( ch == 13*13 && fabs(mll - 91.0) < 15.0 && (tightLeptons[0].pt() > 30.0 || tightLeptons[1].pt() > 30.0)) 
+		  chTag = "MM";          
+		leptons_ = tightLeptons;
+	      }
+	}
     }
   
   //select jets based on the leptons and photon candidates
   float maxJetEta(2.4);
-  if(anType_==VBF) maxJetEta=4.7;
-  jets_=getGoodJets(ev,30.,maxJetEta,leptons_,photons_);
+  if (anType_ == VBF) 
+    maxJetEta = 4.7;
+  jets_ = getGoodJets(ev, 30.0, maxJetEta, leptons_, photons_);
   //getGoodJets(ev,30.,maxJetEta,leptons_,photons_);
 
   //build the met
-  met_.SetPtEtaPhiM( ev.met_pt, 0, ev.met_phi, 0. );
+  met_.SetPtEtaPhiM( ev.met_pt, 0, ev.met_phi, 0.0 );
 
   //check if triggers have fired and are consistent with the offline selection
-  bool hasETrigger(  hasTriggerBit("HLT_Ele35_WPTight_Gsf_v",                               ev.triggerBits) );
-  bool hasMTrigger(  hasTriggerBit("HLT_IsoMu24_v",                                         ev.triggerBits) ||
-                     hasTriggerBit("HLT_IsoMu24_2p1_v",                                     ev.triggerBits) ||
-                     hasTriggerBit("HLT_IsoMu27_v",                                         ev.triggerBits) );
-  bool hasEMTrigger( hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",     ev.triggerBits) ||
-                     hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",  ev.triggerBits) ||
-                     hasTriggerBit("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",  ev.triggerBits) ||
-                     hasTriggerBit("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",   ev.triggerBits) );
-  bool hasMMTrigger( hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",                   ev.triggerBits) ||
-                     hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8_v",           ev.triggerBits) ||
-                     hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v",         ev.triggerBits) );
-  bool hasEETrigger( hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",              ev.triggerBits) ||
-                     hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",           ev.triggerBits) );
+  const bool hasETrigger  (  hasTriggerBit("HLT_Ele35_WPTight_Gsf_v",                               ev.triggerBits) );
+  const bool hasMTrigger  (  hasTriggerBit("HLT_IsoMu24_v",                                         ev.triggerBits) ||
+			     hasTriggerBit("HLT_IsoMu24_2p1_v",                                     ev.triggerBits) ||
+			     hasTriggerBit("HLT_IsoMu27_v",                                         ev.triggerBits) );
+  const bool hasEMTrigger  ( hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",     ev.triggerBits) ||
+			     hasTriggerBit("HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",  ev.triggerBits) ||
+			     hasTriggerBit("HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",  ev.triggerBits) ||
+			     hasTriggerBit("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v",   ev.triggerBits) );
+  const bool hasMMTrigger  ( hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",                   ev.triggerBits) ||
+			     hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8_v",           ev.triggerBits) ||
+			     hasTriggerBit("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v",         ev.triggerBits) );
+  const bool hasEETrigger  ( hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",              ev.triggerBits) ||
+			     hasTriggerBit("HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",           ev.triggerBits) );
   bool hasPhotonTrigger(false);
-  for(auto &t:photonTriggers_) hasPhotonTrigger |= hasTriggerBit(t, ev.triggerBits);
+  for (auto & t:photonTriggers_) 
+    hasPhotonTrigger |= hasTriggerBit(t, ev.triggerBits);
 
   //check consistency with data
-  if(chTag=="EM")
+  if (chTag == "EM")
     {
-      if(!hasEMTrigger && !hasETrigger && !hasMTrigger)                         chTag="";
-      if(isDoubleEGPD_      || isDoubleMuonPD_)                                 chTag="";
-      if(isSingleElectronPD_ && (hasEMTrigger || !hasETrigger))                 chTag="";
-      if(isSingleMuonPD_    && (hasEMTrigger  || hasETrigger || !hasMTrigger))  chTag="";
-      if(isMuonEGPD_        && !hasEMTrigger)                                   chTag="";
+      if (!hasEMTrigger && !hasETrigger && !hasMTrigger)                            chTag = "";
+      if (isDoubleEGPD_      || isDoubleMuonPD_)                                    chTag = "";
+      if (isSingleElectronPD_ && (hasEMTrigger || !hasETrigger))                    chTag = "";
+      if (isSingleMuonPD_    && (hasEMTrigger  || hasETrigger || !hasMTrigger))     chTag = "";
+      if (isMuonEGPD_        && !hasEMTrigger)                                      chTag = "";
     }
-  if(chTag=="EE")
+  if (chTag == "EE")
     {
-      if(!hasEETrigger && !hasETrigger)                          chTag="";
-      if(isMuonEGPD_ || isSingleMuonPD_ || isDoubleMuonPD_)      chTag="";
-      if(isSingleElectronPD_ && (hasEETrigger || !hasETrigger) ) chTag="";
-      if(isDoubleEGPD_      && !hasEETrigger)                    chTag="";
+      if (!hasEETrigger && !hasETrigger)                                            chTag = "";
+      if (isMuonEGPD_ || isSingleMuonPD_ || isDoubleMuonPD_)                        chTag = "";
+      if (isSingleElectronPD_ && (hasEETrigger || !hasETrigger) )                   chTag = "";
+      if (isDoubleEGPD_      && !hasEETrigger)                                      chTag = "";
     }
-  if(chTag=="MM")
+  if (chTag == "MM")
     {
-      if(!hasMMTrigger && !hasMTrigger)                         chTag="";
-      if(isMuonEGPD_ || isSingleElectronPD_ || isDoubleEGPD_)   chTag="";
-      if(isSingleMuonPD_ && (hasMMTrigger || !hasMTrigger) )    chTag="";
-      if(isDoubleMuonPD_ && !hasMMTrigger)                      chTag="";
+      if (!hasMMTrigger && !hasMTrigger)                                            chTag = "";
+      if (isMuonEGPD_ || isSingleElectronPD_ || isDoubleEGPD_)                      chTag = "";
+      if (isSingleMuonPD_ && (hasMMTrigger || !hasMTrigger) )                       chTag = "";
+      if (isDoubleMuonPD_ && !hasMMTrigger)                                         chTag = "";
     }
-  if(chTag=="M")
+  if (chTag == "M")
     {
-      if(!hasMTrigger)                    chTag="";
-      if(isMuonEGPD_ || isDoubleMuonPD_ || isDoubleEGPD_ || isSingleElectronPD_)   chTag="";
-      if(isSingleMuonPD_ && !hasMTrigger) chTag="";
+      if (!hasMTrigger)                                                             chTag = "";
+      if (isMuonEGPD_ || isDoubleMuonPD_ || isDoubleEGPD_ || isSingleElectronPD_)   chTag = "";
+      if (isSingleMuonPD_ && !hasMTrigger)                                          chTag = "";
     }
-  if(chTag=="E")
+  if (chTag == "E")
     {
-      if(!hasETrigger)                        chTag="";
-      if(isMuonEGPD_ || isDoubleMuonPD_ || isDoubleEGPD_ || isSingleMuonPD_)   chTag="";
-      if(isSingleElectronPD_ && !hasETrigger) chTag="";
+      if (!hasETrigger)                                                             chTag = "";
+      if (isMuonEGPD_ || isDoubleMuonPD_ || isDoubleEGPD_ || isSingleMuonPD_)       chTag = "";
+      if (isSingleElectronPD_ && !hasETrigger)                                      chTag = "";
     }
-  if(chTag=="A")
+  if (chTag == "A")
     {
-      if(!hasPhotonTrigger) chTag="";
-      if(ev.isData && isCR && !isPhotonPD_ && !isJetHTPD_) chTag = "";
-      if(ev.isData && !isCR && !isPhotonPD_ ) chTag = "";  
+      if (!hasPhotonTrigger)                                                        chTag = "";
+      if (ev.isData && isCR && !isPhotonPD_ && !isJetHTPD_)                         chTag = "";
+      if (ev.isData && !isCR && !isPhotonPD_ )                                      chTag = "";  
       //if(ev.isData && !isPhotonPD_) chTag="";    
     }
       
-  if(debug_) cout << "[flagFinalState] chTag=" << chTag << endl
-		  << "\t Pre-selection lepton mult." << preselLeptons.size() << endl
-                  << "\t tight lepton cands=" << tightLeptons.size()  << endl
-                  << "\t Pre-selection photon mult." << preselPhotons.size()
-                  << "\t photon cands=" << tightPhotons.size() << endl               
-		  << "\t Trig bits."
-                  << " e=" << hasETrigger << " m=" << hasMTrigger 
-                  << " em=" << hasEMTrigger << " mm=" << hasMMTrigger << " ee=" << hasEETrigger 
-                  << " gamma=" << hasPhotonTrigger << endl
-		  << "\t Sel mult. l=" << leptons_.size() << " vl=" << vetoLeptons_.size() 
-                  << " photons=" << photons_.size() 
-                  << " j=" << jets_.size() << endl;
+  if (debug_) cout << "[flagFinalState] chTag ="       << chTag << endl
+		   << "\t Pre-selection lepton mult."  << preselLeptons.size() << endl
+                   << "\t tight lepton cands ="        << tightLeptons.size()  << endl
+                   << "\t Pre-selection photon mult."  << preselPhotons.size()
+                   << "\t photon cands = "             << tightPhotons.size() << endl               
+		   << "\t Trig bits."
+                   << " e = "                          << hasETrigger << " m=" << hasMTrigger 
+                   << " em="                           << hasEMTrigger << " mm=" << hasMMTrigger << " ee=" << hasEETrigger 
+                   << " gamma="                        << hasPhotonTrigger << endl
+		   << "\t Sel mult. l="                << leptons_.size() << " vl=" << vetoLeptons_.size() 
+                   << " photons="                      << photons_.size() 
+                   << " j ="                           << jets_.size() << endl;
 
   //all done
+  printf("chtag ret [%s]\n", chTag.Data());
   return chTag;
 }
 
@@ -309,29 +548,31 @@ std::vector<Particle> SelectionTool::flaggedLeptons(MiniEvent_t &ev)
 
 
 //
-std::vector<Particle> SelectionTool::selLeptons(std::vector<Particle> &leptons,int muQualBit,int eleQualBit,double minPt, double maxEta,std::vector<Particle> veto){
+std::vector<Particle> SelectionTool::selLeptons(std::vector<Particle> & leptons, int muQualBit, int eleQualBit, double minPt, double maxEta, std::vector<Particle> veto)
+{
   std::vector<Particle> selLeptons;
-  for(size_t i =0; i<leptons.size(); i++)
+  for(size_t isize = 0; isize < leptons.size(); isize ++)
     {
       //check quality flag
-      if(leptons[i].id()==11 && !leptons[i].hasQualityFlag(eleQualBit) ) continue;
-      if(leptons[i].id()==13 && !leptons[i].hasQualityFlag(muQualBit) ) continue;
+      if (leptons[isize].id() == 11 && !leptons[isize].hasQualityFlag(eleQualBit) ) continue;
+      if (leptons[isize].id() == 13 && !leptons[isize].hasQualityFlag(muQualBit) ) continue;
 
       //check kinematics
-      if(leptons[i].pt()<minPt || fabs(leptons[i].eta())>maxEta) continue;
+      if (leptons[isize].pt() < minPt || fabs(leptons[isize].eta()) > maxEta) continue;
 
       //check if this lepton should be vetoed by request      
       bool skipThisLepton(false);
-      for(auto &vetoL : veto){
-        if(vetoL.originalReference()!=leptons[i].originalReference()) continue;
-        skipThisLepton=true;
-        break;
-      }
-      if(skipThisLepton) continue;
+      for(auto & vetoL : veto)
+	{
+	  if (vetoL.originalReference() != leptons[isize].originalReference()) continue;
+	  skipThisLepton = true;
+	  break;
+	}
+      if (skipThisLepton) continue;
       
       
       //lepton is selected
-      selLeptons.push_back(leptons[i]);
+      selLeptons.push_back(leptons[isize]);
     }
 
   //all done here
@@ -432,66 +673,73 @@ std::vector<Particle> SelectionTool::selPhotons(std::vector<Particle> &photons,i
 }
 
 
+
+
+
 //
-std::vector<Jet> SelectionTool::getGoodJets(MiniEvent_t &ev, double minPt, double maxEta, std::vector<Particle> leptons,std::vector<Particle> photons) {
+std::vector<Jet> SelectionTool::getGoodJets(MiniEvent_t &ev, double minPt, double maxEta, std::vector<Particle> leptons,std::vector<Particle> photons) 
+{
   std::vector<Jet> jets;
   
-  for (int k=0; k<ev.nj; k++) {
-    TLorentzVector jp4;
-    jp4.SetPtEtaPhiM(ev.j_pt[k],ev.j_eta[k],ev.j_phi[k],ev.j_mass[k]);
+  for (int k=0; k<ev.nj; k++) 
+    {
+      TLorentzVector jp4;
+      jp4.SetPtEtaPhiM(ev.j_pt[k],ev.j_eta[k],ev.j_phi[k],ev.j_mass[k]);
 
-    //cross clean with leptons/photons
-    bool overlapsWithPhysicsObject(false);
-    for (auto& lepton : leptons) {
-      if(jp4.DeltaR(lepton.p4())<0.4) overlapsWithPhysicsObject=true;
-    }
-    for (auto& photon : photons) {
-      if(jp4.DeltaR(photon.p4())<0.4) overlapsWithPhysicsObject=true;
-    }
-    if(overlapsWithPhysicsObject) continue;
+      //cross clean with leptons/photons
+      bool overlapsWithPhysicsObject(false);
+      for (auto& lepton : leptons) {
+	if(jp4.DeltaR(lepton.p4())<0.4) overlapsWithPhysicsObject=true;
+      }
+      for (auto& photon : photons) {
+	if(jp4.DeltaR(photon.p4())<0.4) overlapsWithPhysicsObject=true;
+      }
+      if(overlapsWithPhysicsObject) continue;
     
-    //jet kinematic selection
-    if(jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) continue;
+      //jet kinematic selection
+      if(jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) continue;
 
-    //flavor based on b tagging
-    int flavor = 0;
-    if (ev.j_btag[k]) flavor = 5;
+      //flavor based on b tagging
+      int flavor = 0;
+      if (ev.j_btag[k]) flavor = 5;
     
-    Jet jet(jp4, flavor, k);
-    jet.setCSV(ev.j_csv[k]);
-    jet.setDeepCSV(ev.j_deepcsv[k]);
-    jet.setPUMVA(ev.j_pumva[k]);
+      Jet jet(jp4, flavor, k);
+      jet.setCSV(ev.j_csv[k]);
+      jet.setDeepCSV(ev.j_deepcsv[k]);
+      jet.setPUMVA(ev.j_pumva[k]);
 
-    //jes/jer uncertainty
-    int jflav(abs(ev.j_flav[k]));
-    float jecUp(0),jecDn(0);   
-    jecUp=pow(1-ev.j_jerUp[k],2);
-    jecDn=pow(1-ev.j_jerDn[k],2);
+      //jes/jer uncertainty
+      int jflav(abs(ev.j_flav[k]));
+      float jecUp(0),jecDn(0);   
+      jecUp=pow(1-ev.j_jerUp[k],2);
+      jecDn=pow(1-ev.j_jerDn[k],2);
    
-    for(int iunc=0; iunc<29; iunc++){
+      for(int iunc=0; iunc<29; iunc++){
            
-      //see python/miniAnalyzer_cfi.py for these
-      if(iunc==6 && jflav!=21) continue; //FlavorPureGluon
-      if(iunc==7 && jflav>=4)  continue; //FlavorPureQuark
-      if(iunc==8 && jflav!=4)  continue; //FlavorPureCharm
-      if(iunc==9 && jflav!=5)  continue; //FlavorPureGluon
+	//see python/miniAnalyzer_cfi.py for these
+	if(iunc==6 && jflav!=21) continue; //FlavorPureGluon
+	if(iunc==7 && jflav>=4)  continue; //FlavorPureQuark
+	if(iunc==8 && jflav!=4)  continue; //FlavorPureCharm
+	if(iunc==9 && jflav!=5)  continue; //FlavorPureGluon
       
-      if(ev.j_jecUp[iunc][k]!=0) jecUp += pow(1-ev.j_jecUp[iunc][k],2);
-      if(ev.j_jecDn[iunc][k]!=0) jecDn += pow(1-ev.j_jecDn[iunc][k],2);
+	if(ev.j_jecUp[iunc][k]!=0) jecUp += pow(1-ev.j_jecUp[iunc][k],2);
+	if(ev.j_jecDn[iunc][k]!=0) jecDn += pow(1-ev.j_jecDn[iunc][k],2);
+
+      }
+    
+      jecUp=TMath::Sqrt(jecUp);
+      jecDn=TMath::Sqrt(jecDn);
+      jet.setScaleUnc(0.5*(jecUp+jecDn));
+
+      if(debug_)
+	cout << "Jet #" << jets.size() 
+	     << " pt=" << jp4.Pt() << "+/-" << jet.getScaleUnc()*jp4.Pt() << " (jec+jer)"
+	     << " eta=" << jp4.Eta() << " deepCSV=" << ev.j_deepcsv[k] << " flav=" << jflav << endl;
+    
+      jets.push_back(jet);
+      jet_indices_.push_back(k);
 
     }
-    
-    jecUp=TMath::Sqrt(jecUp);
-    jecDn=TMath::Sqrt(jecDn);
-    jet.setScaleUnc(0.5*(jecUp+jecDn));
-
-    if(debug_)
-      cout << "Jet #" << jets.size() 
-           << " pt=" << jp4.Pt() << "+/-" << jet.getScaleUnc()*jp4.Pt() << " (jec+jer)"
-           << " eta=" << jp4.Eta() << " deepCSV=" << ev.j_deepcsv[k] << " flav=" << jflav << endl;
-    
-    jets.push_back(jet);
-  }
   
   //additional jet-jet information
   for (unsigned int i = 0; i < jets.size(); i++) {
@@ -673,53 +921,69 @@ std::vector<Particle> SelectionTool::getGenPhotons(MiniEvent_t &ev, double minPt
 }
 
 //
-std::vector<Jet> SelectionTool::getGenJets(MiniEvent_t &ev, double minPt, double maxEta, std::vector<Particle> leptons,std::vector<Particle> photons) {
+std::vector<Jet> SelectionTool::getGenJets(MiniEvent_t &ev, double minPt, double maxEta, std::vector<Particle> leptons, std::vector<Particle> photons) 
+{
   std::vector<Jet> jets;
   
-  for (int i = 0; i < ev.ng; i++) {
-    if (abs(ev.g_id[i])>10) continue;
-    TLorentzVector jp4;
-    jp4.SetPtEtaPhiM(ev.g_pt[i],ev.g_eta[i],ev.g_phi[i],ev.g_m[i]);
+  for (int jetind = 0; jetind < ev.ng; jetind ++) 
+    {
+      if (abs(ev.g_id[jetind]) > 10) 
+	continue;
+      TLorentzVector jp4;
+      jp4.SetPtEtaPhiM(ev.g_pt[jetind], ev.g_eta[jetind], ev.g_phi[jetind], ev.g_m[jetind]);
 
-    //cross clean with leptons
-    bool overlapsWithPhysicsObject(false);
-    for (auto& lepton : leptons) {
-      if(jp4.DeltaR(lepton.p4())<0.4) overlapsWithPhysicsObject=true;
-    }
-    for (auto& photon : photons) {
-      if(jp4.DeltaR(photon.p4())<0.4) overlapsWithPhysicsObject=true;
-    }
-    if(overlapsWithPhysicsObject) continue;
+      //cross clean with leptons
+      bool overlapsWithPhysicsObject(false);
+      for (auto & lepton : leptons) 
+	{
+	  if (jp4.DeltaR(lepton.p4()) < 0.4) 
+	    overlapsWithPhysicsObject = true;
+	}
+      for (auto & photon : photons) 
+	{
+	  if (jp4.DeltaR(photon.p4()) < 0.4) 
+	    overlapsWithPhysicsObject = true;
+	}
+      if(overlapsWithPhysicsObject) 
+	continue;
     
-    //jet kinematic selection
-    if(jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) continue;
+      //jet kinematic selection
+      if(jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) 
+	continue;
 
-    //flavor
-    int flavor = ev.g_id[i];
-    Jet jet(jp4, flavor, i);
-    jets.push_back(jet);
-  }
+      //flavor
+      const int flavor = ev.g_id[jetind];
+      const Jet jet(jp4, flavor, jetind);
+      gen_jet_indices_.push_back(jetind);
+      jets.push_back(jet);
+    }
   
   //additional jet-jet information
-  for (unsigned int i = 0; i < jets.size(); i++) {
-    for (unsigned int j = i+1; j < jets.size(); j++) {
-      //flag jet-jet overlaps
-      if (jets[i].p4().DeltaR(jets[j].p4()) < 0.8) {
-        jets[i].setOverlap(1);
-        jets[j].setOverlap(1);
-      }
-      //flag non-b jets as part of W boson candidates: flavor 0->1
-      if (jets[i].flavor()==5 or jets[j].flavor()==5) continue;
-      TLorentzVector wCand = jets[i].p4() + jets[j].p4();
-      if (abs(wCand.M()-80.4) < 15.) {
-        jets[i].setFlavor(1);
-        jets[j].setFlavor(1);
-      }
+  for (unsigned int i = 0; i < jets.size(); i++) 
+    {
+      for (unsigned int j = i + 1; j < jets.size(); j++) 
+	{
+	  //flag jet-jet overlaps
+	  if (jets[i].p4().DeltaR(jets[j].p4()) < 0.8) 
+	    {
+	      jets[i].setOverlap(1);
+	      jets[j].setOverlap(1);
+	    }
+	  //flag non-b jets as part of W boson candidates: flavor 0->1
+	  if (jets[i].flavor() == 5 or jets[j].flavor() == 5) 
+	    continue;
+	  const TLorentzVector wCand = jets[i].p4() + jets[j].p4();
+	  if (abs(wCand.M() - 80.4) < 15.) 
+	    {
+	      jets[i].setFlavor(1);
+	      jets[j].setFlavor(1);
+	    }
+	}
     }
-  }
   
   return jets;
 }
+
 
 
 

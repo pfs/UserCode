@@ -70,6 +70,7 @@ class Jet : public TLorentzVector {
     void setFlavor(int flavor)   { flavor_ = flavor; }
     void setOverlap(int overlap) { overlap_ = overlap; }
     
+    void setPartonFlavor(int partonflavor)   { partonflavor_ = partonflavor; }
     void addTrack(TLorentzVector p4, int pfid) { trks_.push_back( IdTrack(p4,pfid) ); }
     //TLorentzVector &getVec() { return p4_; }
     float getCSV() { return csv_; }
@@ -95,6 +96,7 @@ class Jet : public TLorentzVector {
     float csv_,deepcsv_;
     float pumva_;    
     int flavor_;
+    int partonflavor_;
     int idx_;
     int overlap_;
     float scaleUnc_;

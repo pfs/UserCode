@@ -4,22 +4,33 @@
 #include "TString.h"
 #include "TH2F.h"
 
+JECTools::JECTools(TString era)
+{
+}
+
 
 //
-JECTools::JECTools(TString era) : 
+JECTools::JECTools(TString era, std::string jecVar) : 
   era_(era),
-  jetCorr_(0),
+  jetCorr_(nullptr),
   rand_(new TRandom3(0))
 {
-  TString url(era_+"/Summer16_25nsV1_MC_EtaResolution_AK4PFchs.txt");
-  if(era_.Contains("2017")) url=era_+"/Fall17_V3_MC_EtaResolution_AK4PFchs.txt";
-  gSystem->ExpandPathName(url);
+  TString url(era_ + "/Summer16_25nsV1_MC_EtaResolution_AK4PFchs.txt");
+  if (era_.Contains("2017")) url = era_ + "/Fall17_V3_MC_EtaResolution_AK4PFchs.txt";
+  gSystem -> ExpandPathName(url);
   jer_ = new JME::JetResolution(url.Data());
 
-  url=era_+"/Summer16_25nsV1_MC_SF_AK4PFchs.txt";
-  if(era_.Contains("2017")) url=era_+"/Fall17_V3_MC_SF_AK4PFchs.txt";
-  gSystem->ExpandPathName(url);
-  jerSF_=new JME::JetResolutionScaleFactor(url.Data());
+  url = era_ + "/Summer16_25nsV1_MC_SF_AK4PFchs.txt";
+  if (era_.Contains("2017")) url = era_ + "/Fall17_V3_MC_SF_AK4PFchs.txt";
+  gSystem -> ExpandPathName(url);
+  jerSF_ = new JME::JetResolutionScaleFactor(url.Data());
+
+  const TString jecUncUrl(era + "/Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt");
+  gSystem -> ExpandPathName(jecUncUrl);
+
+  JetCorrectorParameters * jecParam                   = new JetCorrectorParameters(jecUncUrl.Data(), jecVar);
+  JetCorrectionUncertainty * jecUnc                   = new JetCorrectionUncertainty( *jecParam );
+  jecUncs_[jecVar] = jecUnc;
 }
 
 //
@@ -47,24 +58,27 @@ void JECTools::startFactorizedJetEnergyCorrector(bool isMC) {
 }
 
 //apply jet energy resolutions (scaling method)
-void JECTools::smearJetEnergies(MiniEvent_t &ev, Variation option) {
+void JECTools::smearJetEnergies(MiniEvent_t & ev, Variation option) 
+{
   if(ev.isData) return;
   
-  for (int k = 0; k < ev.nj; k++) {
-    TLorentzVector jp4;
-    jp4.SetPtEtaPhiM(ev.j_pt[k],ev.j_eta[k],ev.j_phi[k],ev.j_mass[k]);
+  for (int kind = 0; kind < ev.nj; kind ++) 
+    {
+      TLorentzVector jp4;
+      jp4.SetPtEtaPhiM(ev.j_pt[kind], ev.j_eta[kind], ev.j_phi[kind], ev.j_mass[kind]);
 
-    //smear jet energy resolution for MC
-    float genJet_pt(0);
-    if(ev.j_g[k]>-1) genJet_pt = ev.g_pt[ ev.j_g[k] ];
-    if(genJet_pt>0) {
-      jp4=getSmearedJet(jp4,genJet_pt,ev.rho,option);
-      ev.j_pt[k]   = jp4.Pt();
-      ev.j_eta[k]  = jp4.Eta();
-      ev.j_phi[k]  = jp4.Phi();
-      ev.j_mass[k] = jp4.M();
+      //smear jet energy resolution for MC
+      float genJet_pt(0.0);
+      if (ev.j_g[kind] > -1) genJet_pt = ev.g_pt[ ev.j_g[kind] ];
+      if (genJet_pt > 0.0) 
+	{
+	  jp4 = getSmearedJet(jp4, genJet_pt, ev.rho, option);
+	  ev.j_pt[kind]   = jp4.Pt();
+	  ev.j_eta[kind]  = jp4.Eta();
+	  ev.j_phi[kind]  = jp4.Phi();
+	  ev.j_mass[kind] = jp4.M();
+	}
     }
-  }
 }
 
 //apply jet energy resolutions (hybrid method)
@@ -72,61 +86,66 @@ TLorentzVector JECTools::getSmearedJet(TLorentzVector &jp4, float genJet_pt,floa
 
   TLorentzVector smearedJet(jp4);
   float jerSmear(1.0);
-  JME::JetParameters jparam={ {JME::Binning::JetPt, jp4.Pt()}, 
-                              {JME::Binning::JetEta, jp4.Eta()}, 
-                              {JME::Binning::Rho, rho} };
-  float jet_resolution = jer_->getResolution(jparam);
-  float jer_sf = jerSF_->getScaleFactor(jparam, option);
-  if(jerVarPartial>=0 && jerVarPartial<=1.0) {
-    float jer_nom_sf = jerSF_->getScaleFactor(jparam, Variation::NOMINAL);
-    float delta_sf=(jer_sf-jer_nom_sf)*jerVarPartial;    
-    jer_sf=jer_nom_sf+delta_sf;
-  }
+  JME::JetParameters jparam = { {JME::Binning::JetPt, jp4.Pt()}, 
+                                {JME::Binning::JetEta, jp4.Eta()}, 
+                                {JME::Binning::Rho, rho} };
+  float jet_resolution = jer_ -> getResolution(jparam);
+  float jer_sf = jerSF_ -> getScaleFactor(jparam, option);
+  if (jerVarPartial >= 0 && jerVarPartial <= 1.0) 
+    {
+      const float jer_nom_sf = jerSF_ -> getScaleFactor(jparam, Variation::NOMINAL);
+      float delta_sf = (jer_sf - jer_nom_sf) * jerVarPartial;    
+      jer_sf = jer_nom_sf + delta_sf;
+    }
   
   //use stochasting smearing for unmatched jets
-  if(genJet_pt<=0)
+  if (genJet_pt <= 0.0)
     {
-      float sigma = jet_resolution * std::sqrt(std::max(float(jer_sf * jer_sf - 1.0),float(0.)));
-      jerSmear = std::max(float(1.0 + rand_->Gaus(0, sigma)),float(0.));
+      const float sigma = jet_resolution * std::sqrt(std::max(float(jer_sf * jer_sf - 1.0), float(0.0)));
+      jerSmear = std::max(float(1.0 + rand_ -> Gaus(0.0, sigma)), float(0.0));
     }
-    else {           
-      float dPt = jp4.Pt()-genJet_pt;
-      jerSmear = 1.0 + (jer_sf - 1.) * dPt / jp4.Pt();
+  else 
+    {           
+      float dPt = jp4.Pt() - genJet_pt;
+      jerSmear = 1.0 + (jer_sf - 1.0) * dPt / jp4.Pt();
     }
   smearedJet *= jerSmear;  
   return smearedJet;
 }
 
 //
-void JECTools::applyJetCorrectionUncertainty(MiniEvent_t &ev, TString jecVar, Variation direction) {
+void JECTools::applyJetCorrectionUncertainty(MiniEvent_t & ev, TString jecVar, Variation direction) 
+{
   
-  for (int k = 0; k < ev.nj; k++) {
-    if ((jecVar == "FlavorPureGluon"  and not (ev.j_flav[k] == 21 or ev.j_flav[k] == 0)) or
-        (jecVar == "FlavorPureQuark"  and not (abs(ev.j_flav[k]) <= 3 and abs(ev.j_flav[k]) != 0)) or
-        (jecVar == "FlavorPureCharm"  and not (abs(ev.j_flav[k]) == 4)) or
-        (jecVar == "FlavorPureBottom" and not (abs(ev.j_flav[k]) == 5)))
-      continue;
+  for (int kind = 0; kind < ev.nj; kind ++) 
+    {
+      if ((jecVar == "FlavorPureGluon"  and not (ev.j_flav[kind] == 21 or ev.j_flav[kind] == 0)) or
+	  (jecVar == "FlavorPureQuark"  and not (abs(ev.j_flav[kind]) <= 3 and abs(ev.j_flav[kind]) != 0)) or
+	  (jecVar == "FlavorPureCharm"  and not (abs(ev.j_flav[kind]) == 4)) or
+	  (jecVar == "FlavorPureBottom" and not (abs(ev.j_flav[kind]) == 5)))
+	continue;
     
-    TLorentzVector jp4;
-    jp4.SetPtEtaPhiM(ev.j_pt[k],ev.j_eta[k],ev.j_phi[k],ev.j_mass[k]);
-    jp4=getShiftedJet(jp4,jecVar,direction);
-    ev.j_pt[k]   = jp4.Pt(); 
-    ev.j_eta[k]  = jp4.Eta();
-    ev.j_phi[k]  = jp4.Phi();
-    ev.j_mass[k] = jp4.M();
-  }
+      TLorentzVector jp4;
+      jp4.SetPtEtaPhiM(ev.j_pt[kind], ev.j_eta[kind], ev.j_phi[kind], ev.j_mass[kind]);
+      jp4 = getShiftedJet(jp4, jecVar, direction);
+      ev.j_pt[kind]   = jp4.Pt(); 
+      ev.j_eta[kind]  = jp4.Eta();
+      ev.j_phi[kind]  = jp4.Phi();
+      ev.j_mass[kind] = jp4.M();
+    }
 }
 
 //
-TLorentzVector JECTools::getShiftedJet(TLorentzVector &jp4,TString jecVar,Variation direction) {
-  JetCorrectionUncertainty *jecUnc=jecUncs_[jecVar];
-  jecUnc->setJetPt(jp4.Pt());
-  jecUnc->setJetEta(jp4.Eta());
-  float scale = 1.;
-  if(direction==Variation::UP) scale += jecUnc->getUncertainty(true);
-  else                         scale -= jecUnc->getUncertainty(false);
+TLorentzVector JECTools::getShiftedJet(TLorentzVector & jp4, TString jecVar, Variation direction) 
+{
+  JetCorrectionUncertainty * jecUnc = jecUncs_[jecVar];
+  jecUnc -> setJetPt(jp4.Pt());
+  jecUnc -> setJetEta(jp4.Eta());
+  float scale = 1.0;
+  if(direction == Variation::UP) scale += jecUnc -> getUncertainty(true);
+  else                           scale -= jecUnc -> getUncertainty(false);
   TLorentzVector shiftedJet(jp4);
-  jp4 *=scale;
+  jp4 *= scale;
   return jp4; 
 }
 
@@ -185,3 +204,37 @@ float JECTools::computeSemilepBRWeight(MiniEvent_t &ev, TString var,int pid, boo
   return weight;
 }
 
+JECTools::~JECTools()
+{
+  if (jetCorr_)
+    {
+      delete jetCorr_;
+      jetCorr_ = nullptr;
+    }
+  if (jecParam_)
+    {
+      delete jecParam_;
+      jecParam_ = nullptr;
+    }
+  if (jer_)
+    {
+      delete jer_;
+      jer_ = nullptr;
+    }
+  if (jerSF_)
+    {
+      delete jerSF_;
+      jerSF_ = nullptr;
+    }
+  if (rand_)
+    {
+      delete rand_;
+      rand_ = nullptr;
+    }
+  for (std::map<TString, JetCorrectionUncertainty *>::iterator it = jecUncs_.begin(); it != jecUncs_.end(); it ++)
+    {
+      delete it -> second;
+    }
+  jecUncs_.clear();
+
+}

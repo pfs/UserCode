@@ -853,8 +853,8 @@ void RunTopJetPull( TString                         inputfilename,
 	  vector<Jet> & genJets                  = selector.getGenJets();
 	  vector<unsigned int> & genJets_indices = selector.getGenJetIndices();
 	  //count b and W candidates
-	  int sel_ngbjets = 0;
-	  int sel_ngwcand = 0;
+	  unsigned int sel_ngbjets = 0;
+	  unsigned int sel_ngwcand = 0;
 
 	  vector<TLorentzVector> gen_bJets, gen_lightJets;
  
@@ -900,7 +900,7 @@ void RunTopJetPull( TString                         inputfilename,
 	    }
 
 	  const bool gen_preselected             (true);
-	  const bool genSingleLepton             ((genChTag=="E" or genChTag=="M") and
+	  const bool genSingleLepton             ((genChTag == "E" or genChTag == "M") and
 						  (genVetoLeptons.size() == 1)); // only selected lepton in veto collection
 	  const bool gen_singleLepton4Jets       (genSingleLepton and genJets.size() >= 4);
 	  const bool gen_singleLepton4Jets2b     (gen_singleLepton4Jets and sel_ngbjets == 2/* and gen_nu_found*/);

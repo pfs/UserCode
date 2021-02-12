@@ -5,22 +5,22 @@
 using namespace std;
 
 //
-SelectionTool::SelectionTool(TString dataset_,bool debug,TH1 *triggerList, AnalysisType anType) :
+SelectionTool::SelectionTool(TString dataset_, bool debug, TH1 *triggerList, AnalysisType anType) :
   dataset(dataset_),
   debug_(debug),
   anType_(anType),
-  isZeroBiasPD_(dataset.Contains("ZeroBias")), 
-  isSingleElectronPD_(dataset.Contains("SingleElectron")), 
-  isSingleMuonPD_(dataset.Contains("SingleMuon")), 
-  isDoubleEGPD_(dataset.Contains("DoubleEG")), 
-  isDoubleMuonPD_(dataset.Contains("DoubleMuon")), 
-  isMuonEGPD_(dataset.Contains("MuonEG")),
-  isPhotonPD_(dataset.Contains("Photon") || dataset.Contains("EGamma")),
-  isJetHTPD_(dataset.Contains("JetHT"))
+  isZeroBiasPD_         (dataset.Contains("ZeroBias")), 
+  isSingleElectronPD_   (dataset.Contains("SingleElectron")), 
+  isSingleMuonPD_       (dataset.Contains("SingleMuon")), 
+  isDoubleEGPD_         (dataset.Contains("DoubleEG")), 
+  isDoubleMuonPD_       (dataset.Contains("DoubleMuon")), 
+  isMuonEGPD_           (dataset.Contains("MuonEG")),
+  isPhotonPD_           (dataset.Contains("Photon") || dataset.Contains("EGamma")),
+  isJetHTPD_            (dataset.Contains("JetHT"))
 {
-  if(triggerList!=0)
-    for(int xbin=0; xbin<triggerList->GetNbinsX(); xbin++)
-      triggerBits_[ triggerList->GetXaxis()->GetBinLabel(xbin+1) ] = xbin;  
+  if(triggerList != 0)
+    for(int xbin = 0; xbin < triggerList -> GetNbinsX(); xbin ++)
+      triggerBits_[ triggerList -> GetXaxis() -> GetBinLabel(xbin+1) ] = xbin;  
 
   setPhotonSelection();
 }
@@ -479,8 +479,8 @@ std::vector<Particle> SelectionTool::flaggedLeptons(MiniEvent_t &ev)
 
     //see bits in plugins/MiniAnalyzer.cc
     int qualityFlagsWord(0);
-    Float_t unc(0.);
-    if(abs(ev.l_id[il])==11)
+    Float_t unc(0.0);
+    if(abs(ev.l_id[il]) == 11)
       {
 	if( pt>20 && eta<2.5 ) {
           if((pid>>1)&0x1)  qualityFlagsWord |= (0x1 << VETO);
@@ -495,51 +495,57 @@ std::vector<Particle> SelectionTool::flaggedLeptons(MiniEvent_t &ev)
           if((pid>>10)&0x1) qualityFlagsWord |= (0x1 << MVANONISOWPLOOSE);
         }
         unc = TMath::Sqrt(
-                          pow(ev.l_scaleUnc1[il],2)+
-                          pow(ev.l_scaleUnc2[il],2)+
-                          pow(ev.l_scaleUnc3[il],2)+
-                          pow(ev.l_scaleUnc4[il],2)+
-                          pow(ev.l_scaleUnc5[il],2)+
-                          pow(ev.l_scaleUnc6[il],2)+
-                          pow(ev.l_scaleUnc7[il],2)
+                          pow(ev.l_scaleUnc1[il], 2) +
+                          pow(ev.l_scaleUnc2[il], 2) +
+                          pow(ev.l_scaleUnc3[il], 2) +
+                          pow(ev.l_scaleUnc4[il], 2) +
+                          pow(ev.l_scaleUnc5[il], 2) +
+                          pow(ev.l_scaleUnc6[il], 2) +
+                          pow(ev.l_scaleUnc7[il], 2)
                           );
       }
     else
       {
-        if(pt>20 && eta<2.5) {
-          if( (pid&reco::Muon::Selector::CutBasedIdLoose)==reco::Muon::Selector::CutBasedIdLoose ) {
-            qualityFlagsWord |= (0x1 << LOOSEIDONLY);
-            if( (pid&reco::Muon::Selector::PFIsoLoose)==reco::Muon::Selector::PFIsoLoose ) 
-              qualityFlagsWord |= (0x1 << LOOSE);
-          }
-          if( (pid&reco::Muon::Selector::CutBasedIdMedium)==reco::Muon::Selector::CutBasedIdMedium ) {
-            qualityFlagsWord |= (0x1 << MEDIUMIDONLY);
-            if( (pid&reco::Muon::Selector::PFIsoMedium)==reco::Muon::Selector::PFIsoMedium ) 
-              qualityFlagsWord |= (0x1 << MEDIUM);
-          }
-          if( (pid&reco::Muon::Selector::CutBasedIdTight)==reco::Muon::Selector::CutBasedIdTight ) {
-            qualityFlagsWord |= (0x1 << TIGHTIDONLY);
-            if( (pid&reco::Muon::Selector::PFIsoTight)==reco::Muon::Selector::PFIsoTight ) 
-              qualityFlagsWord |= (0x1 << TIGHT);
-          }
-          if( (pid&reco::Muon::Selector::CutBasedIdTrkHighPt)==reco::Muon::Selector::CutBasedIdTrkHighPt ) {
-            qualityFlagsWord |= (0x1 << HIGHPTIDONLY);
-            if( (pid&reco::Muon::Selector::TkIsoLoose)==reco::Muon::Selector::TkIsoLoose) 
-              qualityFlagsWord |= (0x1 << HIGHPT);            
-          }
-        }
+        if(pt > 20.0 && eta < 2.5) 
+	  {
+	    if( (pid & reco::Muon::Selector::CutBasedIdLoose) == reco::Muon::Selector::CutBasedIdLoose ) 
+	      {
+		qualityFlagsWord |= (0x1 << LOOSEIDONLY);
+		if( (pid& reco::Muon::Selector::PFIsoLoose) == reco::Muon::Selector::PFIsoLoose ) 
+		  qualityFlagsWord |= (0x1 << LOOSE);
+	      }
+	    if( (pid & reco::Muon::Selector::CutBasedIdMedium) == reco::Muon::Selector::CutBasedIdMedium ) 
+	      {
+		qualityFlagsWord |= (0x1 << MEDIUMIDONLY);
+		if( (pid& reco::Muon::Selector::PFIsoMedium) == reco::Muon::Selector::PFIsoMedium ) 
+		  qualityFlagsWord |= (0x1 << MEDIUM);
+	      }
+	    if( (pid & reco::Muon::Selector::CutBasedIdTight) == reco::Muon::Selector::CutBasedIdTight ) 
+	      {
+		qualityFlagsWord |= (0x1 << TIGHTIDONLY);
+		if( (pid& reco::Muon::Selector::PFIsoTight) == reco::Muon::Selector::PFIsoTight ) 
+		  qualityFlagsWord |= (0x1 << TIGHT);
+	      }
+	    if( (pid & reco::Muon::Selector::CutBasedIdTrkHighPt) == reco::Muon::Selector::CutBasedIdTrkHighPt ) 
+	      {
+		qualityFlagsWord |= (0x1 << HIGHPTIDONLY);
+		if( (pid & reco::Muon::Selector::TkIsoLoose) == reco::Muon::Selector::TkIsoLoose) 
+		  qualityFlagsWord |= (0x1 << HIGHPT);            
+	      }
+	  }
       }
 
-    if(debug_) cout << "Lepton #" << il << " id=" << ev.l_id[il] 
-		    << " pt=" << pt << "+/-" << unc << " eta=" << eta << " relIso=" << relIso 
-		    << " charge=" << ev.l_charge[il]
+    if(debug_) cout << "Lepton #" << il << " id = " << ev.l_id[il] 
+		    << " pt = " << pt << "+/-" << unc << " eta = " << eta << " relIso = " << relIso 
+		    << " charge = " << ev.l_charge[il]
                     << " rawId = 0x" << std::hex << pid
-		    << " quality flag=0x" << qualityFlagsWord << std::dec << endl;
+		    << " quality flag = 0x" << qualityFlagsWord << std::dec << endl;
 
-    if(qualityFlagsWord==0) continue;
+    if(qualityFlagsWord == 0) 
+      continue;
 
     TLorentzVector lp4;
-    lp4.SetPtEtaPhiM(ev.l_pt[il],ev.l_eta[il],ev.l_phi[il],ev.l_mass[il]);
+    lp4.SetPtEtaPhiM(ev.l_pt[il], ev.l_eta[il], ev.l_phi[il], ev.l_mass[il]);
     leptons.push_back(Particle(lp4, ev.l_charge[il], ev.l_id[il], qualityFlagsWord, il, 1.0, unc));
   }
   
@@ -580,56 +586,57 @@ std::vector<Particle> SelectionTool::selLeptons(std::vector<Particle> & leptons,
 }
 
 //
-std::vector<Particle> SelectionTool::flaggedPhotons(MiniEvent_t &ev)
+std::vector<Particle> SelectionTool::flaggedPhotons(MiniEvent_t & ev)
 {
   //leptons
   std::vector<Particle> photons;
-  for (int ig=0; ig<ev.ngamma; ig++) {
-    float pt(ev.gamma_pt[ig]);
-    float eta(fabs(ev.gamma_eta[ig]));
-    int pid(ev.gamma_pid[ig]);
-    int addpid(ev.gamma_idFlags[ig]);
+  for (int ig = 0; ig < ev.ngamma; ig ++) 
+    {
+      float pt(ev.gamma_pt[ig]);
+      float eta(fabs(ev.gamma_eta[ig]));
+      int pid(ev.gamma_pid[ig]);
+      int addpid(ev.gamma_idFlags[ig]);
 
-    //bool passCSEV( (addpid & 0x1) );
-    bool hasPixelSeed( ((addpid>>1) & 0x1) );
-    bool hasmvaWP80( ((addpid>>2) & 0x1) );
-    bool hasmvaWP90( ((addpid>>3) & 0x1) );
+      //bool passCSEV( (addpid & 0x1) );
+      bool hasPixelSeed( ((addpid >> 1) & 0x1) );
+      bool hasmvaWP80( ((addpid >> 2) & 0x1) );
+      bool hasmvaWP90( ((addpid >> 3) & 0x1) );
     
-    //see bits in plugins/MiniAnalyzer.cc
-    int qualityFlagsWord(0);
-    if( pt>30 && eta<2.4)
-      {
-        if( !hasPixelSeed && (pid&0x7f)==0x7f         ) qualityFlagsWord |= (0x1 << LOOSE);
-        if( !hasPixelSeed && ((pid>>10)&0x7f)==0x7f   ) qualityFlagsWord |= (0x1 << MEDIUM);
-        if( !hasPixelSeed && ((pid>>20)&0x7f)==0x7f   ) qualityFlagsWord |= (0x1 << TIGHT);
-        if( !hasPixelSeed && ((pid>>20) &0x7d)==0x7d  ) qualityFlagsWord |= (0x1 << TIGHTIDNOSIHIH);
-        if( !hasPixelSeed && hasmvaWP80 )   qualityFlagsWord |= (0x1 << MVA80);
-        if( !hasPixelSeed && hasmvaWP90 )   qualityFlagsWord |= (0x1 << MVA90);
-	if( isInclusivePhoton(ev,ig) ) qualityFlagsWord |= (0x1 << CONTROL);
-	if( isQCDTemplate(ev,ig))      qualityFlagsWord |= (0x1 << QCDTEMP);
-	if( isRelaxedTight(ev,ig)    ) qualityFlagsWord |= (0x1 << RELAXEDTIGHT);
-      }
-    if(qualityFlagsWord==0) continue;
+      //see bits in plugins/MiniAnalyzer.cc
+      int qualityFlagsWord(0);
+      if( pt > 30.0 && eta < 2.4)
+	{
+	  if( !hasPixelSeed && (pid&0x7f) == 0x7f         ) qualityFlagsWord |= (0x1 << LOOSE);
+	  if( !hasPixelSeed && ((pid >> 10) & 0x7f) == 0x7f   ) qualityFlagsWord |= (0x1 << MEDIUM);
+	  if( !hasPixelSeed && ((pid >> 20) & 0x7f) == 0x7f   ) qualityFlagsWord |= (0x1 << TIGHT);
+	  if( !hasPixelSeed && ((pid >> 20) & 0x7d) == 0x7d  ) qualityFlagsWord |= (0x1 << TIGHTIDNOSIHIH);
+	  if( !hasPixelSeed && hasmvaWP80 )   qualityFlagsWord |= (0x1 << MVA80);
+	  if( !hasPixelSeed && hasmvaWP90 )   qualityFlagsWord |= (0x1 << MVA90);
+	  if( isInclusivePhoton(ev,ig) ) qualityFlagsWord |= (0x1 << CONTROL);
+	  if( isQCDTemplate(ev,ig))      qualityFlagsWord |= (0x1 << QCDTEMP);
+	  if( isRelaxedTight(ev,ig)    ) qualityFlagsWord |= (0x1 << RELAXEDTIGHT);
+	}
+      if(qualityFlagsWord == 0) continue;
 
-    float unc = TMath::Sqrt(
-                            pow(ev.gamma_scaleUnc1[ig],2)+
-                            pow(ev.gamma_scaleUnc2[ig],2)+
-                            pow(ev.gamma_scaleUnc3[ig],2)+
-                            pow(ev.gamma_scaleUnc4[ig],2)+
-                            pow(ev.gamma_scaleUnc5[ig],2)+
-                            pow(ev.gamma_scaleUnc6[ig],2)+
-                            pow(ev.gamma_scaleUnc7[ig],2)
-                            );
+      float unc = TMath::Sqrt(
+			      pow(ev.gamma_scaleUnc1[ig], 2) +
+			      pow(ev.gamma_scaleUnc2[ig], 2) +
+			      pow(ev.gamma_scaleUnc3[ig], 2) +
+			      pow(ev.gamma_scaleUnc4[ig], 2) +
+			      pow(ev.gamma_scaleUnc5[ig], 2) +
+			      pow(ev.gamma_scaleUnc6[ig], 2) +
+			      pow(ev.gamma_scaleUnc7[ig], 2)
+			      );
 
-    TLorentzVector p4;
-    p4.SetPtEtaPhiM(ev.gamma_pt[ig],ev.gamma_eta[ig],ev.gamma_phi[ig],0);
-    photons.push_back(Particle(p4, 0, 22, qualityFlagsWord, ig, 1.0, unc));
+      TLorentzVector p4;
+      p4.SetPtEtaPhiM(ev.gamma_pt[ig],ev.gamma_eta[ig],ev.gamma_phi[ig],0);
+      photons.push_back(Particle(p4, 0, 22, qualityFlagsWord, ig, 1.0, unc));
 
-    if(debug_) std::cout << "Photon #"<< photons.size() 
-                         << " pt=" << pt << "+/-" << unc << " eta=" << p4.Eta()
-                         << hex << " raw particle id bits=" << pid 
-                         << " quality bits=" << qualityFlagsWord 
-                         << dec << endl;
+      if(debug_) std::cout << "Photon #"<< photons.size() 
+			   << " pt = " << pt << "+/-" << unc << " eta = " << p4.Eta()
+			   << hex << " raw particle id bits = " << pid 
+			   << " quality bits = " << qualityFlagsWord 
+			   << dec << endl;
 
   }
   
@@ -637,35 +644,43 @@ std::vector<Particle> SelectionTool::flaggedPhotons(MiniEvent_t &ev)
 }
 
 //
-std::vector<Particle> SelectionTool::selPhotons(std::vector<Particle> &photons,int qualBit, std::vector<Particle> leptons,double minPt, double maxEta,std::vector<Particle> veto){
+std::vector<Particle> SelectionTool::selPhotons(std::vector<Particle> & photons, int qualBit, std::vector<Particle> leptons, double minPt, double maxEta, std::vector<Particle> veto)
+{
   std::vector<Particle> selPhotons;
-  for(size_t i =0; i<photons.size(); i++)
+  for(size_t photonind = 0; photonind < photons.size(); photonind ++)
     {
       //check quality flag
-      if( !photons[i].hasQualityFlag(qualBit) ) continue;
+      if ( !photons[photonind].hasQualityFlag(qualBit) ) 
+	continue;
       //      cout<<"Id Passed!"<<endl;
       //check kinematics
-      if(photons[i].pt()<minPt || fabs(photons[i].eta())>maxEta) continue;
+      if (photons[photonind].pt() < minPt || fabs(photons[photonind].eta()) > maxEta) 
+	continue;
       //      cout<<"Kinematics Passed!"<<endl;
       //check if this lepton should be vetoed by request      
       bool skipThisPhoton(false);
-      for(auto &vetoL : veto){
-        if(vetoL.originalReference()!=photons[i].originalReference()) continue;
-        skipThisPhoton=true;
+      for(auto & vetoL : veto){
+        if (vetoL.originalReference() != photons[photonind].originalReference()) 
+	  continue;
+        skipThisPhoton = true;
         break;
       }
-      if(skipThisPhoton) continue;
+      if (skipThisPhoton) 
+	continue;
       //      cout<<"Not-Veto Passed!"<<endl;     
       // cross-cleaning with leptos
       bool overlapsWithPhysicsObject(false);
-      for (auto& lepton : leptons) {
-	if(photons[i].p4().DeltaR(lepton.p4())<0.4) overlapsWithPhysicsObject=true;
+      for (auto & lepton : leptons) 
+	{
+	if(photons[photonind].p4().DeltaR(lepton.p4()) < 0.4) 
+	  overlapsWithPhysicsObject = true;
       }
       
-      if(overlapsWithPhysicsObject) continue;
+      if(overlapsWithPhysicsObject) 
+	continue;
       //      cout<<"No overlap Passed!"<<endl;
       //photon is selected
-      selPhotons.push_back(photons[i]);
+      selPhotons.push_back(photons[photonind]);
     }
 
   //all done here
@@ -677,87 +692,106 @@ std::vector<Particle> SelectionTool::selPhotons(std::vector<Particle> &photons,i
 
 
 //
-std::vector<Jet> SelectionTool::getGoodJets(MiniEvent_t &ev, double minPt, double maxEta, std::vector<Particle> leptons,std::vector<Particle> photons) 
+std::vector<Jet> SelectionTool::getGoodJets(MiniEvent_t & ev, double minPt, double maxEta, std::vector<Particle> leptons, std::vector<Particle> photons) 
 {
   std::vector<Jet> jets;
   
-  for (int k=0; k<ev.nj; k++) 
+  for (int jetind = 0; jetind < ev.nj; jetind ++) 
     {
       TLorentzVector jp4;
-      jp4.SetPtEtaPhiM(ev.j_pt[k],ev.j_eta[k],ev.j_phi[k],ev.j_mass[k]);
+      jp4.SetPtEtaPhiM(ev.j_pt[jetind], ev.j_eta[jetind], ev.j_phi[jetind], ev.j_mass[jetind]);
 
       //cross clean with leptons/photons
       bool overlapsWithPhysicsObject(false);
-      for (auto& lepton : leptons) {
-	if(jp4.DeltaR(lepton.p4())<0.4) overlapsWithPhysicsObject=true;
-      }
-      for (auto& photon : photons) {
-	if(jp4.DeltaR(photon.p4())<0.4) overlapsWithPhysicsObject=true;
-      }
-      if(overlapsWithPhysicsObject) continue;
+      for (auto & lepton : leptons) 
+	{
+	  if (jp4.DeltaR(lepton.p4()) < 0.4) 
+	    overlapsWithPhysicsObject = true;
+	}
+      for (auto & photon : photons) 
+	{
+	  if (jp4.DeltaR(photon.p4()) < 0.4) 
+	    overlapsWithPhysicsObject = true;
+	}
+      if(overlapsWithPhysicsObject) 
+	continue;
     
       //jet kinematic selection
-      if(jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) continue;
+      if(jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) 
+	continue;
 
       //flavor based on b tagging
       int flavor = 0;
-      if (ev.j_btag[k]) flavor = 5;
+      if (ev.j_btag[jetind]) 
+	flavor = 5;
     
-      Jet jet(jp4, flavor, k);
-      jet.setCSV(ev.j_csv[k]);
-      jet.setDeepCSV(ev.j_deepcsv[k]);
-      jet.setPUMVA(ev.j_pumva[k]);
+      Jet jet(jp4, flavor, jetind);
+      jet.setCSV(ev.j_csv[jetind]);
+      jet.setDeepCSV(ev.j_deepcsv[jetind]);
+      jet.setPUMVA(ev.j_pumva[jetind]);
 
       //jes/jer uncertainty
-      int jflav(abs(ev.j_flav[k]));
-      float jecUp(0),jecDn(0);   
-      jecUp=pow(1-ev.j_jerUp[k],2);
-      jecDn=pow(1-ev.j_jerDn[k],2);
+      int jflav(abs(ev.j_flav[jetind]));
+      float jecUp(0.0), jecDn(0.0);   
+      jecUp = pow(1.0 - ev.j_jerUp[jetind], 2);
+      jecDn = pow(1.0 - ev.j_jerDn[jetind], 2);
    
-      for(int iunc=0; iunc<29; iunc++){
+      for(unsigned int iunc = 0; iunc < 29; iunc ++)
+	{
            
-	//see python/miniAnalyzer_cfi.py for these
-	if(iunc==6 && jflav!=21) continue; //FlavorPureGluon
-	if(iunc==7 && jflav>=4)  continue; //FlavorPureQuark
-	if(iunc==8 && jflav!=4)  continue; //FlavorPureCharm
-	if(iunc==9 && jflav!=5)  continue; //FlavorPureGluon
+	  //see python/miniAnalyzer_cfi.py for these
+	  if (iunc == 6 && jflav != 21) 
+	    continue; //FlavorPureGluon
+	  if (iunc == 7 && jflav >= 4)  
+	    continue; //FlavorPureQuark
+	  if (iunc == 8 && jflav != 4)  
+	    continue; //FlavorPureCharm
+	  if (iunc == 9 && jflav != 5)  
+	    continue; //FlavorPureGluon
       
-	if(ev.j_jecUp[iunc][k]!=0) jecUp += pow(1-ev.j_jecUp[iunc][k],2);
-	if(ev.j_jecDn[iunc][k]!=0) jecDn += pow(1-ev.j_jecDn[iunc][k],2);
+	  if (ev.j_jecUp[iunc][jetind] != 0) 
+	    jecUp += pow(1.0 - ev.j_jecUp[iunc][jetind], 2);
+	  if (ev.j_jecDn[iunc][jetind] != 0) 
+	    jecDn += pow(1.0 - ev.j_jecDn[iunc][jetind], 2);
 
-      }
+	}
     
-      jecUp=TMath::Sqrt(jecUp);
-      jecDn=TMath::Sqrt(jecDn);
-      jet.setScaleUnc(0.5*(jecUp+jecDn));
+      jecUp = TMath::Sqrt(jecUp);
+      jecDn = TMath::Sqrt(jecDn);
+      jet.setScaleUnc(0.5 * (jecUp + jecDn));
 
       if(debug_)
 	cout << "Jet #" << jets.size() 
-	     << " pt=" << jp4.Pt() << "+/-" << jet.getScaleUnc()*jp4.Pt() << " (jec+jer)"
-	     << " eta=" << jp4.Eta() << " deepCSV=" << ev.j_deepcsv[k] << " flav=" << jflav << endl;
+	     << " pt = " << jp4.Pt() << "+/-" << jet.getScaleUnc() * jp4.Pt() << " (jec + jer)"
+	     << " eta = " << jp4.Eta() << " deepCSV = " << ev.j_deepcsv[jetind] << " flav = " << jflav << endl;
     
       jets.push_back(jet);
-      jet_indices_.push_back(k);
+      jet_indices_.push_back(jetind);
 
     }
   
   //additional jet-jet information
-  for (unsigned int i = 0; i < jets.size(); i++) {
-    for (unsigned int j = i+1; j < jets.size(); j++) {
-      //flag jet-jet overlaps
-      if (jets[i].p4().DeltaR(jets[j].p4()) < 0.8) {
-        jets[i].setOverlap(1);
-        jets[j].setOverlap(1);
-      }
-      //flag non-b jets as part of W boson candidates: flavor 0->1
-      if (jets[i].flavor()==5 or jets[j].flavor()==5) continue;
-      TLorentzVector wCand = jets[i].p4() + jets[j].p4();
-      if (abs(wCand.M()-80.4) < 15.) {
-        jets[i].setFlavor(1);
-        jets[j].setFlavor(1);
-      }
+  for (unsigned int ijetind = 0; ijetind < jets.size(); ijetind ++) 
+    {
+      for (unsigned int jjetind = ijetind + 1; jjetind < jets.size(); jjetind ++) 
+	{
+	  //flag jet-jet overlaps
+	  if (jets[ijetind].p4().DeltaR(jets[jjetind].p4()) < 0.8) 
+	    {
+	      jets[ijetind].setOverlap(1);
+	      jets[jjetind].setOverlap(1);
+	    }
+	  //flag non-b jets as part of W boson candidates: flavor 0->1
+	  if (jets[ijetind].flavor() == 5 or jets[jjetind].flavor() == 5) 
+	    continue;
+	  const TLorentzVector wCand = jets[ijetind].p4() + jets[jjetind].p4();
+	  if (abs(wCand.M() - 80.4) < 15.0) 
+	    {
+	      jets[ijetind].setFlavor(1);
+	      jets[jjetind].setFlavor(1);
+	    }
+	}
     }
-  }
   
   return jets;
 }
@@ -826,102 +860,115 @@ std::vector<Jet> SelectionTool::getGoodJets(MiniEvent_t &ev, double minPt, doubl
       if (jets_[i].flavor()==5 or jets_[j].flavor()==5) continue;
       TLorentzVector wCand = jets_[i].p4() + jets_[j].p4();
       if (abs(wCand.M()-80.4) < 15.) {
-        jets_[i].setFlavor(1);
-        jets_[j].setFlavor(1);
+      jets_[i].setFlavor(1);
+      jets_[j].setFlavor(1);
       }
-    }
-  }
-  }*/
+      }
+      }
+      }*/
 
 //
 // PARTICLE LEVEL SELECTORS
 // 
 
 //
-TString SelectionTool::flagGenFinalState(MiniEvent_t &ev, std::vector<Particle> leptons, std::vector<Particle> photons) 
+TString SelectionTool::flagGenFinalState(MiniEvent_t & ev, std::vector<Particle> leptons, std::vector<Particle> photons) 
 {
   //update current state
-  genLeptons_=leptons;
-  genPhotons_=photons;
-  if(genLeptons_.size()==0) genLeptons_=getGenLeptons(ev,20.,2.5);
-  if(genPhotons_.size()==0) genPhotons_=getGenPhotons(ev,50.,1.442);
+  genLeptons_ = leptons;
+  genPhotons_ = photons;
+  if(genLeptons_.size() == 0) 
+    genLeptons_ = getGenLeptons(ev, 20.0, 2.5);
+  if(genPhotons_.size() == 0) 
+    genPhotons_ = getGenPhotons(ev, 50.0, 1.442);
 
   float maxEta(2.4);
-  if(anType_==VBF) maxEta=4.7;
-  genJets_=getGenJets(ev,30.,maxEta,genLeptons_,genPhotons_);
+  if (anType_ == VBF) 
+    maxEta = 4.7;
+  genJets_ = getGenJets(ev, 30.0, maxEta, genLeptons_, genPhotons_);
 
   //decide the channel
   TString chTag("");
-  if(anType_==TOP)
+  if(anType_ == TOP)
     {
-      if(genLeptons_.size()>=2) {
-        int chId(abs(genLeptons_[0].id()*genLeptons_[1].id()));
-        if      (chId==11*13) chTag = "EM";
-        else if (chId==13*13) chTag = "MM";
-        else if (chId==11*11) chTag = "EE";
-      }
-      else if(genLeptons_.size()==1) {
-        int absid(abs(genLeptons_[0].id()));
-        if      (absid==13) chTag = "M";
-        else if (absid==11) chTag = "E";
-      }
+      if (genLeptons_.size() >= 2) 
+	{
+	  const int chId(abs(genLeptons_[0].id() * genLeptons_[1].id()));
+	  if      (chId == 11*13) chTag = "EM";
+	  else if (chId == 13*13) chTag = "MM";
+	  else if (chId == 11*11) chTag = "EE";
+	}
+      else if (genLeptons_.size() == 1) 
+	{
+	  const int absid(abs(genLeptons_[0].id()));
+	  if      (absid == 13) chTag = "M";
+	  else if (absid == 11) chTag = "E";
+	}
     }
-  if(anType_==VBF)
+  if (anType_ == VBF)
     {
-      if(genLeptons_.size()>=2)
+      if (genLeptons_.size() >= 2)
         {
-          int chId(abs(genLeptons_[0].id()*genLeptons_[1].id()));
-          float mll((genLeptons_[0]+genLeptons_[1]).M());
-          if(chId==13*13 && fabs(mll-91)<15) chTag="MM";
+          const int chId(abs(genLeptons_[0].id() * genLeptons_[1].id()));
+          const float mll((genLeptons_[0] + genLeptons_[1]).M());
+          if (chId == 13*13 && fabs(mll - 91.0) < 15.0) chTag = "MM";
         }
-      if(genPhotons_.size()>=1) chTag="A";
+      if (genPhotons_.size() >= 1) chTag = "A";
     }
   
   return chTag;
 }
 
 //
-std::vector<Particle> SelectionTool::getGenLeptons(MiniEvent_t &ev, double minPt, double maxEta){
+std::vector<Particle> SelectionTool::getGenLeptons(MiniEvent_t & ev, double minPt, double maxEta)
+{
   std::vector<Particle> leptons;
   
   //loop over leptons from pseudotop producer
-  for (int i = 0; i < ev.ng; i++) {
-    int absid(abs(ev.g_id[i]));
-    if(absid!=11 && absid!=13) continue;
+  for (int indg = 0; indg < ev.ng; indg ++) 
+    {
+      int absid(abs(ev.g_id[indg]));
+      if (absid != 11 && absid != 13) 
+	continue;
 
-    bool passKin(ev.g_pt[i]>minPt && fabs(ev.g_eta[i])<maxEta);
-    if(!passKin) continue;
+      bool passKin(ev.g_pt[indg] > minPt && fabs(ev.g_eta[indg]) < maxEta);
+      if (!passKin) 
+	continue;
 
-    TLorentzVector lp4;
-    lp4.SetPtEtaPhiM(ev.g_pt[i],ev.g_eta[i],ev.g_phi[i],ev.g_m[i]);
-    leptons.push_back( Particle(lp4, -ev.g_id[i]/abs(ev.g_id[i]), ev.g_id[i], 0, 1));
-  }
+      TLorentzVector lp4;
+      lp4.SetPtEtaPhiM(ev.g_pt[indg], ev.g_eta[indg], ev.g_phi[indg], ev.g_m[indg]);
+      leptons.push_back( Particle(lp4, - ev.g_id[indg]/abs(ev.g_id[indg]), ev.g_id[indg], 0, 1));
+    }
   
   return leptons;
 }
 
 //
-std::vector<Particle> SelectionTool::getGenPhotons(MiniEvent_t &ev, double minPt, double maxEta){
+std::vector<Particle> SelectionTool::getGenPhotons(MiniEvent_t & ev, double minPt, double maxEta)
+{
   std::vector<Particle> photons;
   
   //loop over leptons from pseudotop producer
-  for (int i = 0; i < ev.ng; i++) {
-    int absid(abs(ev.g_id[i]));
-    if(absid!=22) continue;
+  for (int indg = 0; indg < ev.ng; indg++) 
+    {
+      const int absid(abs(ev.g_id[indg]));
+      if(absid != 22) 
+	continue;
 
-    bool passKin(ev.g_pt[i]>minPt && fabs(ev.g_eta[i])<maxEta);
-    if(!passKin) continue;
+      const bool passKin(ev.g_pt[indg] > minPt && fabs(ev.g_eta[indg]) < maxEta);
+      if (!passKin) 
+	continue;
 
-    TLorentzVector p4;
-    p4.SetPtEtaPhiM(ev.g_pt[i],ev.g_eta[i],ev.g_phi[i],ev.g_m[i]);
-	photons.push_back( Particle(p4, 0, 22, 0, 1));
-  }
+      TLorentzVector p4;
+      p4.SetPtEtaPhiM(ev.g_pt[indg], ev.g_eta[indg], ev.g_phi[indg], ev.g_m[indg]);
+      photons.push_back( Particle(p4, 0, 22, 0, 1));
+    }
   
   return photons;
 }
 
 //
-std::vector<Jet> SelectionTool::getGenJets(MiniEvent_t &ev, double minPt, double maxEta, std::vector<Particle> leptons, std::vector<Particle> photons) 
+std::vector<Jet> SelectionTool::getGenJets(MiniEvent_t & ev, double minPt, double maxEta, std::vector<Particle> leptons, std::vector<Particle> photons) 
 {
   std::vector<Jet> jets;
   
@@ -944,11 +991,11 @@ std::vector<Jet> SelectionTool::getGenJets(MiniEvent_t &ev, double minPt, double
 	  if (jp4.DeltaR(photon.p4()) < 0.4) 
 	    overlapsWithPhysicsObject = true;
 	}
-      if(overlapsWithPhysicsObject) 
+      if (overlapsWithPhysicsObject) 
 	continue;
     
       //jet kinematic selection
-      if(jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) 
+      if (jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) 
 	continue;
 
       //flavor
@@ -959,24 +1006,24 @@ std::vector<Jet> SelectionTool::getGenJets(MiniEvent_t &ev, double minPt, double
     }
   
   //additional jet-jet information
-  for (unsigned int i = 0; i < jets.size(); i++) 
+  for (unsigned int ijetind = 0; ijetind < jets.size(); ijetind ++) 
     {
-      for (unsigned int j = i + 1; j < jets.size(); j++) 
+      for (unsigned int jjetind = ijetind + 1; jjetind < jets.size(); jjetind ++) 
 	{
 	  //flag jet-jet overlaps
-	  if (jets[i].p4().DeltaR(jets[j].p4()) < 0.8) 
+	  if (jets[ijetind].p4().DeltaR(jets[jjetind].p4()) < 0.8) 
 	    {
-	      jets[i].setOverlap(1);
-	      jets[j].setOverlap(1);
+	      jets[ijetind].setOverlap(1);
+	      jets[jjetind].setOverlap(1);
 	    }
 	  //flag non-b jets as part of W boson candidates: flavor 0->1
-	  if (jets[i].flavor() == 5 or jets[j].flavor() == 5) 
+	  if (jets[ijetind].flavor() == 5 or jets[jjetind].flavor() == 5) 
 	    continue;
-	  const TLorentzVector wCand = jets[i].p4() + jets[j].p4();
-	  if (abs(wCand.M() - 80.4) < 15.) 
+	  const TLorentzVector wCand = jets[ijetind].p4() + jets[jjetind].p4();
+	  if (abs(wCand.M() - 80.4) < 15.0) 
 	    {
-	      jets[i].setFlavor(1);
-	      jets[j].setFlavor(1);
+	      jets[ijetind].setFlavor(1);
+	      jets[jjetind].setFlavor(1);
 	    }
 	}
     }

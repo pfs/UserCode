@@ -143,12 +143,15 @@ std::vector<Jet> SelectionTool::getGoodJets_old(MiniEvent_t & ev, double minPt, 
       bool overlapsWithLepton(false);
       for (auto & lepton : leptons) 
 	{
-	  if (jp4.DeltaR(lepton.p4()) < 0.4) overlapsWithLepton = true;
+	  if (jp4.DeltaR(lepton.p4()) < 0.4) 
+	    overlapsWithLepton = true;
 	}
-      if (overlapsWithLepton) continue;
+      if (overlapsWithLepton) 
+	continue;
     
       //jet kinematic selection
-      if (jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) continue;
+      if (jp4.Pt() < minPt || abs(jp4.Eta()) > maxEta) 
+	continue;
 
     
       Jet jet(jp4, flavor, kind);

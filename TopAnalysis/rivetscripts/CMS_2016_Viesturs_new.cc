@@ -26,8 +26,8 @@ namespace Rivet
 
       // Cuts
       particle_cut         = (Cuts::abseta < 5.0 && Cuts::pT >  0.0*GeV);
-      lepton_cut           = (Cuts::abseta < 2.1 && Cuts::pT > 30.0*GeV);
-      // lepton_cut           = (Cuts::abseta < 2.5 && Cuts::pT > 15.0*GeV);
+      //lepton_cut           = (Cuts::abseta < 2.1 && Cuts::pT > 30.0*GeV);
+      lepton_cut           = (Cuts::abseta < 2.5 && Cuts::pT > 15.0*GeV);
       jet_cut              = (Cuts::abseta < 2.4 && Cuts::pT > 30.0*GeV);
       //      veto_lepton_cut      = (Cuts::abseta < 2.5 && Cuts::pT > 15.0*GeV);
 
@@ -50,26 +50,59 @@ namespace Rivet
       prompt_photons.acceptTauDecays(true);
 
       // NB. useDecayPhotons=true allows for photons with tau ancestor; photons from hadrons are vetoed by the PromptFinalState;
-      DressedLeptons dressed_leptons(prompt_photons, prompt_leptons, 0.1, lepton_cut, true);
+      DressedLeptons dressed_leptons(prompt_photons, prompt_leptons, 0.1, lepton_cut, true, true);
       declare(dressed_leptons, "DressedLeptons");
 
+      VetoedFinalState vetoed_prompt_photons(prompt_photons);
+      vetoed_prompt_photons.addVetoOnThisFinalState(dressed_leptons);
+      declare(vetoed_prompt_photons, "Photons");
 
 
       // Projection for jets
       VetoedFinalState fsForJets(fs);
       fsForJets.addVetoOnThisFinalState(dressed_leptons);
-      declare(FastJets(fsForJets, FastJets::ANTIKT, 0.4,
-		       JetAlg::Muons::ALL, JetAlg::Invisibles::NONE), "Jets");
+      // declare(FastJets(fsForJets, FastJets::ANTIKT, 0.4,
+      // 		       JetAlg::Muons::ALL, JetAlg::Invisibles::NONE), "Jets");
+
+      const float _jetR = 0.4;
+      declare(FastJets(fsForJets, FastJets::ANTIKT, _jetR), "Jets");
+      declare(FastJets(fsForJets, FastJets::ANTIKT, _jetR, JetAlg::Muons::ALL, JetAlg::Invisibles::ALL), "NuJets");
+
+      const double _fatJetR(0.8);
+      declare(FastJets(fsForJets, FastJets::ANTIKT, _fatJetR), "FatJets");
+        
+      // Neutrinos
+      IdentifiedFinalState neutrinos(fs);
+      neutrinos.acceptNeutrinos();
+      PromptFinalState prompt_neutrinos(neutrinos);
+      prompt_neutrinos.acceptMuonDecays(true);
+      prompt_neutrinos.acceptTauDecays(true);
+      declare(prompt_neutrinos, "Neutrinos");
+        
+      // MET
+      declare(MissingMomentum(fs), "MET");
+
+
+
 
       // Booking of histograms
       const char *chargetitle[2] = {"all", "charged"};
       for (unsigned char chargeind = 0; chargeind < 1; ++ chargeind) { 
-	char buffer [20];
+	char buffer [64];
 	sprintf(buffer, "pull_angle_%s", chargetitle[chargeind]);
 	printf("%s\n", buffer);
 	book(_h[chargeind], buffer);
     
       }
+
+      for (unsigned char chargeind = 0; chargeind < 1; ++ chargeind) { 
+	char buffer [64];
+	sprintf(buffer, "pull_angle_%s_CMSSW", chargetitle[chargeind]);
+	printf("%s\n", buffer);
+	book(_h_CMSSW[chargeind], buffer);
+    
+      }
+
       book(_hsel, "gen_selection");
     }
 
@@ -88,12 +121,12 @@ namespace Rivet
       int nsel_leptons = 0;
       for (const DressedLepton& lepton : leptons) {
 	// printf("lepton pt %f eta %f\n", lepton.pt(), lepton.eta()); 
-	if (lepton.pt() > 30.0 and lepton.eta() < 2.1) {
+	if (lepton.pt() > 30.0 and fabs(lepton.eta()) < 2.1) {
 	  
 	  nsel_leptons += 1; 
 	}
 	else{
-	  printf("found veto lepton at event %lu\n", eventind);
+	  //	  printf("found veto lepton at event %lu\n", eventind);
 	  vetoEvent;
 	} // found veto lepton
       }
@@ -121,8 +154,8 @@ namespace Rivet
       Jets jets[4];
       for (const Jet & jet : all_jets) {
 	// check for jet-lepton overlap -> do not consider for selection
-	if (deltaR(jet, leptons[0]) < 0.4) 
-	  continue;
+	// if (deltaR(jet, leptons[0]) < 0.4) 
+	//   continue;
 
 	bool overlap = false;
 	bool w_jet   = false;
@@ -143,7 +176,7 @@ namespace Rivet
 	// count jets for event selection
 
 	// jets for analysis
-	if (jet.abseta() > 2.4 or overlap) 
+	if (jet.abseta() > 2.4 or jet.pt() < 30 or overlap) 
 	  continue;
 
 	if (jet.bTagged()) {
@@ -195,31 +228,37 @@ namespace Rivet
 	  // recluster with C/A and anti-kt+WTA
 	}
       }
-      std::vector<Jet *> jets_sorted[4];
+      // std::vector<Jet *> jets_sorted[4];
 
-      for (Jets::iterator it = jets[QUARK].begin(); it != jets[QUARK].end(); ++it ){
-	jets_sorted[QUARK].push_back(&*it);
-      }
+      // for (Jets::iterator it = jets[QUARK].begin(); it != jets[QUARK].end(); ++it ){
+      // 	jets_sorted[QUARK].push_back(&*it);
+      // }
 
-      bool sorted = false;
-      while (not sorted){
-	sorted = true;
-	for (std::vector<Jet *>::iterator it = jets_sorted[QUARK].begin(); it != jets_sorted[QUARK].end() -1 ; ++ it){
-	  if ((*it) -> pt() < (*(it + 1)) -> pt()){
+      // bool sorted = false;
+      // while (not sorted){
+      // 	sorted = true;
+      // 	for (std::vector<Jet *>::iterator it = jets_sorted[QUARK].begin(); it != jets_sorted[QUARK].end() -1 ; ++ it){
+      // 	  if ((*it) -> pt() < (*(it + 1)) -> pt()){
 	    
-	    Jet * swap = *(it + 1);
-	    *(it) = *(it +1) ;
-	    *(it + 1 ) = swap;
-	    sorted = false;
-	  }
-	} 
-      }
+      // 	    Jet * swap = *(it + 1);
+      // 	    *(it) = *(it +1) ;
+      // 	    *(it + 1 ) = swap;
+      // 	    sorted = false;
+      // 	  }
+      // 	} 
+      // }
       
-      if (deltaR(*jets_sorted[QUARK][0], *jets_sorted[QUARK][1]) > 1.0  )	{
-	
-	const double pull_angle = fabs(CalculatePullAngle(*jets_sorted[QUARK][0], *jets_sorted[QUARK][1], false));
+      if (deltaR(jets[QUARK][0], jets[QUARK][1]) > 1.0  ){
+	try{
+	  const double pull_angle = fabs(CalculatePullAngle(jets[QUARK][0], jets[QUARK][1], false));
+	  _h[0] -> fill(pull_angle / Rivet::PI);
+	  _h_CMSSW[0] -> fill(pull_angle);
+	}
+	catch (const char * e){
+	  printf("vetoEvent %s\n", e);
+	  vetoEvent;
+	}
 	//      printf("filling pull_angle %f\n", pull_angle);
-	_h[0] -> fill(pull_angle / Rivet::PI);
       }
 	  
     }
@@ -237,6 +276,7 @@ namespace Rivet
 
 	printf("norm %f\n", norm);
 	scale(_h[0],      norm);
+	scale(_h_CMSSW[0],      norm);
 
 	//	normalize(_h[chargeind]);
 	//	normalize(_h[chargeind], 1.0, false);
@@ -252,50 +292,66 @@ namespace Rivet
       return sqrt(deta*deta + dphi*dphi);
     }
 
-    Vector3 CalculatePull(Jet& jet, bool &isCharged) {
+    Vector3 CalculatePull(Jet & jet, bool &isCharged) {
       Vector3 pull(0.0, 0.0, 0.0);
-      double PT = jet.pT();
-      Particles& constituents = jet.particles();
+      const double PT = jet.pT();
+      Particles & constituents = jet.particles();
       Particles charged_constituents;
+      double Pt_jet_constituents = 0.0;
       if (isCharged) {
-	for (Particle & p : constituents) {
-	  if (p.charge3() != 0)  
-	    charged_constituents += p;
+	for (const Particle & particle : constituents) {
+	  if (particle.charge3() != 0)  
+	    charged_constituents += particle;
 	}
 	constituents = charged_constituents;
       }
       // calculate axis
-      FourMomentum axis;
-      for (Particle& p : constituents)  
-	axis += p.momentum();
+      FourMomentum axis(0.0, 0.0, 0.0, 0.0);
+      for (const Particle & particle : constituents){  
+	if (true/*particle.pt() > 1.0 * GeV*/){
+	  axis += particle.momentum();
+	  Pt_jet_constituents += particle.pt();
+	}
+      }
+      
+      if (Pt_jet_constituents < 1E-10 * GeV)
+	{
+	  //	  cout<< "Zero components" << endl;
+	  throw "Zero components";
+	}
+      
       Vector3 J(axis.rap(), axis.phi(MINUSPI_PLUSPI), 0.0);
       // calculate pull
-      for (Particle & p : constituents) {
-	Vector3 ri = Vector3(p.rap(), p.phi(MINUSPI_PLUSPI), 0.0) - J;
-	while (ri.y() >  Rivet::PI) ri.setY(ri.y() - Rivet::TWOPI);
-	while (ri.y() < -Rivet::PI) ri.setY(ri.y() + Rivet::TWOPI);
-	pull.setX(pull.x() + (ri.mod() * ri.x() * p.pT()) / PT);
-	pull.setY(pull.y() + (ri.mod() * ri.y() * p.pT()) / PT);
+      for (const Particle & particle : constituents) {
+	if (particle.pt() < 1.0 * GeV)
+	  continue;
+	Vector3 ri = Vector3(particle.rap(), particle.phi(MINUSPI_PLUSPI), 0.0) - J;
+	if (ri.y() >  Rivet::PI) 
+	  ri.setY(ri.y() - Rivet::TWOPI);
+	if (ri.y() < -Rivet::PI) 
+	  ri.setY(ri.y() + Rivet::TWOPI);
+	pull.setX(pull.x() + ri.mod() * ri.x() * particle.pT() / PT);
+	pull.setY(pull.y() + ri.mod() * ri.y() * particle.pT() / PT);
       }
       return pull;
     }
 
-    double CalculatePullAngle(Jet& jet1, Jet& axisjet, bool isCharged) {
-      // printf("jet1 px %f py %f, pz %f, E %f\n", jet1.px(), jet1.py(), jet1.pz(), jet1.E() );
-      // printf("aixsjet px %f py %f, pz %f, E %f\n", axisjet.px(), axisjet.py(), axisjet.pz(), axisjet.E() );
+    double CalculatePullAngle(Jet & jet1, Jet & axisjet, bool isCharged) {
       Vector3 pull_vector = CalculatePull(jet1, isCharged);
-      // printf("pull_vector px %f, py %f, pz %f\n", pull_vector.x(), pull_vector.y(), pull_vector.z()); 
-      pull_vector = Vector3(1000.*pull_vector.x(), 1000.*pull_vector.y(), 0.0);
+      pull_vector = Vector3(pull_vector.x(), pull_vector.y(), 0.0);
+      if (fabs(pull_vector.x()) > 0.02 or fabs(pull_vector.y()) > 0.02) 
+	throw "too big";
       double drap = axisjet.rap() - jet1.rap();
-            double dphi = axisjet.phi(MINUSPI_PLUSPI) - jet1.phi(MINUSPI_PLUSPI);
+      double dphi = axisjet.phi(MINUSPI_PLUSPI) - jet1.phi(MINUSPI_PLUSPI);
       // double dphi = axisjet.phi() - jet1.phi();
-      Vector3 j2_vector(drap, dphi, 0.0);
+      Vector3 dvector(drap, dphi, 0.0);
       //return deltaPhi(pull_vector, j2_vector);
-            return mapAngleMPiToPi(deltaPhi(pull_vector, j2_vector));
+      return mapAngleMPiToPi(deltaPhi(pull_vector, dvector));
     }
 
     Cut particle_cut, lepton_cut, jet_cut;
     Histo1DPtr _h[2];
+    Histo1DPtr _h_CMSSW[2];
     Histo1DPtr _hsel;
   };
   // The hook for the plugin system

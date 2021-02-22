@@ -57,7 +57,7 @@ options.register('saveTree', True,
                  VarParsing.varType.bool,
                  "save summary tree"
                  )
-options.register('savePF', True,
+options.register('savePF', False,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.bool,
                  'save PF candidates'
@@ -75,26 +75,28 @@ if options.runProtonFastSim:
       process = cms.Process("MiniAnalysis", eras.ctpps_2016)      
 else:
       process = cms.Process("MiniAnalysis")
-
 #get the configuration to apply
 from TopLJets2015.TopAnalysis.EraConfig import getEraConfiguration
 globalTag, jecTag, jecDB, jerTag, jerDB = getEraConfiguration(era=options.era,isData=options.runOnData)
 
 # Load the standard set of configuration modules
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
+
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('Configuration.StandardSequences.GeometryDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
-
+print "probe A1"
 #EGM customization
 from TopLJets2015.TopAnalysis.customizeEGM_cff import customizeEGM
+print "probe A10"
 customizeEGM(process=process,era=options.era)
-
+print "probe A2"
 # global tag
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, globalTag)
 
+print "probe A3"
 process.load("GeneratorInterface.RivetInterface.mergedGenParticles_cfi")
 process.load("GeneratorInterface.RivetInterface.genParticles2HepMC_cfi")
 process.genParticles2HepMC.genParticles = cms.InputTag("mergedGenParticles")
@@ -113,6 +115,8 @@ process.genParticles2HepMC.genParticles = cms.InputTag("mergedGenParticles")
 
 #jet energy corrections
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
+
+print "probe"
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
 from TopLJets2015.TopAnalysis.customizeJetTools_cff import *
@@ -137,9 +141,7 @@ process.source = cms.Source("PoolSource",
                             )
 if '2016' in options.era:
       process.source.fileNames = cms.untracked.vstring('/store/mc/RunIISummer16MiniAODv2/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/50000/0693E0E7-97BE-E611-B32F-0CC47A78A3D8.root')
-
-      #'/store/mc/RunIISummer16MiniAODv3/GJets_SM_5f_TuneEE5C_EWK_13TeV-madgraph-herwigpp/MINIAODSIM/94X_mcRun2_asymptotic_v3-v1/80000/C8C51E09-5113-E911-978A-0025905A608A.root')
-
+#'/store/mc/RunIISummer16MiniAODv3/GJets_SM_5f_TuneEE5C_EWK_13TeV-madgraph-herwigpp/MINIAODSIM/94X_mcRun2_asymptotic_v3-v1/80000/C8C51E09-5113-E911-978A-0025905A608A.root')
       #/store/mc/RunIISummer16MiniAODv3/TT_TuneCUETP8M2T4_PSweights_13TeV-powheg-pythia8/MINIAODSIM/94X_mcRun2_asymptotic_v3-v1/100000/B28E96ED-08A6-E911-8D2C-FA163EEC7BB7.root
 
 if options.runOnData:

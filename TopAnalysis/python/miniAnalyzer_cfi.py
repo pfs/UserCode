@@ -213,3 +213,5 @@ analysis = cms.EDAnalyzer("MiniAnalyzer",
 
 
 analysis_test = analysis.clone( savePF = cms.bool(True) )
+analysis_test.__dict__['_TypedParameterizable__type']='MiniAnalyzer_test'
+

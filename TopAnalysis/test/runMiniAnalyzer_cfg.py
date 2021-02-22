@@ -219,7 +219,7 @@ print 'MiniAnalyzer configuration is as follows:'
 process.analysis.saveTree  = cms.bool(options.saveTree)
 process.analysis.savePF    = cms.bool(options.savePF)
 process.analysis.applyFilt = cms.bool(options.applyFilt)
-print '\t plugin=',process.analysis_test.__dict__['_TypedParameterizable__type'],' save tree=',options.saveTree,' save PF=',options.savePF
+print '\t plugin=',process.analysis.__dict__['_TypedParameterizable__type'],' save tree=',options.saveTree,' save PF=',options.savePF
 if 'era2017' in options.era:
       process.analysis.jetIdToUse=ANALYSISJETIDS[2017]
       process.analysis.triggersToUse=ANALYSISTRIGGERLISTS[2017]

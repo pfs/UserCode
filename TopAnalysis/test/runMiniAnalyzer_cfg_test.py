@@ -57,7 +57,7 @@ options.register('saveTree', True,
                  VarParsing.varType.bool,
                  "save summary tree"
                  )
-options.register('savePF', False,
+options.register('savePF', True,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.bool,
                  'save PF candidates'
@@ -222,7 +222,7 @@ process.analysis.__dict__['_TypedParameterizable__type']='MiniAnalyzer_test'
 process.analysis.saveTree  = cms.bool(options.saveTree)
 process.analysis.savePF    = cms.bool(options.savePF)
 process.analysis.applyFilt = cms.bool(options.applyFilt)
-print '\t plugin=',process.analysis_test.__dict__['_TypedParameterizable__type'],' save tree=',options.saveTree,' save PF=',options.savePF
+print '\t plugin=',process.analysis.__dict__['_TypedParameterizable__type'],' save tree=',options.saveTree,' save PF=',options.savePF
 if 'era2017' in options.era:
       process.analysis.jetIdToUse=ANALYSISJETIDS[2017]
       process.analysis.triggersToUse=ANALYSISTRIGGERLISTS[2017]

@@ -16,33 +16,35 @@ class JECTools
 {
  public:
 
+  JECTools(TString era, std::string jecVar);
   JECTools(TString era);
-
+  ~JECTools();
   //JES and its uncertainty
   void startFactorizedJetEnergyCorrector(bool isMC);
-  FactorizedJetCorrector *getFactorizedJetEnergyCorrector() { return jetCorr_; }
-  void applyJetCorrectionUncertainty(MiniEvent_t &ev, TString jecVar, Variation direction);
-  TLorentzVector getShiftedJet(TLorentzVector &jp4,TString jecVar,Variation direction);
+  FactorizedJetCorrector * getFactorizedJetEnergyCorrector() { return jetCorr_; }
+  void applyJetCorrectionUncertainty(MiniEvent_t & ev, TString jecVar, Variation direction);
+  TLorentzVector getShiftedJet(TLorentzVector & jp4, TString jecVar, Variation direction);
 
   //JER smearing and uncertainty
-  void smearJetEnergies(MiniEvent_t &ev, Variation option=Variation::NOMINAL);
-  TLorentzVector getSmearedJet(TLorentzVector &jp4, float genJet_pt,float rho,Variation option=Variation::NOMINAL,float jerVarPartial=1.0);
+  void smearJetEnergies(MiniEvent_t & ev, Variation option = Variation::NOMINAL);
+  TLorentzVector getSmearedJet(TLorentzVector & jp4, float genJet_pt, float rho, Variation option = Variation::NOMINAL, float jerVarPartial = 1.0);
 
   //b fragmentation, see https://gitlab.cern.ch/CMS-TOPPAG/BFragmentationAnalyzer
-  float computeBFragmentationWeight(MiniEvent_t &ev, TString wgtName);
-  float computeSemilepBRWeight(MiniEvent_t &ev, TString var,int pid = 0, bool useabs = true);
+  float computeBFragmentationWeight(MiniEvent_t & ev, TString wgtName);
+  float computeSemilepBRWeight(MiniEvent_t & ev, TString var, int pid = 0, bool useabs = true);
 
  private:
   void startBFragmentationWeights();
   void startSemilepBRWeights();
   TString era_;
-  FactorizedJetCorrector *jetCorr_;
-  std::map<TString,JetCorrectionUncertainty *> jecUncs_;
-  JME::JetResolution *jer_;
-  JME::JetResolutionScaleFactor *jerSF_;
-  std::map<TString, TGraph*> bfragMap_;
-  std::map<TString, std::map<int, float> > semilepBRwgts_;
-  TRandom3 *rand_;
+  FactorizedJetCorrector                        * jetCorr_;
+  std::map<TString, JetCorrectionUncertainty *>   jecUncs_;
+  JetCorrectorParameters *                        jecParam_;
+  JME::JetResolution                            * jer_;
+  JME::JetResolutionScaleFactor                 * jerSF_;
+  std::map<TString, TGraph*>                      bfragMap_;
+  std::map<TString, std::map<int, float> >        semilepBRwgts_;
+  TRandom3                                      * rand_;
 };
 
 #endif

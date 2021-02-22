@@ -12,22 +12,22 @@ using namespace std;
 //
 EfficiencyScaleFactorsWrapper::EfficiencyScaleFactorsWrapper(bool isData,TString era)
 {
-  if(isData) return;
+  if (isData) return;
   init(era);
 }
 
 EfficiencyScaleFactorsWrapper::EfficiencyScaleFactorsWrapper(bool isData,TString era,std::map<TString,TString> cfgMap):
   cfgMap_(cfgMap)
 {
-  if(isData) return;
+  if (isData) return;
   init(era);
 }
 
 //
 void EfficiencyScaleFactorsWrapper::init(TString era)
 {
-  if(era.Contains("era2017")) era_=2017;
-  if(era.Contains("era2016")) era_=2016;
+  if (era.Contains("era2017")) era_ = 2017;
+  if (era.Contains("era2016")) era_ = 2016;
 
   cout << "[EfficiencyScaleFactorsWrapper]" << endl
        << "\tStarting efficiency scale factors for " << era << endl
@@ -36,118 +36,130 @@ void EfficiencyScaleFactorsWrapper::init(TString era)
        << "\tDon't forget to fix these and update these items!" << endl;
 
   //PHOTONS
-  TString gid(era_==2016? "MVAWP90" : "MVAwp90");
-  if(cfgMap_.find("g_id")!=cfgMap_.end()) gid=cfgMap_["g_id"]; 
-  TString url(era+"/2017_Photons"+gid+".root");
-  if(era_==2016) url=era+"/2016LegacyReReco_Photon"+gid+".root";
-  gSystem->ExpandPathName(url);
-  TFile *fIn=TFile::Open(url);
-  scaleFactorsH_["g_id"]=(TH2 *)fIn->Get("EGamma_SF2D")->Clone();
-  scaleFactorsH_["g_id"]->SetDirectory(0);
-  fIn->Close();
+  TString gid(era_ == 2016 ? "MVAWP90" : "MVAwp90");
+  if (cfgMap_.find("g_id") != cfgMap_.end()) 
+    gid = cfgMap_["g_id"]; 
+  TString url(era + "/2017_Photons" + gid + ".root");
+  if (era_ == 2016) 
+    url = era + "/2016LegacyReReco_Photon" + gid + ".root";
+  gSystem -> ExpandPathName(url);
+  TFile * fIn = TFile::Open(url);
+  scaleFactorsH_["g_id"] = (TH2 *) fIn -> Get("EGamma_SF2D") -> Clone();
+  scaleFactorsH_["g_id"] -> SetDirectory(nullptr);
+  fIn -> Close();
 
-  if(era_==2017){
-    url=era+"/PixelSeed_ScaleFactors_2017.root";
-    gSystem->ExpandPathName(url);
-    fIn=TFile::Open(url);
-    TString gidForPSV(gid.Contains("MVA") ? "MVA" : gid);
-    scaleFactorsH_["g_psv"]=(TH2 *)fIn->Get(gidForPSV+"_ID")->Clone();
-    scaleFactorsH_["g_psv"]->SetDirectory(0);     
-    fIn->Close();
-  }
+  if(era_ == 2017)
+    {
+      url = era + "/PixelSeed_ScaleFactors_2017.root";
+      gSystem -> ExpandPathName(url);
+      fIn = TFile::Open(url);
+      TString gidForPSV(gid.Contains("MVA") ? "MVA" : gid);
+      scaleFactorsH_["g_psv"]= (TH2 *) fIn -> Get(gidForPSV + "_ID") -> Clone();
+      scaleFactorsH_["g_psv"] -> SetDirectory(nullptr);     
+      fIn -> Close();
+    }
 
-  url=era+"/egammaEffi.txt_EGM2D.root";
-  gSystem->ExpandPathName(url);
-  fIn=TFile::Open(url);
-  scaleFactorsH_["g_rec"]=(TH2 *)fIn->Get("EGamma_SF2D")->Clone();
-  scaleFactorsH_["g_rec"]->SetDirectory(0);     
-  fIn->Close();
+  url = era + "/egammaEffi.txt_EGM2D.root";
+  gSystem -> ExpandPathName(url);
+  fIn = TFile::Open(url);
+  scaleFactorsH_["g_rec"] = (TH2 *) fIn -> Get("EGamma_SF2D") -> Clone();
+  scaleFactorsH_["g_rec"] -> SetDirectory(nullptr);     
+  fIn -> Close();
   
   //MUONS
-  if(era_==2016){
-    url=era+"/MuonTracking_EfficienciesAndSF_BCDEF.root";
-    gSystem->ExpandPathName(url);
-    fIn=TFile::Open(url);
-    scaleFactorsGr_["m_tk"]=(TGraphAsymmErrors *)fIn->Get("ratio_eff_aeta_dr030e030_corr");
-    fIn->Close();
+  if(era_ == 2016)
+    {
+      url= era + "/MuonTracking_EfficienciesAndSF_BCDEF.root";
+      gSystem -> ExpandPathName(url);
+      fIn = TFile::Open(url);
+      scaleFactorsGr_["m_tk"] = (TGraphAsymmErrors *) fIn -> Get("ratio_eff_aeta_dr030e030_corr");
+      fIn -> Close();
 
-    url=era+"/MuonTracking_EfficienciesAndSF_GH.root";
-    gSystem->ExpandPathName(url);
-    fIn=TFile::Open(url);
-    scaleFactorsGr_["m_tkGH"]=(TGraphAsymmErrors *)fIn->Get("ratio_eff_aeta_dr030e030_corr");
-    fIn->Close();
+      url = era + "/MuonTracking_EfficienciesAndSF_GH.root";
+      gSystem -> ExpandPathName(url);
+      fIn = TFile::Open(url);
+      scaleFactorsGr_["m_tkGH"] = (TGraphAsymmErrors *) fIn -> Get("ratio_eff_aeta_dr030e030_corr");
+      fIn -> Close();
 
 
-  } else {
-    std::cout << "No tracking effciency for 2017 muons!!!" << endl;
-  }
+    } 
+  else 
+    {
+      std::cout << "No tracking effciency for 2017 muons!!!" << endl;
+    }
 
   TString mid("TightID");
-  if(cfgMap_.find("m_id")!=cfgMap_.end()) mid=cfgMap_["m_id"];
-  if(era_==2016) {
-    url=era+"/RunBCDEF_SF_MuID.root";
-    gSystem->ExpandPathName(url); 
-    fIn=TFile::Open(url);
-    scaleFactorsH_["m_id"]=(TH2F *)fIn->Get("NUM_"+mid+"_DEN_genTracks_eta_pt")->Clone();
-    scaleFactorsH_["m_id"]->SetDirectory(0);
-    fIn->Close();
+  if (cfgMap_.find("m_id") != cfgMap_.end()) mid = cfgMap_["m_id"];
+  if(era_ == 2016) 
+    {
+      url= era + "/RunBCDEF_SF_MuID.root";
+      gSystem -> ExpandPathName(url); 
+      fIn = TFile::Open(url);
+      scaleFactorsH_["m_id"] = (TH2F *) fIn->Get("NUM_" + mid + "_DEN_genTracks_eta_pt") -> Clone();
+      scaleFactorsH_["m_id"] -> SetDirectory(nullptr);
+      fIn -> Close();
 
-    url=era+"/RunGH_SF_MuID.root";
-    gSystem->ExpandPathName(url);
-    fIn=TFile::Open(url);
-    scaleFactorsH_["m_idGH"]=(TH2F *)fIn->Get("NUM_"+mid+"_DEN_genTracks_eta_pt")->Clone();
-    scaleFactorsH_["m_idGH"]->SetDirectory(0);
-    fIn->Close();
-  } else {
-    url=era+"/RunBCDEF_SF_MuID.root"; 
-    fIn=TFile::Open(url);
-    scaleFactorsH_["m_id"]=(TH2F *)fIn->Get("NUM_"+mid+"_DEN_genTracks_pt_abseta")->Clone();
-    scaleFactorsH_["m_id"]->SetDirectory(0);
-    fIn->Close();
-  }
+      url = era + "/RunGH_SF_MuID.root";
+      gSystem -> ExpandPathName(url);
+      fIn = TFile::Open(url);
+      scaleFactorsH_["m_idGH"] = (TH2F *) fIn -> Get("NUM_" + mid + "_DEN_genTracks_eta_pt") -> Clone();
+      scaleFactorsH_["m_idGH"] -> SetDirectory(nullptr);
+      fIn -> Close();
+    } 
+  else 
+    {
+      url = era + "/RunBCDEF_SF_MuID.root"; 
+      fIn = TFile::Open(url);
+      scaleFactorsH_["m_id"] = (TH2F *) fIn -> Get("NUM_" + mid + "_DEN_genTracks_pt_abseta") -> Clone();
+      scaleFactorsH_["m_id"] -> SetDirectory(nullptr);
+      fIn -> Close();
+    }
 
-  TString miso("TightRelIso"),mid4iso(mid);
-  if(cfgMap_.find("m_iso")!=cfgMap_.end())    miso=cfgMap_["m_iso"];
-  if(cfgMap_.find("m_id4iso")!=cfgMap_.end()) mid4iso=cfgMap_["m_id4iso"];
-  if(era_==2016) { 
-    url=era+"/RunBCDEF_SF_MuISO.root";
-    gSystem->ExpandPathName(url);
-    fIn=TFile::Open(url);
-    scaleFactorsH_["m_iso"]=(TH2F *)fIn->Get("NUM_"+miso+"_DEN_"+mid4iso+"_eta_pt")->Clone();
-    scaleFactorsH_["m_iso"]->SetDirectory(0);
-    fIn->Close();
-    url=era+"/RunGH_SF_MuISO.root";
-    gSystem->ExpandPathName(url);
-    fIn=TFile::Open(url);
-    scaleFactorsH_["m_isoGH"]=(TH2F *)fIn->Get("NUM_"+miso+"_DEN_"+mid4iso+"_eta_pt")->Clone();
-    scaleFactorsH_["m_isoGH"]->SetDirectory(0);
-    fIn->Close();
-  }else {
-    url=era+"/RunBCDEF_SF_MuISO.root";
-    gSystem->ExpandPathName(url);
-    fIn=TFile::Open(url);
-    scaleFactorsH_["m_iso"]=(TH2F *)fIn->Get("NUM_"+miso+"_DEN_"+mid4iso+"_pt_abseta")->Clone();
-    scaleFactorsH_["m_iso"]->SetDirectory(0);
-    fIn->Close();
-  }
+  TString miso("TightRelIso"), mid4iso(mid);
+  if (cfgMap_.find("m_iso") != cfgMap_.end())    miso = cfgMap_["m_iso"];
+  if (cfgMap_.find("m_id4iso") != cfgMap_.end()) mid4iso = cfgMap_["m_id4iso"];
+  if (era_ == 2016) 
+    { 
+      url = era + "/RunBCDEF_SF_MuISO.root";
+      gSystem -> ExpandPathName(url);
+      fIn = TFile::Open(url);
+      scaleFactorsH_["m_iso"] = (TH2F *) fIn -> Get("NUM_" + miso + "_DEN_" + mid4iso + "_eta_pt") -> Clone();
+      scaleFactorsH_["m_iso"] -> SetDirectory(nullptr);
+      fIn -> Close();
+      url = era + "/RunGH_SF_MuISO.root";
+      gSystem -> ExpandPathName(url);
+      fIn = TFile::Open(url);
+      scaleFactorsH_["m_isoGH"] = (TH2F *) fIn -> Get("NUM_" + miso + "_DEN_" + mid4iso + "_eta_pt") -> Clone();
+      scaleFactorsH_["m_isoGH"] -> SetDirectory(nullptr);
+      fIn -> Close();
+    }
+  else 
+    {
+      url = era + "/RunBCDEF_SF_MuISO.root";
+      gSystem -> ExpandPathName(url);
+      fIn = TFile::Open(url);
+      scaleFactorsH_["m_iso"] = (TH2F *) fIn -> Get("NUM_" + miso + "_DEN_" + mid4iso + "_pt_abseta") -> Clone();
+      scaleFactorsH_["m_iso"] -> SetDirectory(nullptr);
+      fIn -> Close();
+    }
 
   //ELECTRONS
-  url=era+"/egammaEffi.txt_EGM2D.root";
-  gSystem->ExpandPathName(url);
-  fIn=TFile::Open(url);
-  scaleFactorsH_["e_rec"]=(TH2 *)fIn->Get("EGamma_SF2D")->Clone();
-  scaleFactorsH_["e_rec"]->SetDirectory(0);     
-  fIn->Close();
+  url = era + "/egammaEffi.txt_EGM2D.root";
+  gSystem -> ExpandPathName(url);
+  fIn = TFile::Open(url);
+  scaleFactorsH_["e_rec"] = (TH2 *) fIn -> Get("EGamma_SF2D") -> Clone();
+  scaleFactorsH_["e_rec"] -> SetDirectory(nullptr);     
+  fIn -> Close();
   
   TString eid("MVA80");
-  if(cfgMap_.find("e_id")!=cfgMap_.end()) eid=cfgMap_["e_id"]; 
-  url=era+"/2017_Electron"+eid+".root";
-  if(era_==2016) url=era+"/2016LegacyReReco_Electron"+eid+".root";
-  gSystem->ExpandPathName(url);
-  fIn=TFile::Open(url);      
-  scaleFactorsH_["e_id"]=(TH2 *)fIn->Get("EGamma_SF2D")->Clone();
-  scaleFactorsH_["e_id"]->SetDirectory(0);
-  fIn->Close();
+  if (cfgMap_.find("e_id") != cfgMap_.end()) eid = cfgMap_["e_id"]; 
+  url = era + "/2017_Electron" + eid + ".root";
+  if (era_ == 2016) url = era + "/2016LegacyReReco_Electron" + eid + ".root";
+  gSystem -> ExpandPathName(url);
+  fIn = TFile::Open(url);      
+  scaleFactorsH_["e_id"] = (TH2 *) fIn -> Get("EGamma_SF2D") -> Clone();
+  scaleFactorsH_["e_id"] -> SetDirectory(nullptr);
+  fIn -> Close();
   
 }
 

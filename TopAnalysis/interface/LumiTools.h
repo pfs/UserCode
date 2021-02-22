@@ -12,14 +12,16 @@ class LumiTools
 {
  public:
   typedef std::pair<TString,float> RunPeriod_t;
-  LumiTools(TString era="era2017",TH1 *genPuH=0);
+  LumiTools(TString era = "era2017", TH1 * genPuH = nullptr);
   TString assignRunPeriod();
   std::map<Int_t,Float_t> lumiPerRun();
-  std::vector<Float_t> pileupWeight(Float_t genPu,TString period="");
+  std::vector<Float_t> pileupWeight(Float_t genPu, TString period = "");
+  std::map<TString, std::vector<TH1 *> > & GetpuWgtGr();
+
  private:
   void parseLumiInfo();
   std::map<Int_t,Float_t> lumiPerRun_;
-  TH1F *countH_;
+  TH1F * countH_;
   std::vector<RunPeriod_t> runPeriods_;
   void defineRunPeriods();
   //std::map<TString, std::vector<TGraph *> > puWgtGr_;

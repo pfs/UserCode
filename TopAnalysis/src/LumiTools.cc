@@ -80,50 +80,59 @@ TString LumiTools::assignRunPeriod()
 //
 void LumiTools::parsePileupWeightsMap(TH1 *genPU)
 {  
-  if(genPU==0) return;
-  float totalExp(genPU->Integral());
-  if(totalExp<=0) return;
-  genPU->Scale(1./totalExp);
-  for (auto period : runPeriods_) {
+  if (genPU == 0) 
+    return;
+  const float totalExp(genPU -> Integral());
+  if (totalExp <= 0) 
+    return;
+  genPU -> Scale(1.0/totalExp);
+  for (auto period : runPeriods_) 
+    {
 
-    puWgtGr_[period.first]=std::vector<TH1 *>(3,0);
-    //puWgtGr_[period.first]=std::vector<TGraph *>(3,0);
+      puWgtGr_[period.first] = std::vector<TH1 *>(3, nullptr);
+      //puWgtGr_[period.first]=std::vector<TGraph *>(3,0);
 
-    //readout the pileup weights and take the ratio of data/MC
-    TString puWgtUrl(era_+"/pileupWgts"+period.first+".root");
-    gSystem->ExpandPathName(puWgtUrl);
-    TFile *fIn=TFile::Open(puWgtUrl);
-    for(size_t i=0; i<3; i++)
-      {
-        TString grName("pu_nom");
-        if(i==1) grName="pu_down";
-        if(i==2) grName="pu_up";
-        TGraph *puData=(TGraph *)fIn->Get(grName);
-        Float_t totalData=puData->Integral();
-        TH1 *tmp=(TH1 *)genPU->Clone("tmp");
-        for(Int_t xbin=1; xbin<=tmp->GetXaxis()->GetNbins(); xbin++)
-          {
-            Float_t yexp=genPU->GetBinContent(xbin);
-            Double_t xobs,yobs;
-            puData->GetPoint(xbin-1,xobs,yobs);
-            float wgt(yexp>0 ? float(yobs)/(totalData*yexp) : 0.);
-            if(isinf(wgt) || isnan(wgt)) wgt=0.;
-            tmp->SetBinContent(xbin,wgt);
-          }
+      //readout the pileup weights and take the ratio of data/MC
+      TString puWgtUrl(era_ + "/pileupWgts" + period.first + ".root");
+      gSystem -> ExpandPathName(puWgtUrl);
+      TFile * fIn = TFile::Open(puWgtUrl);
+      for(size_t ind = 0; ind < 3; ind ++)
+	{
+	  TString grName("pu_nom");
+	  if (ind == 1) grName = "pu_down";
+	  if (ind == 2) grName = "pu_up";
+	  const TGraph * puData = (TGraph *) fIn -> Get(grName);
+	  const Float_t totalData = puData -> Integral();
+	  TH1 *tmp = (TH1 *) genPU -> Clone("tmp");
+	  for(Int_t xbin = 1; xbin <= tmp -> GetXaxis() -> GetNbins(); xbin++)
+	    {
+	      const Float_t yexp = genPU -> GetBinContent(xbin);
+	      Double_t xobs, yobs;
+	      puData -> GetPoint(xbin - 1, xobs, yobs);
+	      float wgt(yexp > 0 ? float(yobs)/(totalData*yexp) : 0.0);
+	      if (isinf(wgt) || isnan(wgt)) wgt = 0.0; 
+	      tmp -> SetBinContent(xbin, wgt);
+	    }
         
-        grName.ReplaceAll("pu","puwgts");
-        tmp->SetName(period.first+grName);
-        tmp->SetDirectory(0);
-        puWgtGr_[period.first][i]=tmp;
+	  grName.ReplaceAll("pu", "puwgts");
+	  tmp -> SetName(period.first + grName);
+	  tmp -> SetDirectory(0);
+	  puWgtGr_[period.first][ind] = tmp;
 
-        //TGraph *gr=new TGraph(tmp);
-        //grName.ReplaceAll("pu","puwgts");
-        //gr->SetName(period.first+grName);
-        //puWgtGr_[period.first][i]=gr;
-        //tmp->Delete();
-      }
-  }
+	  //TGraph *gr=new TGraph(tmp);
+	  //grName.ReplaceAll("pu","puwgts");
+	  //gr->SetName(period.first+grName);
+	  //puWgtGr_[period.first][i]=gr;
+	  //tmp->Delete();
+	}
+    }
 }
+
+std::map<TString, std::vector<TH1 *> > & LumiTools::GetpuWgtGr()
+{
+  return puWgtGr_;
+}
+
 
 //
 std::vector<Float_t> LumiTools::pileupWeight(Float_t genPu,TString period)

@@ -162,7 +162,7 @@ def main(args):
             condor.write("+JobFlavour = \"longlunch\"\n")
             condor.write("request_cpus = 4\n")        
             for mass in  [m for sublist in MASSPOINTS for m in sublist]:
-                for boson in ['g']: #['z','g','zmm','zee']:
+                for boson in ['z','g','zmm','zee']:
                     condor.write("arguments=%d %s\n"%(mass,boson))
                     condor.write("queue 1\n")
         print 'Submitting jobs for',odir

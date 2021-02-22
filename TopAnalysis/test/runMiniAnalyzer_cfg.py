@@ -216,7 +216,6 @@ process.TFileService = cms.Service("TFileService",
 from TopLJets2015.TopAnalysis.miniAnalyzer_cfi import  ANALYSISJETIDS,ANALYSISTRIGGERLISTS
 process.load('TopLJets2015.TopAnalysis.miniAnalyzer_cfi')
 print 'MiniAnalyzer configuration is as follows:'
-process.analysis_test.__dict__['_TypedParameterizable__type']='MiniAnalyzer_test'
 process.analysis.saveTree  = cms.bool(options.saveTree)
 process.analysis.savePF    = cms.bool(options.savePF)
 process.analysis.applyFilt = cms.bool(options.applyFilt)

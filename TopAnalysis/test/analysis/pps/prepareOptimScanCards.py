@@ -6,6 +6,7 @@ import itertools
 from generateBinnedWorkspace import VALIDLHCXANGLES
 import numpy as np
 
+PPVX_LUMI  = {'Z':37193,'A':2288.}
 KINEMATICS = '(((cat==169 || cat==121) && l1pt>30 && l2pt>20 && bosonpt>40) || (cat==22 && bosonpt>95))'
 RPSEL      = 'csi1>0.035 && csi2>0.035'
 CATEGS     = [list(itertools.product( ['protonCat==%d'%protonCat],
@@ -96,9 +97,11 @@ def main(args):
             script.write('cd -\n')
             script.write('\n')
 
+            script.write('lumi={}\n\n'.format( PPVX_LUMI['A'] if finalState=='22' else PPVX_LUMI['Z'] ))
+
             #create datacard
             script.write('echo "Running datacard creation"\n')
-            script.write('python ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/generateBinnedWorkspace.py -i ${input} -o ${output} --cuts "${cuts}" ${extraOpt} --finalState ${finalState}\n')
+            script.write('python ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/generateBinnedWorkspace.py -i ${input} -o ${output} --cuts "${cuts}" ${extraOpt} --finalState ${finalState} --lumi ${lumi}\n')
             script.write('\n')
 
 

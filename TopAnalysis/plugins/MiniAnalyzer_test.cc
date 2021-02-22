@@ -105,11 +105,11 @@ typedef math::XYZTLorentzVector LorentzVector;
 // class declaration
 //
 
-class MiniAnalyzer : public edm::EDAnalyzer 
+class MiniAnalyzer_test : public edm::EDAnalyzer 
 {
 public:
-  explicit MiniAnalyzer(const edm::ParameterSet &);
-  ~MiniAnalyzer();  
+  explicit MiniAnalyzer_test(const edm::ParameterSet &);
+  ~MiniAnalyzer_test();  
   static void fillDescriptions(edm::ConfigurationDescriptions & descriptions);  
   virtual void endRun(const edm::Run&, const edm::EventSetup &);  
 private:
@@ -195,7 +195,7 @@ private:
 //
 // constructors and destructor
 //
-MiniAnalyzer::MiniAnalyzer(const edm::ParameterSet& iConfig) :
+MiniAnalyzer_test::MiniAnalyzer_test(const edm::ParameterSet& iConfig) :
   generatorToken_              (consumes<GenEventInfoProduct>                                          (edm::InputTag("generator"))),
   generatorevtToken_           (consumes<GenEventInfoProduct>                                          (edm::InputTag("generator", ""))),
   generatorlheToken_           (consumes<LHEEventProduct>                                              (edm::InputTag("externalLHEProducer", ""))),
@@ -267,7 +267,7 @@ MiniAnalyzer::MiniAnalyzer(const edm::ParameterSet& iConfig) :
 
 
 //
-MiniAnalyzer::~MiniAnalyzer()
+MiniAnalyzer_test::~MiniAnalyzer_test()
 {
   // do anything here that needs to be done at desctruction time
   // (e.g. close files, deallocate resources etc.)
@@ -277,7 +277,7 @@ MiniAnalyzer::~MiniAnalyzer()
 //
 // member functions
 //
-void MiniAnalyzer::genAnalysis(const edm::Event & iEvent, const edm::EventSetup & iSetup)
+void MiniAnalyzer_test::genAnalysis(const edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   //
   // PILEUP
@@ -554,7 +554,7 @@ void MiniAnalyzer::genAnalysis(const edm::Event & iEvent, const edm::EventSetup 
 
 
 //
-void MiniAnalyzer::recAnalysis(const edm::Event & iEvent, const edm::EventSetup & iSetup)
+void MiniAnalyzer_test::recAnalysis(const edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   //VERTICES
   edm::Handle<reco::VertexCollection> vertices;
@@ -1279,7 +1279,7 @@ void MiniAnalyzer::recAnalysis(const edm::Event & iEvent, const edm::EventSetup 
 }
 
 //cf. https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2#Soft_Muon
-bool MiniAnalyzer::isSoftMuon(const reco::Muon & recoMu, const reco::Vertex &vertex)
+bool MiniAnalyzer_test::isSoftMuon(const reco::Muon & recoMu, const reco::Vertex &vertex)
 {
 
   const bool isGood(muon::isGoodMuon(recoMu, muon::TMOneStationTight));
@@ -1293,7 +1293,7 @@ bool MiniAnalyzer::isSoftMuon(const reco::Muon & recoMu, const reco::Vertex &ver
 }
 
 //cf. https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2#Standard_MediumID_to_be_used_wit
-bool MiniAnalyzer::isMediumMuon2016ReReco(const reco::Muon & recoMu) 
+bool MiniAnalyzer_test::isMediumMuon2016ReReco(const reco::Muon & recoMu) 
 {
   const bool goodGlob = recoMu.isGlobalMuon() && 
     recoMu.globalTrack()->normalizedChi2() < 3 && 
@@ -1308,7 +1308,7 @@ bool MiniAnalyzer::isMediumMuon2016ReReco(const reco::Muon & recoMu)
 
 
 // ------------ method called for each event  ------------
-void MiniAnalyzer::analyze(const edm::Event & iEvent, const edm::EventSetup & iSetup)
+void MiniAnalyzer_test::analyze(const edm::Event & iEvent, const edm::EventSetup & iSetup)
 {
   //histContainer_["counter"]->Fill(0);
   //printf("analyze probe A\n");
@@ -1354,11 +1354,11 @@ void MiniAnalyzer::analyze(const edm::Event & iEvent, const edm::EventSetup & iS
 
 
 // ------------ method called once each job just before starting event loop  ------------
-void MiniAnalyzer::beginJob()
+void MiniAnalyzer_test::beginJob()
 {
 }
 
-void MiniAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& iLumi, const edm::EventSetup& iSetup) {
+void MiniAnalyzer_test::beginLuminosityBlock(const edm::LuminosityBlock& iLumi, const edm::EventSetup& iSetup) {
   edm::Handle<GenLumiInfoHeader> genLumiInfoHandle;
   if (iLumi.getByToken(generatorLumiHeaderToken_, genLumiInfoHandle)) {
     _weightNames = genLumiInfoHandle -> weightNames();
@@ -1376,14 +1376,14 @@ void MiniAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& iLumi, const
 
 
 
-// void MiniAnalyzer::beginLuminosityBlock(edm::LuminosityBlock const & iLumi, edm::EventSetup const & iSetup)
+// void MiniAnalyzer_test::beginLuminosityBlock(edm::LuminosityBlock const & iLumi, edm::EventSetup const & iSetup)
 // {
 
 //   if (histContainer_.find("genlumiwgts") != histContainer_.end()) 
 //     return;
 //   try
 //     {
-//       cout << "[MiniAnalyzer::beginLuminosityBlock]" << endl;
+//       cout << "[MiniAnalyzer_test::beginLuminosityBlock]" << endl;
 //       edm::Handle<GenLumiInfoHeader> gen_header;
     
 //       if (iLumi.getByToken(generatorLumiHeaderToken_, gen_header))
@@ -1415,12 +1415,12 @@ void MiniAnalyzer::beginLuminosityBlock(const edm::LuminosityBlock& iLumi, const
 // }
 
 //
-void MiniAnalyzer::endRun(const edm::Run& iRun,
+void MiniAnalyzer_test::endRun(const edm::Run& iRun,
 			  const EventSetup& iSetup) 
 {
   try{
 
-    cout << "[MiniAnalyzer::endRun]" << endl;
+    cout << "[MiniAnalyzer_test::endRun]" << endl;
 
     edm::Handle<LHERunInfoProduct> lheruninfo;
     typedef std::vector<LHERunInfoProduct::Header>::const_iterator headers_const_iterator;
@@ -1462,7 +1462,7 @@ void MiniAnalyzer::endRun(const edm::Run& iRun,
 
 //-------------
 //cf. https://twiki.cern.ch/twiki/bin/view/CMS/MiniIsolationSUSY
-float MiniAnalyzer::getMiniIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
+float MiniAnalyzer_test::getMiniIsolation(edm::Handle<pat::PackedCandidateCollection> pfcands,
 				     const reco::Candidate* ptcl,  
 				     float r_iso_min, float r_iso_max, float kt_scale,
 				     bool charged_only) 
@@ -1567,13 +1567,13 @@ float MiniAnalyzer::getMiniIsolation(edm::Handle<pat::PackedCandidateCollection>
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-MiniAnalyzer::endJob() 
+MiniAnalyzer_test::endJob() 
 {
-  std::cout << "[MiniAnalyzer::endJob]" << endl;
+  std::cout << "[MiniAnalyzer_test::endJob]" << endl;
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void MiniAnalyzer::fillDescriptions(edm::ConfigurationDescriptions & descriptions) 
+void MiniAnalyzer_test::fillDescriptions(edm::ConfigurationDescriptions & descriptions) 
 {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
@@ -1583,4 +1583,4 @@ void MiniAnalyzer::fillDescriptions(edm::ConfigurationDescriptions & description
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(MiniAnalyzer);
+DEFINE_FWK_MODULE(MiniAnalyzer_test);

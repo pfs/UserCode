@@ -180,7 +180,7 @@ ANALYSISJETIDS={2018:'tightLepVeto',
 
 analysis = cms.EDAnalyzer("MiniAnalyzer",
                           saveTree               = cms.bool(True),
-                          savePF                 = cms.bool(True),
+                          savePF                 = cms.bool(False),
                           applyFilt              = cms.bool(True),
                           triggerBits            = cms.InputTag("TriggerResults","","HLT"),
                           prescales              = cms.InputTag("patTrigger"),
@@ -210,3 +210,6 @@ analysis = cms.EDAnalyzer("MiniAnalyzer",
                           ctppsLocalTracks       = cms.InputTag('ctppsLocalTrackLiteProducer'),
                           tagRecoProtons         = cms.InputTag('ctppsProtonReconstruction'),
                           )
+
+
+analysis_test = analysis.clone( savePF = cms.bool(True) )

@@ -462,6 +462,35 @@ void MiniAnalyzer_test::genAnalysis(const edm::Event & iEvent, const edm::EventS
     }
   //  ev_.g_sumPVChPt = pvP4.Pt();
 
+  //final state particles
+  ev_.ngpf=0;
+  for (size_t i = 0; i < genParticles->size(); ++i)
+    {
+      const pat::PackedGenParticle & genIt = (*genParticles)[i];
+      
+      //this shouldn't be needed according to the workbook
+      //if(genIt.status()!=1) continue;
+      if(genIt.pt()<0.5 || fabs(genIt.eta())>2.5) continue;
+      
+      ev_.gpf_id[ev_.ngpf]     = genIt.pdgId();
+      ev_.gpf_c[ev_.ngpf]      = genIt.charge();
+      ev_.gpf_g[ev_.ngpf]=-1;
+      for(std::map<const reco::Candidate *,int>::iterator it=jetConstsMap.begin();
+          it!=jetConstsMap.end();
+          it++)
+        {
+          if(it->first->pdgId()!=genIt.pdgId()) continue;
+          if(deltaR( *(it->first), genIt)>0.01) continue;
+          ev_.gpf_g[ev_.ngpf]=it->second;
+          break;
+        }
+      ev_.gpf_pt[ev_.ngpf]     = genIt.pt();
+      ev_.gpf_eta[ev_.ngpf]    = genIt.eta();
+      ev_.gpf_phi[ev_.ngpf]    = genIt.phi();
+      ev_.gpf_m[ev_.ngpf]      = genIt.mass();
+      ev_.ngpf++;
+    }
+
   //Bhadrons and top quarks (lastCopy)
   edm::Handle<reco::GenParticleCollection> prunedGenParticles;
   iEvent.getByToken(prunedGenParticlesToken_, prunedGenParticles);
@@ -980,7 +1009,7 @@ void MiniAnalyzer_test::recAnalysis(const edm::Event & iEvent, const edm::EventS
   iEvent.getByToken(jetToken_, jets);
   JME::JetResolution jerResolution  = JME::JetResolution::get(iSetup, "AK4PFchs_pt");
   JME::JetResolutionScaleFactor jerResolutionSF = JME::JetResolutionScaleFactor::get(iSetup, "AK4PFchs");
-  std::vector< std::pair<const reco::Candidate *, int> > clustCands;
+  std::vector< std::pair<const reco::Candidate *,std::pair<int,bool> > > clustCands;
   for(auto jet = jets -> begin();  jet != jets -> end(); ++ jet)
     {
       //base kinematics
@@ -1118,6 +1147,30 @@ void MiniAnalyzer_test::recAnalysis(const edm::Event & iEvent, const edm::EventS
       ev_.j_deepcsv[ev_.nj] = jet -> bDiscriminator("pfDeepCSVJetTags:probb") + jet -> bDiscriminator("pfDeepCSVJetTags:probbb");
       ev_.j_btag[ev_.nj]    = (ev_.j_deepcsv[ev_.nj] > 0.4941);
       ev_.j_emf[ev_.nj]     = CEMF + NEMF;
+      
+      std::vector< const reco::Track *> tkInSvtx;
+      if( jet->hasTagInfo("pfInclusiveSecondaryVertexFinder") )
+        {
+          const reco::CandSecondaryVertexTagInfo *candSVTagInfo = jet->tagInfoCandSecondaryVertex("pfInclusiveSecondaryVertexFinder");
+          if( candSVTagInfo->nVertices() >= 1 ) 
+            {
+              const reco::VertexCompositePtrCandidate svtx = candSVTagInfo->secondaryVertex(0);
+              math::XYZTLorentzVectorD vp4 = svtx.p4();
+              ev_.j_vtxpx[ev_.nj]          = vp4.px();
+              ev_.j_vtxpy[ev_.nj]          = vp4.py();
+              ev_.j_vtxpz[ev_.nj]          = vp4.pz();
+              ev_.j_vtxmass[ev_.nj]        = vp4.mass();
+              //ev_.j_vtxchi2[ev_.nj]        = svtx.vertexChi2();
+              ev_.j_vtxNtracks[ev_.nj]     = candSVTagInfo->nVertexTracks(0);
+              ev_.j_vtx3DVal[ev_.nj]       = candSVTagInfo->flightDistance(0).value();
+              ev_.j_vtx3DSig[ev_.nj]       = candSVTagInfo->flightDistance(0).significance();
+              
+              const std::vector<reco::CandidatePtr> & tracks = svtx.daughterPtrVector();
+              for(std::vector<reco::CandidatePtr>::const_iterator track = tracks.begin(); track != tracks.end(); ++track) 
+                tkInSvtx.push_back( (*track)->bestTrack() );
+            }
+        }
+    
 
       //jet shape variables
       ev_.j_c2_00[ev_.nj]    = getC(2, 0.0, &(*jet), true, 0.9);
@@ -1160,13 +1213,30 @@ void MiniAnalyzer_test::recAnalysis(const edm::Event & iEvent, const edm::EventS
       ev_.nj ++;
 
       //save all PF candidates central jet
-      if(fabs(jet -> eta()) > 2.5) 
-	continue;
-      for(size_t ipf = 0; ipf < jet -> numberOfDaughters(); ipf ++)
-	{
-	  const reco::Candidate * pf = jet -> daughter(ipf);
-	  clustCands.push_back(std::pair<const reco::Candidate *, int>(pf, ev_.nj - 1));
-	}
+      if(fabs(jet -> eta()) > 2.5)  continue;
+
+      for(size_t ipf=0; ipf<jet->numberOfDaughters(); ipf++)
+        {
+          const reco::Candidate *pf=jet->daughter(ipf);
+
+          //check if it is also in secondary vertex
+          bool isInSvtx(false);
+          if(pf->charge()!=0)
+            {
+              for(size_t isvtxTk=0; isvtxTk<tkInSvtx.size(); isvtxTk++)
+                {
+                  if(pf->charge() != tkInSvtx[isvtxTk]->charge() ) continue;
+                  if( deltaR(pf->eta(),pf->phi(), tkInSvtx[isvtxTk]->eta(),tkInSvtx[isvtxTk]->phi()) > 0.05 ) continue;
+                  isInSvtx=true;
+                  break;
+                }
+            }
+          
+          clustCands.push_back(std::pair<const reco::Candidate *,std::pair<int,bool> >(pf,
+                                                                                       std::pair<int,bool>(ev_.nj-1,isInSvtx))
+                               );
+        }
+
     }
       
   // MET
@@ -1223,6 +1293,52 @@ void MiniAnalyzer_test::recAnalysis(const edm::Event & iEvent, const edm::EventS
     }
 
   //PF candidates
+  ev_.npf=0;
+  for(auto pf = pfcands->begin();  pf != pfcands->end(); ++pf)
+    {
+      if(ev_.npf>=5000) continue;
+
+      ev_.pf_j[ev_.npf] = -1;
+      for(size_t i=0; i<clustCands.size(); i++)
+        {
+          if(pf->pdgId()!=clustCands[i].first->pdgId()) continue;
+          if(deltaR(*pf,*(clustCands[i].first))>0.01) continue;
+          ev_.pf_j[ev_.npf]=clustCands[i].second.first;
+          //ev_.pf_svtx[ev_.npf]=clustCands[i].second.second;
+          break;
+        }
+
+      //if particle is not associated to jet and is neutral, discard
+      if(pf->charge()==0 && ev_.pf_j[ev_.npf]==-1) continue;
+
+      //if particle is charged require association to prim vertex
+      if(pf->charge()!=0)
+        {
+          //if(pf->pvAssociationQuality()<pat::PackedCandidate::CompatibilityDz) continue;
+          //if(pf->vertexRef().key()!=0) continue;
+
+          if(pf->pt()<0.9 || fabs(pf->eta())>2.5) continue;
+          const pat::PackedCandidate::PVAssoc pvassoc=pf->fromPV();
+          if(pvassoc< pat::PackedCandidate::PVTight) continue;
+            
+          ev_.pf_dxy[ev_.npf]      = pf->dxy();
+          ev_.pf_dz[ev_.npf]       = pf->dz();
+          //ev_.pf_dxyUnc[ev_.npf]   = pf->dxyError();
+          //ev_.pf_dzUnc[ev_.npf]    = pf->dzError();
+          //ev_.pf_vtxRef[ev_.npf]   = pf->vertexRef().key();
+          //ev_.pf_pvAssoc[ev_.npf]  = pf->fromPV() + 10*(pf->pvAssociationQuality());
+        }
+      
+      ev_.pf_id[ev_.npf]       = pf->pdgId();
+      ev_.pf_c[ev_.npf]        = pf->charge();
+      ev_.pf_pt[ev_.npf]       = pf->pt();
+      ev_.pf_eta[ev_.npf]      = pf->eta();
+      ev_.pf_phi[ev_.npf]      = pf->phi();
+      ev_.pf_m[ev_.npf]        = pf->mass();
+      ev_.pf_puppiWgt[ev_.npf] = pf->puppiWeight();      
+      ev_.npf++;
+    }
+
   LorentzVector vtxPt(0.0, 0.0, 0.0 ,0.0 );
   ev_.nchPV = 0; 
   ev_.sumPVChPt = 0; 
@@ -1346,6 +1462,7 @@ void MiniAnalyzer_test::analyze(const edm::Event & iEvent, const edm::EventSetup
   ev_.lumi    = iEvent.luminosityBlock();
   ev_.event   = iEvent.id().event(); 
   ev_.isData  = iEvent.isRealData();
+  if(!savePF_) { ev_.ngpf=0; ev_.npf=0; }
   // printf("analyze probe C\n");
   tree_ -> Fill();
   //  printf("analyze probe D\n");

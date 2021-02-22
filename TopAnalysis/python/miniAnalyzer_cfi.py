@@ -210,8 +210,3 @@ analysis = cms.EDAnalyzer("MiniAnalyzer",
                           ctppsLocalTracks       = cms.InputTag('ctppsLocalTrackLiteProducer'),
                           tagRecoProtons         = cms.InputTag('ctppsProtonReconstruction'),
                           )
-
-
-analysis_test = analysis.clone( savePF = cms.bool(True) )
-analysis_test.__dict__['_TypedParameterizable__type']='MiniAnalyzer_test'
-

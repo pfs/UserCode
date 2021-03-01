@@ -20,7 +20,7 @@ def customizeEGM(process,era,runWithAOD=False):
                            era=egmEra,
                            runEnergyCorrections=runEnergyCorrections)
 
-    if runWithAOD:
+    if runWithAOD: #2 tier solution
         print 'Adapting e/g sources to AOD'
         process.electronMVAValueMapProducer.src = cms.InputTag("")
         process.photonMVAValueMapProducer.src = cms.InputTag("")

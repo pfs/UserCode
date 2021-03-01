@@ -1,6 +1,6 @@
 import ROOT
 from array import array
-from TopLJets2015.TopAnalysis.storeTools import *
+import os
 import optparse
 import sys
 
@@ -9,8 +9,8 @@ def saveExpectedBtagEff(opt):
 
     #prepare data chain
     inputDir=opt.input
-    input_list=getEOSlslist(directory=inputDir)
     data=ROOT.TChain('analysis/data') 
+    input_list=[os.path.join(inputDir,f) for f in os.listdir( inputDir ) ]
     for i in xrange(0,min(5,len(input_list))):
         data.Add(input_list[i])
     print 'Projecting tagging efficiency from ',data.GetEntries(),' events'

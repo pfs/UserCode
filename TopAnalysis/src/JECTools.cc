@@ -206,6 +206,7 @@ float JECTools::computeSemilepBRWeight(MiniEvent_t &ev, TString var,int pid, boo
 
 JECTools::~JECTools()
 {
+  /*
   if (jetCorr_)
     {
       delete jetCorr_;
@@ -236,5 +237,5 @@ JECTools::~JECTools()
       delete it -> second;
     }
   jecUncs_.clear();
-
+  */
 }

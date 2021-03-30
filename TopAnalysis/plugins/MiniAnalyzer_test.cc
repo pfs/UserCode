@@ -1462,7 +1462,7 @@ void MiniAnalyzer_test::analyze(const edm::Event & iEvent, const edm::EventSetup
   ev_.lumi    = iEvent.luminosityBlock();
   ev_.event   = iEvent.id().event(); 
   ev_.isData  = iEvent.isRealData();
-  std::cout << savePF_ << " " << ev_.ngpf << " " << ev_.npf << std::endl;
+  
   if(!savePF_) { ev_.ngpf=0; ev_.npf=0; }
   // printf("analyze probe C\n");
   tree_ -> Fill();

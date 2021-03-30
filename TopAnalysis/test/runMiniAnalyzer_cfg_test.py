@@ -57,7 +57,7 @@ options.register('saveTree', True,
                  VarParsing.varType.bool,
                  "save summary tree"
                  )
-options.register('savePF', False,
+options.register('savePF', True,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.bool,
                  'save PF candidates'
@@ -218,20 +218,21 @@ process.TFileService = cms.Service("TFileService",
 from TopLJets2015.TopAnalysis.miniAnalyzer_cfi import  ANALYSISJETIDS,ANALYSISTRIGGERLISTS
 process.load('TopLJets2015.TopAnalysis.miniAnalyzer_cfi')
 print 'MiniAnalyzer configuration is as follows:'
-process.analysis_test.saveTree  = cms.bool(options.saveTree)
-process.analysis_test.savePF    = cms.bool(options.savePF)
-process.analysis_test.applyFilt = cms.bool(options.applyFilt)
-print '\t save tree=',options.saveTree,' save PF=',options.savePF
+process.analysis.__dict__['_TypedParameterizable__type']='MiniAnalyzer_test'
+process.analysis.saveTree  = cms.bool(options.saveTree)
+process.analysis.savePF    = cms.bool(options.savePF)
+process.analysis.applyFilt = cms.bool(options.applyFilt)
+print '\t plugin=',process.analysis.__dict__['_TypedParameterizable__type'],' save tree=',options.saveTree,' save PF=',options.savePF
 if 'era2017' in options.era:
-      process.analysis_test.jetIdToUse=ANALYSISJETIDS[2017]
-      process.analysis_test.triggersToUse=ANALYSISTRIGGERLISTS[2017]
+      process.analysis.jetIdToUse=ANALYSISJETIDS[2017]
+      process.analysis.triggersToUse=ANALYSISTRIGGERLISTS[2017]
       print '\t Using 2017 triggers/jet ids'
 else:
-      process.analysis_test.jetIdToUse=ANALYSISJETIDS[2016]
-      process.analysis_test.triggersToUse=ANALYSISTRIGGERLISTS[2016]
+      process.analysis.jetIdToUse=ANALYSISJETIDS[2016]
+      process.analysis.triggersToUse=ANALYSISTRIGGERLISTS[2016]
       print '\t Using 2016 triggers/jet ids'
 if options.runOnData:
-      process.analysis_test.metFilterBits = cms.InputTag("TriggerResults","","RECO")
+      process.analysis.metFilterBits = cms.InputTag("TriggerResults","","RECO")
       print '\t will save met filter bits'
 
 #schedule execution
@@ -264,24 +265,24 @@ if options.runProtonFastSim:
       toSchedule.append(process.pps_simulation_step)
       toSchedule.append(process.pps_reco_step)
 
-      process.analysis_test.tagRecoProtons = cms.InputTag('ctppsProtonReconstructionOFDB')
+      process.analysis.tagRecoProtons = cms.InputTag('ctppsProtonReconstructionOFDB')
 
 
-process.ana=cms.Path(process.analysis_test)
+process.ana=cms.Path(process.analysis)
 toSchedule.append( process.ana )
 if options.runOnData:
 
       if 'era2017' in options.era:
-            process.analysis_test.tagRecoProtons = cms.InputTag('ctppsProtonReconstructionOFDB')
+            process.analysis.tagRecoProtons = cms.InputTag('ctppsProtonReconstructionOFDB')
       else:
-            process.analysis_test.tagRecoProtons = cms.InputTag('ctppsProtonReconstruction')
+            process.analysis.tagRecoProtons = cms.InputTag('ctppsProtonReconstruction')
 
       #if options.runL1PrefireAna:
       #      print 'Prefire analysis is scheduled to be executed'
       #      from TopLJets2015.TopAnalysis.l1prefireAnalysis_cfi import *
       #      defineL1PrefireAnalysis(process,options.era)
       #      toSchedule.append(process.l1prefirePath)
-print process.analysis_test.tagRecoProtons
+print process.analysis.tagRecoProtons
                       
 process.schedule=cms.Schedule( (p for p in toSchedule) )
 print process.schedule

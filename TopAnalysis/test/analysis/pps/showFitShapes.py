@@ -60,6 +60,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
             if plotData:
                 dtitle='Data'
                 p.add(dataH, title=dtitle,   color=1, isData=True, spImpose=False, isSyst=False)
+                p.fitRatio=True
 
             if fidsigH:
                 p.add(fidsigH.Clone(),    title='fiducial', color=ROOT.TColor.GetColor('#fdc086'), isData=False, spImpose=True,  isSyst=False)
@@ -97,8 +98,10 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
             p.ytit='Events'
             p.add(bkgH, title='background', color=1, isData=True,spImpose=False, isSyst=False)
             ic=0
-            for syst,title in [('bkgShapeEMUp',            'e#mu mix'),
-                               ('bkgShapeSingleDiffUp',  'single arm mix')]:
+            for syst,title in [('bkgShapeEMUp',           'HP: up'),
+                               ('bkgShapeEMDown',         'HP :down'),
+                               ('bkgShapeSingleDiffUp',   'SD: pos arm mix'),
+                               ('bkgShapeSingleDiffDown', 'SD: neg arm mix')]:
                 h=fIn.Get('bkg_%s_%s'%(v,syst))
                 p.add(h, title=title, color=colors[ic], isData=False, spImpose=False, isSyst=False)
                 ic+=1
@@ -205,7 +208,6 @@ def main():
     plotData=options.unblind
     if plotData:
         plotpfix += 'obs'
-
 
     title='pp#rightarrowpp%sX(%d)'%(bosonName,mass)
     if 'mm' in plotpfix:

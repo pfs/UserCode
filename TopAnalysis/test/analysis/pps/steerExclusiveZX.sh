@@ -50,7 +50,7 @@ sddir=/store/cmst3/group/top/RunIIReReco/2017/sdz
 sdjson=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/pps_sd_samples.json
 genweights_sd=genweights_sdz.root
 
-signaldir=/store/cmst3/group/top/RunIIReReco/2017/vxsimulations_7Sep2020 
+signaldirsi=/store/cmst3/group/top/RunIIReReco/2017/vxsimulations_7Sep2020 
 signaljson=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/signal_samples.json
 signalpostts2json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/signal_samples_postTS2.json
 fullsimsignaljson=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/signal_samples_fullsim.json
@@ -279,6 +279,7 @@ case $WHAT in
 
         step=1
         predin=/eos/cms/${signaldir}
+        predin=/eos/cms//store/cmst3/group/top/RunIIReReco/2017/vxsimulations_1Jul2021
         predout=/eos/cms/${anadir}${pfix}
         condor_prep=runanasig${pfix}_condor.sub
         mix_file=/eos/cms/${anadir}/mixing/
@@ -598,10 +599,10 @@ case $WHAT in
         echo "for m in 600 800 1000 1200 1400; do python test/analysis/pps/drawSignalPeak.py /eos/cms//store/cmst3/user/psilva/ExclusiveAna/final/2017_unblind_multi/analysis_1exc/Z_m_X_${m}_xangle_{0}_2017_{1}.root; done"
         echo "[Display fit shapes/uncertainties]"
         echo "python test/analysis/pps/showUncs.py > statana_zmm_m1000_uncs.dat"
-        echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_0 1000 z mm"
-        echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_25 1000 z ms"
-        echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_50 1000 z sm"
-        echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_75 1000 z ss"
+        echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_0  -m 1000 -b z -t mm -u -s"
+        echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_25 -m 1000 -b z -t ms -u -s"
+        echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_50 -m 1000 -b z -t sm -u -s"
+        echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_75 -m 1000 -b z -t ss -u -s"
         echo "[Nuisances post-fit]"
         echo "Please use CMSSW_10_2_13 or higher"
         echo "python test/analysis/pps/doNuisanceReport.py ppvx_${githash}${pfix}/exp/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root"

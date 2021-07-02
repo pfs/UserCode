@@ -4,6 +4,7 @@ import ROOT
 import numpy as np
 
 def getTestStatFrom(url):
+    print url
     fIn=ROOT.TFile.Open(url)
     limit=fIn.Get('limit')
     vals=[]

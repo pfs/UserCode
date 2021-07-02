@@ -65,6 +65,7 @@ class Plot(object):
         self.plotformats = ['pdf','png']
         self.savelog = False
         self.doChi2 = False
+        self.fitRatio=False
         self.normUncGr  = None #external input for normalization uncertainty
         self.relShapeGr = None #external input for relative shape
         self.range=None
@@ -620,6 +621,10 @@ class Plot(object):
                     gr.SetMarkerColor(self.data.GetMarkerColor())
                     gr.SetLineColor(self.data.GetLineColor())
                     gr.SetLineWidth(self.data.GetLineWidth())
+
+                    if self.fitRatio:
+                        gr.Fit('pol1')
+
                     gr.Draw('p0')
                 except:
                     pass

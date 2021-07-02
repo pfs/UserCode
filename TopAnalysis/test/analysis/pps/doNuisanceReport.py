@@ -27,20 +27,26 @@ def doNuisanceReport(url_list,fit='s',npergroup=20,poi='r'):
             if _skipstat and name.find('prop_bincat')==0:
                 var = iter.Next()
                 continue
+
+            if name.find('mu_bkg')==0:
+                var = iter.Next()
+                continue
            
             for t,rt in [
                     ('_',' '),
                     ('prop bincat','stat. cat'),
                     ('zmm','#mu#mu'),
                     ('zee','ee'),
-                    ('mm','#mu#mu'),
+                    #('mm','#mu#mu'),
+                    ('mu outfidsig','#nu out.fid.sig.'),
                     ('bkgShapeEM','shape HP'),
                     ('bkgShapeSingleDiff','shape SD'),
                     ('mu bkg',' #lambda(bkg)'),
-                    ('Cat',' cat'),
+                    ('Cat',' cat.'),
                     ('sigPPSEff','PPS eff.'),
                     ('sigCalib','Time dependency'),
                     ('sigShapeEM','Signal shape HP'),
+                    ('g shape','#gamma shape'),
             ]:
                 name=name.replace(t,rt)
             

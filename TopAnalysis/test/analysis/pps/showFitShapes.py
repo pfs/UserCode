@@ -60,7 +60,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
             if plotData:
                 dtitle='Data'
                 p.add(dataH, title=dtitle,   color=1, isData=True, spImpose=False, isSyst=False)
-                p.fitRatio=True
+                p.fitRatio=False
 
             if fidsigH:
                 p.add(fidsigH.Clone(),    title='fiducial', color=ROOT.TColor.GetColor('#fdc086'), isData=False, spImpose=True,  isSyst=False)

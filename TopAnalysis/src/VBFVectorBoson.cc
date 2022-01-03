@@ -1019,7 +1019,7 @@ void VBFVectorBoson::loadCorrections(){
   cfgMap["m_iso"]    = "TightRelIso";
   cfgMap["m_id4iso"] = "TightIDandIPCut";
   cfgMap["e_id"]     = "MVA80";
-  gammaEffWR_  = new EfficiencyScaleFactorsWrapper(filename_.Contains("Data13TeV"),era_,cfgMap);
+  gammaEffWR_  = new EfficiencyScaleFactorsWrapper(filename_.Contains("Data13TeV"),era_,false,cfgMap);
   l1PrefireWR_ = new L1PrefireEfficiencyWrapper(filename_.Contains("Data13TeV"),era_);
 }
 

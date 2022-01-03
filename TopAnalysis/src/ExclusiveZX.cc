@@ -191,7 +191,7 @@ void RunExclusiveZX(const TString in_fname,
   cfgMap["m_iso"]="TightRelIso";
   cfgMap["m_id4iso"]="TightIDandIPCut";
   cfgMap["e_id"]="MVA90";
-  EfficiencyScaleFactorsWrapper lepEffH(filename.Contains("Data13TeV"),era,cfgMap);
+  EfficiencyScaleFactorsWrapper lepEffH(filename.Contains("Data13TeV"),era,true,cfgMap);
 
   //L1-prefire 
   L1PrefireEfficiencyWrapper l1PrefireWR(filename.Contains("Data13TeV"),era);
@@ -553,7 +553,7 @@ void RunExclusiveZX(const TString in_fname,
         wgt  = (normH? normH->GetBinContent(1) : 1.0);
         
         // lepton trigger*selection weights
-        EffCorrection_t trigSF(1.,0.); // = lepEffH.getTriggerCorrection(leptons,{},{},period);
+        EffCorrection_t trigSF(lepEffH.getTriggerCorrection(leptons,photons,{},period));
         EffCorrection_t sel1SF(1.,0.),sel2SF(1.,0.);
         if(selCode!=22){
           sel1SF = lepEffH.getOfflineCorrection(leptons[l1idx], period);

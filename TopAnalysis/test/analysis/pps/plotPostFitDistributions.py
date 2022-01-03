@@ -288,7 +288,7 @@ def parseCategoriesFromDatacard(url,sources_url):
     #start by identifying the categories
     cats=[]
     with open(url,'r') as fin:
-        for l in fin.readlines():
+        for l in fin.readlines():            
             if l.find('Combination of')!=0 : continue
             cats=dict([ tuple(x.split('=')) for x in l.split() if x.find('cat')==0])            
             break

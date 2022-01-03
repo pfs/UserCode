@@ -6,21 +6,23 @@ from collections import defaultdict
 import numpy as np
 from rounding import *
 import optparse
+import pandas as pd
 
 _skipstat=True
 
-def doNuisanceReport(url_list,fit='s',npergroup=20,poi='r'):
+def doNuisanceReport(url_list,tag='',npergroup=20,poi='r'):
 
     """compare postfit nuisances"""
 
     fitResults=defaultdict(dict)
     poiResults={}
-    for title,url in url_list:
+    for title,fit,url in url_list:
         inF=ROOT.TFile.Open(url)
         fres=inF.Get('fit_%s'%fit)
         pars=fres.floatParsFinal()
         iter = pars.createIterator()
         var = iter.Next()
+        fitResults[title]=defaultdict(dict)
         while var :
             name=var.GetName()
 
@@ -47,7 +49,7 @@ def doNuisanceReport(url_list,fit='s',npergroup=20,poi='r'):
                     ('sigCalib','Time dependency'),
                     ('sigShapeEM','Signal shape HP'),
                     ('g shape','#gamma shape'),
-            ]:
+            ]:                
                 name=name.replace(t,rt)
             
             val=var.getVal()
@@ -62,10 +64,17 @@ def doNuisanceReport(url_list,fit='s',npergroup=20,poi='r'):
             var = iter.Next()
 
     varNames=[]
-    for title,url in url_list:
+    for title,_,url in url_list:
         varNames += [x for x in fitResults[title].keys()]
     varNames=sorted(list(set(varNames)))
     print('{} nuisances to be plotted',len(varNames))
+
+    #save in a pandas dataframe
+    summary=[]
+    for t,fr in fitResults.items():
+        for name,vals in fr.items():
+            summary.append([t,name,vals[0],vals[1],vals[2]])
+    pd.DataFrame(summary,columns=['title','name','val','ehi','elo']).to_hdf('nuisances%s.h5'%tag,key='nuisances')
 
     #show nuisances
     c=ROOT.TCanvas('c','c',500,500)
@@ -91,7 +100,7 @@ def doNuisanceReport(url_list,fit='s',npergroup=20,poi='r'):
     p2.SetBottomMargin(1.0)
     p2.SetGridy(True)    
     p2.Draw()
-    
+
     ngroups=len(varNames)/npergroup
     if ngroups*npergroup<len(varNames) : 
         ngroups+=1
@@ -171,7 +180,7 @@ def doNuisanceReport(url_list,fit='s',npergroup=20,poi='r'):
         colors=[1,ROOT.kGreen+2]
         for iv,v in enumerate(varList):
 
-            for it,(title,url) in enumerate(url_list):
+            for it,(title,_,url) in enumerate(url_list):
 
                 #start graph if needed
                 if not title in nuisGrs:
@@ -193,6 +202,8 @@ def doNuisanceReport(url_list,fit='s',npergroup=20,poi='r'):
                 val,uncLo,uncHi,rho=-99,0,0,0
                 if v in fitResults[title]:
                     val,uncLo,uncHi,rho =fitResults[title][v]
+                else:
+                    print v,'is missing for',title,'!!!'
                 y0=frame.GetYaxis().GetBinCenter(iv+1)
                 dy=frame.GetYaxis().GetBinWidth(iv)
 
@@ -208,7 +219,7 @@ def doNuisanceReport(url_list,fit='s',npergroup=20,poi='r'):
         leg.SetTextSize(0.035)
         leg.SetBorderSize(0)
         leg.SetFillStyle(0)
-        leg.SetHeader('#bf{B-only fit}' if fit=='b' else '#bf{S+B fit}')
+        #leg.SetHeader('#bf{B-only fit}' if fit=='b' else '#bf{S+B fit}')
         for title in nuisGrs:
             nuisGrs[title].Draw('p')
             leg.AddEntry(nuisGrs[title],title,'p')
@@ -245,7 +256,7 @@ def doNuisanceReport(url_list,fit='s',npergroup=20,poi='r'):
         c.Update()
 
         for ext in ['png','pdf']:
-            c.SaveAs('nuisances_%d.%s'%(ig,ext))
+            c.SaveAs('nuisances%s_%d.%s'%(tag,ig,ext))
 
     return
 
@@ -256,14 +267,19 @@ def main():
     ROOT.gStyle.SetOptStat(0)
 
     parser = optparse.OptionParser(usage='usage: %prog [opts] ', version='%prog 1.0')
-    parser.add_option('--fit',    type='string'       , default='s'    , help='fit type to plot')
+    parser.add_option('-t', '--tag',          
+                      dest='tag',       
+                      help='tag [%default]',  
+                      default='',
+                      type='string')
+
     (opt, args) = parser.parse_args()
 
     url_list=[]
     for a in args:
-        url_list.append(a.split('='))
+        url_list.append(a.split(':'))
 
-    doNuisanceReport(url_list,opt.fit)
+    doNuisanceReport(url_list,opt.tag)
 
 
 if __name__ == "__main__":

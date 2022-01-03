@@ -132,7 +132,7 @@ void TOP17010::init(UInt_t scenario){
   cfgMap["m_iso"]    = "TightRelIso";
   cfgMap["m_id4iso"] = "TightIDandIPCut";
   cfgMap["e_id"]     = "Tight";
-  gammaEffWR_  = new EfficiencyScaleFactorsWrapper(filename_.Contains("Data13TeV"),era_,cfgMap);
+  gammaEffWR_  = new EfficiencyScaleFactorsWrapper(filename_.Contains("Data13TeV"),era_,false,cfgMap);
   l1PrefireWR_ = new L1PrefireEfficiencyWrapper(filename_.Contains("Data13TeV"),era_);  
   btvSF_       = new BTagSFUtil(era_);
   deepCSV_wp_=(era_.Contains("2017") ? 0.4941 : 0.6321);

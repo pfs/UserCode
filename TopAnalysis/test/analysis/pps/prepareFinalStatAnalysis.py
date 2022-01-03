@@ -143,7 +143,7 @@ def main(args):
             script.write('text2workspace.py ${b}_datacard.dat -m ${m} -o ${pfix}_workspace.root --channel-masks\n')
             script.write('\n')
 
-            script.write('baseCmd=\"combine ${pfix}_workspace.root -m ${m} --X-rtd MINIMIZER_analytic --setParameterRanges mu_outfidsig=0,10\"\n')
+            script.write('baseCmd=\"combine ${pfix}_workspace.root -m ${m} --X-rtd MINIMIZER_analytic --setParameterRanges mu_outfidsig=0,1\"\n')
             script.write('${baseCmd} -n PP${b}X.obs   -M AsymptoticLimits\n')
             script.write('${baseCmd} -n PP${b}X       -M AsymptoticLimits --run blind\n')
             script.write('${baseCmd} -n PP${b}X.obs   -M Significance\n')
@@ -151,7 +151,7 @@ def main(args):
             script.write('if [ "${m}" = "1000" ]; then\n')
             script.write('  ${baseCmd} --cminDefaultMinimizerStrategy 0 -n PP${b}X.m${m} -M FitDiagnostics --saveShapes --saveWithUncertainties\n')
             script.write('  ${baseCmd} --cminDefaultMinimizerStrategy 0 -n PP${b}X.m${m}.gof -M GoodnessOfFit --algo=saturated\n')
-            script.write('  ${baseCmd} --cminDefaultMinimizerStrategy 0 -n PP${b}X.m${m}.gof.toy -M GoodnessOfFit --algo=saturated --toysFrequentist -t 500\n')
+            script.write('  ${baseCmd} --cminDefaultMinimizerStrategy 0 -n PP${b}X.m${m}.gof.toy -M GoodnessOfFit --algo=saturated --toysFrequentist -t 400\n')
             script.write('fi\n')
             script.write('cd -\n')
 

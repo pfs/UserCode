@@ -6,6 +6,7 @@ import itertools
 from generateBinnedWorkspace import defineProcessTemplates,smoothWithLowess
 from TopLJets2015.TopAnalysis.Plot import *
 import numpy as np
+import pickle
 
 def parseTitleFromCut(cut):
     title=[]
@@ -192,6 +193,8 @@ def main(args):
     if opt.doPerAngle: subCats += ['xangle==%d'%i for i in [120,130,140,150]]
     if opt.doPerNch:   subCats += ['nch<15','nch>=15']
     catList = list(itertools.product(baseCats,subCats))
+    with open('{}/categ_defs.pck'.format(opt.output),'wb') as cache:
+        pickle.dump(catList,cache,pickle.HIGHEST_PROTOCOL)
     
     outF='%s/plotter_embkg.root'%opt.output
     os.system('rm %s'%outF)

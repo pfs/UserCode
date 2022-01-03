@@ -558,6 +558,7 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,effDir,ppsEffFile,maxEve
                 if (isZ and tree.evcat==DIMUONS and boson.Pt()<10) or evcat=='em':
                     rpDataKey=(evEra,beamXangle,int(tree.evcat))
                     if not rpDataKey in rpData: rpData[rpDataKey]=[]
+                    _,ev_pos_protons,ev_neg_protons=doFinalCheck2017(ev_pos_protons,ev_neg_protons,evRun,evEra)
                     rpData[rpDataKey].append( MixedEventSummary(puDiscr=[len(extra_muons),nvtx,rho,PFMultSumHF,PFHtSumHF,PFPzSumHF,rfc],
                                                                 pos_protons=ev_pos_protons,
                                                                 neg_protons=ev_neg_protons) )

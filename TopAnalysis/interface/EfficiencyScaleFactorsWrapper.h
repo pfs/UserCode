@@ -16,8 +16,8 @@ typedef std::pair<float,float> EffCorrection_t;
 class EfficiencyScaleFactorsWrapper 
 {
  public:
-  EfficiencyScaleFactorsWrapper(bool isData,TString era);
-  EfficiencyScaleFactorsWrapper(bool isData,TString era,std::map<TString,TString> cfgMap);
+  EfficiencyScaleFactorsWrapper(bool isData,TString era,bool isUL=false);
+  EfficiencyScaleFactorsWrapper(bool isData,TString era,bool isUL,std::map<TString,TString> cfgMap);
   EffCorrection_t getDileptonTriggerCorrection(std::vector<Particle> &leptons);
   EffCorrection_t getPhotonTrigCorrection(float apt,float mjj);
   EffCorrection_t getTriggerCorrection(std::vector<Particle> leptons={}, 
@@ -28,7 +28,7 @@ class EfficiencyScaleFactorsWrapper
   EffCorrection_t getOfflineCorrection(int pdgId,float pt, float eta,TString period = "");
   ~EfficiencyScaleFactorsWrapper();  
  private:
-  void init(TString era);
+  void init(TString era,bool isUL);
   int era_;
   std::map<TString,TH2 *> scaleFactorsH_;
   std::map<TString,TGraphAsymmErrors *> scaleFactorsGr_;

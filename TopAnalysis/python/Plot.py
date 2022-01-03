@@ -190,6 +190,8 @@ class Plot(object):
             self.mc[m].Write(self.mc[m].GetName(), ROOT.TObject.kOverwrite)
         if self.totalMCUnc:
             self.totalMCUnc.Write(self.totalMCUnc.GetName(), ROOT.TObject.kOverwrite)
+        for k,h in self.mcsyst.items() :
+            h.Write(h.GetName(), ROOT.TObject.kOverwrite)
         for m in self.spimpose:
             self.spimpose[m].Write(self.spimpose[m].GetName(), ROOT.TObject.kOverwrite)
         if self.dataH :

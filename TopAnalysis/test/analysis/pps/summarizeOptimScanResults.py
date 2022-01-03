@@ -65,6 +65,7 @@ def main():
             ch        = re.search('PP([egmz]+)X', f).group(1)
             mass      = int(re.search('.mH(\d+)', f).group(1))
             iresults  = [ana,ch,mass] 
+            if ana=='inc_xangle_nvtx' and ch=='z': print '\t',mass,
             iresults += readLimitsFrom(f)
             iresults += readLimitsFrom(f,True)[0:1]
             sigFile='X.Significance' if not '/obs/' in anaDir else 'X.obs.Significance'
@@ -74,6 +75,7 @@ def main():
             else:
                 toCheck.append( (ch,mass,anaDir) )
 
+    print ''
     #save summary in a pandas dataformat
     import pandas as pd
     columns=['ana','channel','mass','r95','drup68','drdn68','drup95','drdn95','r95obs','sig','pval']

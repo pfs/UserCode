@@ -50,7 +50,7 @@ sddir=/store/cmst3/group/top/RunIIReReco/2017/sdz
 sdjson=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/pps_sd_samples.json
 genweights_sd=genweights_sdz.root
 
-signaldirsi=/store/cmst3/group/top/RunIIReReco/2017/vxsimulations_7Sep2020 
+signaldir=/store/cmst3/group/top/RunIIReReco/2017/vxsimulations_7Sep2020 
 signaljson=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/signal_samples.json
 signalpostts2json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/signal_samples_postTS2.json
 fullsimsignaljson=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/signal_samples_fullsim.json
@@ -77,12 +77,12 @@ NC='\e[0m'
 case $WHAT in
 
     TESTSEL )
-
-        #inputfileTag=MC13TeV_2017_GJets_HT400to600
-        #inputfileTESTSEL=${mcdir}/${inputfileTag}/Chunk_0_ext0.root
         
-        inputfileTag=Data13TeV_2017B_SinglePhoton
-        inputfileTESTSEL=${datadir}/${inputfileTag}/Chunk_0_ext0.root
+        inputfileTag=MC13TeV_2017_DY50toInf_fxfx #MC13TeV_2017_GJets_HT400to600
+        inputfileTESTSEL=${mcdir}/${inputfileTag}/Chunk_0_ext0.root
+        
+        #inputfileTag=Data13TeV_2017B_SinglePhoton
+        #inputfileTESTSEL=${datadir}/${inputfileTag}/Chunk_0_ext0.root
 
         python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/scripts/runLocalAnalysis.py \
             -i ${inputfileTESTSEL} --tag ${inputfileTag} \
@@ -156,9 +156,9 @@ case $WHAT in
         baseCmd="${baseCmd} --genWeights ${genweights} --era era2017 -m ExclusiveZX::RunExclusiveZX --ch 0 --runSysts"
         baseCmd="${baseCmd} -o ${outdir} -q ${queue}"
         
-	python ${baseCmd} --farmappendix ZXData2017BSinglePhoton -i ${datadir} --only 2017B_SinglePhoton;
+	#python ${baseCmd} --farmappendix ZXData2017BSinglePhoton -i ${datadir} --only 2017B_SinglePhoton;
 	#python ${baseCmd} --farmappendix ZXData -i ${datadir} --only ${datajson};
-	#python ${baseCmd} --farmappendix ZXMC   -i ${mcdir}   --only ${mcjson},${zxjson};
+	python ${baseCmd} --farmappendix ZXMC   -i ${mcdir}   --only ${mcjson},${zxjson};
 	;;
 
     CHECKSELINTEG )
@@ -279,7 +279,7 @@ case $WHAT in
 
         step=1
         predin=/eos/cms/${signaldir}
-        predin=/eos/cms//store/cmst3/group/top/RunIIReReco/2017/vxsimulations_1Jul2021
+        #predin=/eos/cms//store/cmst3/group/top/RunIIReReco/2017/vxsimulations_1Jul2021
         predout=/eos/cms/${anadir}${pfix}
         condor_prep=runanasig${pfix}_condor.sub
         mix_file=/eos/cms/${anadir}/mixing/
@@ -287,7 +287,6 @@ case $WHAT in
         echo "output      = ${condor_prep}.out" >> $condor_prep
         echo "error       = ${condor_prep}.err" >> $condor_prep
         echo "log         = ${condor_prep}.log" >> $condor_prep
-        #echo "requirements = (OpSysAndVer =?= \"SLCern6\")" >> $condor_prep
         echo "+AccountingGroup = \"group_u_CMST3.all\"" >> $condor_prep
         echo "+JobFlavour = \"tomorrow\"">> $condor_prep
         echo "request_cpus = 4" >> $condor_prep
@@ -304,7 +303,9 @@ case $WHAT in
         ;;
    
     CHECKANASIG )        
-        python test/analysis/pps/checkFinalNtupleInteg.py /eos/cms/${signaldir} /eos/cms/${anadir}${pfix}/Chunks 2 1 /eos/cms/${anadir}/mixing ${ALLOWPIX}
+        predin=/eos/cms/${signaldir}
+        #predin=/eos/cms//store/cmst3/group/top/RunIIReReco/2017/vxsimulations_1Jul2021
+        python test/analysis/pps/checkFinalNtupleInteg.py ${predin} /eos/cms/${anadir}${pfix}/Chunks 2 1 /eos/cms/${anadir}/mixing ${ALLOWPIX}
         ;;
 
     MERGEANA )
@@ -552,9 +553,9 @@ case $WHAT in
         done
 
         #signal-related plots
-        mkdir -p ${wwwdir}/signal
-        cp ${indirForPlots}/plots_signal/*.{png,pdf,dat} ${wwwdir}/signal
-        cp ${index} ${wwwdir}/signal
+        #mkdir -p ${wwwdir}/signal
+        #cp ${indirForPlots}/plots_signal/*.{png,pdf,dat} ${wwwdir}/signal
+        #cp ${index} ${wwwdir}/signal
 
         #background closure plots
         for pt in 0 40; do
@@ -603,9 +604,12 @@ case $WHAT in
         echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_25 -m 1000 -b z -t ms -u -s"
         echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_50 -m 1000 -b z -t sm -u -s"
         echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_75 -m 1000 -b z -t ss -u -s"
-        echo "[Nuisances post-fit]"
-        echo "Please use CMSSW_10_2_13 or higher"
-        echo "python test/analysis/pps/doNuisanceReport.py ppvx_${githash}${pfix}/exp/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root"
+        echo "[Nuisances post-fit, gof, etc]"
+
+        echo "python test/analysis/pps/doNuisanceReport.py Obs.:s:ppvx_${githash}${pfix}/obs/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root Exp.:s:ppvx_${githash}${pfix}/exp/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root"
+        echo "python test/analysis/pps/showNuisancePerCateg.py ppvx_${githash}${pfix}/obs/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root"
+        echo "python test/analysis/pps/plotGOF.py ppvx_${githash}${pfix}/obs/inc_xangle_nvtx/higgsCombinePPzX.m1000.gof.GoodnessOfFit.mH1000.root"
+
         echo "[Acceptance plots inputs]"
         echo "python test/analysis/pps/computeFinalAEff.py test/analysis/pps/acc_summary.dat (takes ~1h to loop over original signal files)"
         echo "python test/analysis/pps/computeFinalAEff.py test/analysis/pps/acc_summary.dat ppvx_2017_unblind_multi_1exc/exp/inc_xangle_nvtx/info.dat"

@@ -6,33 +6,31 @@
 
 #include <iostream>
 
-
 using namespace std;
 
 //
-EfficiencyScaleFactorsWrapper::EfficiencyScaleFactorsWrapper(bool isData,TString era)
+EfficiencyScaleFactorsWrapper::EfficiencyScaleFactorsWrapper(bool isData,TString era,bool isUL)
 {
   if(isData) return;
-  init(era);
+  init(era,isUL);
 }
 
-EfficiencyScaleFactorsWrapper::EfficiencyScaleFactorsWrapper(bool isData,TString era,std::map<TString,TString> cfgMap):
+EfficiencyScaleFactorsWrapper::EfficiencyScaleFactorsWrapper(bool isData,TString era,bool isUL,std::map<TString,TString> cfgMap):
   cfgMap_(cfgMap)
 {
   if(isData) return;
-  init(era);
+  init(era,isUL);
 }
 
 //
-void EfficiencyScaleFactorsWrapper::init(TString era)
+void EfficiencyScaleFactorsWrapper::init(TString era,bool isUL)
 {
   if(era.Contains("era2017")) era_=2017;
   if(era.Contains("era2016")) era_=2016;
 
   cout << "[EfficiencyScaleFactorsWrapper]" << endl
        << "\tStarting efficiency scale factors for " << era << endl
-       << "\tWarnings: no trigger SFs for any object" << endl
-       << "\t          uncertainties returned are of statistical nature only" << endl
+       << "\tWarnings: trigger SFs for dileptons only" << endl
        << "\tDon't forget to fix these and update these items!" << endl;
 
   //PHOTONS
@@ -40,6 +38,7 @@ void EfficiencyScaleFactorsWrapper::init(TString era)
   if(cfgMap_.find("g_id")!=cfgMap_.end()) gid=cfgMap_["g_id"]; 
   TString url(era+"/2017_Photons"+gid+".root");
   if(era_==2016) url=era+"/2016LegacyReReco_Photon"+gid+".root";
+  if(era_==2017 && isUL) url=era+"/egammaEffi.txt_EGM2D_PHO_MVA90_UL17_MCReReco.root";
   gSystem->ExpandPathName(url);
   TFile *fIn=TFile::Open(url);
   scaleFactorsH_["g_id"]=(TH2 *)fIn->Get("EGamma_SF2D")->Clone();
@@ -143,11 +142,26 @@ void EfficiencyScaleFactorsWrapper::init(TString era)
   if(cfgMap_.find("e_id")!=cfgMap_.end()) eid=cfgMap_["e_id"]; 
   url=era+"/2017_Electron"+eid+".root";
   if(era_==2016) url=era+"/2016LegacyReReco_Electron"+eid+".root";
+  if(era_==2017 && isUL) url=era+"/egammaEffi.txt_EGM2D_ELE_MVA90_UL17_MCReReco.root";
   gSystem->ExpandPathName(url);
   fIn=TFile::Open(url);      
   scaleFactorsH_["e_id"]=(TH2 *)fIn->Get("EGamma_SF2D")->Clone();
   scaleFactorsH_["e_id"]->SetDirectory(0);
   fIn->Close();
+
+  if(era_==2017 && isUL) {
+    url=era+"/TriggerSF_2017_UL.root";
+    gSystem->ExpandPathName(url);
+    fIn=TFile::Open(url);
+    scaleFactorsH_["ee_trig"]=(TH2 *)fIn->Get("h2D_SF_ee_lepABpt_FullError")->Clone();
+    scaleFactorsH_["ee_trig"]->SetDirectory(0);
+    scaleFactorsH_["mm_trig"]=(TH2 *)fIn->Get("h2D_SF_mumu_lepABpt_FullError")->Clone();
+    scaleFactorsH_["mm_trig"]->SetDirectory(0);
+    scaleFactorsH_["em_trig"]=(TH2 *)fIn->Get("h2D_SF_emu_lepABpt_FullError")->Clone();
+    scaleFactorsH_["em_trig"]->SetDirectory(0);
+    fIn->Close();
+  }
+
   
 }
 
@@ -181,7 +195,19 @@ EffCorrection_t EfficiencyScaleFactorsWrapper::getDileptonTriggerCorrection(std:
       else if (leta<2.1) { corr.first=0.989; corr.second=TMath::Sqrt(0.002*0.002+0.015*0.015); }
       else               { corr.first=0.977; corr.second=TMath::Sqrt(0.009*0.009+0.014*0.014); } //0 jets has too large error
     }
-    
+  } else if(era_==2017) {
+    TString tag("em");
+    if(dilCode==11*11) tag="ee";
+    if(dilCode==13*13) tag="mm";
+    TH2 *sfH=scaleFactorsH_[tag+"_trig"];
+    Double_t pt1( TMath::Max( leptons[0].pt(), leptons[1].pt() ) );
+    pt1=TMath::Min(TMath::Max(pt1,sfH->GetXaxis()->GetXmin()),sfH->GetXaxis()->GetXmax());
+    Double_t pt2( TMath::Min( leptons[0].pt(), leptons[1].pt() ) );
+    pt2=TMath::Min(TMath::Max(pt2,sfH->GetYaxis()->GetXmin()),sfH->GetYaxis()->GetXmax());
+    int xbin=sfH->GetXaxis()->FindBin(pt1);
+    int ybin=sfH->GetYaxis()->FindBin(pt2);
+    corr.first=sfH->GetBinContent(xbin,ybin);
+    corr.second=sfH->GetBinError(xbin,ybin);
   }
 
   return corr;
@@ -266,6 +292,9 @@ EffCorrection_t EfficiencyScaleFactorsWrapper::getTriggerCorrection(std::vector<
               corr.second=h->GetBinError(etaBinForEff,ptBinForEff);
             }
         }
+      else if(leptons.size()>1) {
+        corr =getDileptonTriggerCorrection(leptons);
+      }
     }
 
   return corr;

@@ -204,7 +204,7 @@ def runSelectionEfficiencyFor(ch,d):
     
     if 'a' in ch:
         procList  =[('#gamma+jets','#000000',1001,20,bkgROOT),
-                    ("EWK #gammajj",'#f0027f',0,26,zxROOT)
+                    #("EWK #gammajj",'#f0027f',0,26,zxROOT)
                     ]
 
     

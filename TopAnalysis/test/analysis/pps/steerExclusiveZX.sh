@@ -163,7 +163,7 @@ case $WHAT in
 
     CHECKSELINTEG )
         python scripts/checkLocalAnalysisInteg.py ../../../FARM${githash}ZXMC/   analysis/data tree
-        python scripts/checkLocalAnalysisInteg.py ../../../FARM${githash}ZXData/ analysis/data tree
+        #python scripts/checkLocalAnalysisInteg.py ../../../FARM${githash}ZXData/ analysis/data tree
         ;;
 
     MERGESEL )
@@ -174,9 +174,9 @@ case $WHAT in
         lumiSpecs="--lumiSpecs a:${lptalumi}"
         kFactorList="--procSF #gamma+jets:1.4"        
 	commonOpts="-i /eos/cms/${outdir} --puNormSF puwgtctr -l ${lumi} --mcUnc ${lumiUnc} ${kFactorList} ${lumiSpecs}"
-	python scripts/plotter.py ${commonOpts} -j ${mcjson},${datajson}    -O /eos/cms/${outdir}/plots/sel -o plotter.root --only mll,pt,eta,met,jets,nvtx,ratevsrun; # --saveLog; 
-        python scripts/plotter.py ${commonOpts} -j ${mcjson}    --rawYields --silent --only gen -O /eos/cms/${outdir}/plots/ -o plots/bkg_gen_plotter.root; 
-	python scripts/plotter.py ${commonOpts} -j ${zxjson} --rawYields --silent --only gen -O /eos/cms/${outdir}/plots/ -o plots/zx_gen_plotter.root;
+	#python scripts/plotter.py ${commonOpts} -j ${mcjson},${datajson}    -O /eos/cms/${outdir}/plots/sel -o plotter.root --only mll,pt,eta,met,jets,nvtx,ratevsrun; # --saveLog; 
+        #python scripts/plotter.py ${commonOpts} -j ${mcjson}    --rawYields --silent --only gen -O /eos/cms/${outdir}/plots/ -o plots/bkg_gen_plotter.root; 
+	#python scripts/plotter.py ${commonOpts} -j ${zxjson} --rawYields --silent --only gen -O /eos/cms/${outdir}/plots/ -o plots/zx_gen_plotter.root;
         python test/analysis/pps/computeDileptonSelEfficiency.py /eos/cms/${outdir}/plots/       
         cp -v /eos/cms/${outdir}/plots/effsummary_* test/analysis/pps/
 	;;

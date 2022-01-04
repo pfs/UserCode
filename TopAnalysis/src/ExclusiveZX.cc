@@ -316,7 +316,7 @@ void RunExclusiveZX(const TString in_fname,
         std::vector<double>puPlotWgts(1,puWgt);
         ht.fill("puwgtctr",1,puPlotWgts);
       } 
-	
+
       //////////////////
       // CORRECTIONS  //
       //////////////////
@@ -363,7 +363,7 @@ void RunExclusiveZX(const TString in_fname,
           ht.fill("drll", gen_dr, trivialwgts, gen_cat+"singletrig");
         }
       }
-      
+
       //identify the offline final state from the leading leptons or the photon
       int l1idx(0),l2idx(1);
       std::vector<Particle> leptons = selector.flaggedLeptons(ev);     
@@ -392,13 +392,13 @@ void RunExclusiveZX(const TString in_fname,
       //met
       TLorentzVector met(0,0,0,0);
       met.SetPtEtaPhiM(ev.met_pt,0,ev.met_phi,0.);
-      
+
       //
       //OFFLINE SELECTION(S)
       //
       bool passTightSel(false),passMediumSel(false);
       if(leptons.size()>1){
-        
+
         bool isTrigSafe(leptons[0].Pt()>30);
 
         bool isLeadingTight( (leptons[0].id()==11 && leptons[0].hasQualityFlag(SelectionTool::MVA80)) ||
@@ -518,7 +518,7 @@ void RunExclusiveZX(const TString in_fname,
           cout << "[Warning] Unable to find run=" << ev.run << endl;
         }   
       }
-    
+
       //jets (require PU jet id)
       int njets(0);
       std::vector<Jet> bJets,lightJets,jets;
@@ -612,7 +612,6 @@ void RunExclusiveZX(const TString in_fname,
                           (selCat=="em"            && (hasEMTrigger || hasMTrigger)) );
       if(!hasOffAndTrig) continue;
 
-
       //control histograms
       ht.fill("nvtx",       ev.nvtx,         plotwgts, cats);
       
@@ -650,7 +649,7 @@ void RunExclusiveZX(const TString in_fname,
         ht.fill("jpt",     l.Pt(),           plotwgts, cats);
         ht.fill("jeta",    fabs(l.Eta()),    plotwgts, cats);
       }
-        
+
       //photons
       ht.fill("npho",       photons.size(),  plotwgts, cats);
       for(auto &a:photons) {
@@ -803,7 +802,7 @@ void RunExclusiveZX(const TString in_fname,
       outVars["PFChHtDiffEE"]   = fabs(ev.sumPFChHt[2]-ev.sumPFChHt[5]);   
       outVars["PFChHtDiffHE"]   = fabs(ev.sumPFChHt[1]-ev.sumPFChHt[6]);    
       outVars["PFChHtDiffHF"]   = fabs(ev.sumPFChHt[0]-ev.sumPFChHt[7]); 
-     
+
       //fill data with roman pot information
       nProtons=0;
       int multiIds(1),farIds(1);

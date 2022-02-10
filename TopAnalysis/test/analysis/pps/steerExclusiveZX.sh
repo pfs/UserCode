@@ -174,9 +174,9 @@ case $WHAT in
         lumiSpecs="--lumiSpecs a:${lptalumi}"
         kFactorList="--procSF #gamma+jets:1.4"        
 	commonOpts="-i /eos/cms/${outdir} --puNormSF puwgtctr -l ${lumi} --mcUnc ${lumiUnc} ${kFactorList} ${lumiSpecs}"
-	#python scripts/plotter.py ${commonOpts} -j ${mcjson},${datajson}    -O /eos/cms/${outdir}/plots/sel -o plotter.root --only mll,pt,eta,met,jets,nvtx,ratevsrun; # --saveLog; 
-        #python scripts/plotter.py ${commonOpts} -j ${mcjson}    --rawYields --silent --only gen -O /eos/cms/${outdir}/plots/ -o plots/bkg_gen_plotter.root; 
-	#python scripts/plotter.py ${commonOpts} -j ${zxjson} --rawYields --silent --only gen -O /eos/cms/${outdir}/plots/ -o plots/zx_gen_plotter.root;
+	python scripts/plotter.py ${commonOpts} -j ${mcjson},${datajson}    -O /eos/cms/${outdir}/plots/sel -o plotter.root --only mll,pt,eta,met,jets,nvtx,ratevsrun; # --saveLog; 
+        python scripts/plotter.py ${commonOpts} -j ${mcjson}    --rawYields --silent --only gen -O /eos/cms/${outdir}/plots/ -o plots/bkg_gen_plotter.root; 
+	python scripts/plotter.py ${commonOpts} -j ${zxjson} --rawYields --silent --only gen -O /eos/cms/${outdir}/plots/ -o plots/zx_gen_plotter.root;
         python test/analysis/pps/computeDileptonSelEfficiency.py /eos/cms/${outdir}/plots/       
         cp -v /eos/cms/${outdir}/plots/effsummary_* test/analysis/pps/
 	;;
@@ -278,38 +278,40 @@ case $WHAT in
     ANASIG )
 
         step=1
-        predin=/eos/cms/${signaldir}
-        #predin=/eos/cms//store/cmst3/group/top/RunIIReReco/2017/vxsimulations_1Jul2021
-        predout=/eos/cms/${anadir}${pfix}
-        condor_prep=runanasig${pfix}_condor.sub
-        mix_file=/eos/cms/${anadir}/mixing/
-        echo "executable  = ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/wrapAnalysis.sh" > $condor_prep
-        echo "output      = ${condor_prep}.out" >> $condor_prep
-        echo "error       = ${condor_prep}.err" >> $condor_prep
-        echo "log         = ${condor_prep}.log" >> $condor_prep
-        echo "+AccountingGroup = \"group_u_CMST3.all\"" >> $condor_prep
-        echo "+JobFlavour = \"tomorrow\"">> $condor_prep
-        echo "request_cpus = 4" >> $condor_prep
-        echo "arguments   = ${CMSSW_BASE} ${step} ${predout} ${predin} \$(chunk) ${mix_file} ${ALLOWPIX}" >> $condor_prep
-        echo "queue chunk matching (${predin}/*.root)" >> $condor_prep
-        condor_submit $condor_prep
-
+        pred_inputs=(/eos/cms/${signaldir} /eos/cms//store/cmst3/group/top/RunIIReReco/2017/vxsimulations_1Jul2021)
+        for predin in ${pred_inputs[@]}; do
+            predout=/eos/cms/${anadir}${pfix}
+            condor_prep=runanasig${pfix}_condor_`basename ${predin}`.sub
+            mix_file=/eos/cms/${anadir}/mixing/
+            echo "executable  = ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/wrapAnalysis.sh" > $condor_prep
+            echo "output      = ${condor_prep}.out" >> $condor_prep
+            echo "error       = ${condor_prep}.err" >> $condor_prep
+            echo "log         = ${condor_prep}.log" >> $condor_prep
+            echo "+AccountingGroup = \"group_u_CMST3.all\"" >> $condor_prep
+            echo "+JobFlavour = \"tomorrow\"">> $condor_prep
+            echo "request_cpus = 4" >> $condor_prep
+            echo "arguments   = ${CMSSW_BASE} ${step} ${predout} ${predin} \$(chunk) ${mix_file} ${ALLOWPIX}" >> $condor_prep
+            echo "queue chunk matching (${predin}/*.root)" >> $condor_prep
+            condor_submit $condor_prep
+            echo "Submitted from $condor_prep"
+        done
+        
         #run locally
-        #python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/runExclusiveAnalysis.py --step 1 --jobs 8 \
-        #    --json ${signaljson},${signalpostts2json} --RPout ${RPout_json} --mix /eos/cms/${outdir}/mixing/mixbank.pck \
-        #    --allowPix ${ALLOWPIX} \
-        #    -i /eos/cms/${signal_dir} -o anasig/;
+        #python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/runExclusiveAnalysis.py --step 1 --jobs 1 \
+        #    --json ${signaljson},${signalpostts2json} --RPout ${RPout_json} --mix ${mix_file} \
+        #    --allowPix ${ALLOWPIX} --effDir ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps \
+        #    -i ${predin} -o anasig/;
         # cp -v anasig/Chunks/*.root /eos/cms/${outdir}/analysis/
         ;;
    
     CHECKANASIG )        
-        predin=/eos/cms/${signaldir}
-        #predin=/eos/cms//store/cmst3/group/top/RunIIReReco/2017/vxsimulations_1Jul2021
-        python test/analysis/pps/checkFinalNtupleInteg.py ${predin} /eos/cms/${anadir}${pfix}/Chunks 2 1 /eos/cms/${anadir}/mixing ${ALLOWPIX}
+        pred_inputs=(/eos/cms/${signaldir} /eos/cms//store/cmst3/group/top/RunIIReReco/2017/vxsimulations_1Jul2021)
+        for predin in ${pred_inputs[@]}; do
+            python test/analysis/pps/checkFinalNtupleInteg.py ${predin} /eos/cms/${anadir}${pfix}/Chunks 2 1 /eos/cms/${anadir}/mixing ${ALLOWPIX}
+        done
         ;;
 
     MERGEANA )
-
         mergeOutputs.py /eos/cms/${anadir}${pfix};
         ;;
 
@@ -459,10 +461,10 @@ case $WHAT in
         echo "Running with the default values for ${commonOpts} and output @ ppvx_${githash}${pfix}/test"
         
         #python test/analysis/pps/generateBinnedWorkspace.py ${commonOpts} -o ppvx_${githash}${pfix}/test --doBackground    
-        #python test/analysis/pps/generateBinnedWorkspace.py ${commonOpts} -o ppvx_${githash}${pfix}/test --massList 960 
+        python test/analysis/pps/generateBinnedWorkspace.py ${commonOpts} -o ppvx_${githash}${pfix}/test --massList 960 
 
-        python test/analysis/pps/generateBinnedWorkspace.py ${commonOpts} -o ppvx_${githash}${pfix}/test --doDataCards 
-
+        #python test/analysis/pps/generateBinnedWorkspace.py ${commonOpts} -o ppvx_${githash}${pfix}/test --doDataCards 
+        
         ;;
 
     PREPAREOPTIMSTATANA )
@@ -605,13 +607,16 @@ case $WHAT in
         echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_50 -m 1000 -b z -t sm -u -s"
         echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_75 -m 1000 -b z -t ss -u -s"
         echo "[Nuisances post-fit, gof, etc]"
-
-        echo "python test/analysis/pps/doNuisanceReport.py Obs.:s:ppvx_${githash}${pfix}/obs/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root Exp.:s:ppvx_${githash}${pfix}/exp/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root"
+        echo "python test/analysis/pps/doNuisanceReport.py B-only:b:ppvx_2017_unblind_multi_1exc/exp/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root S+B:s:ppvx_2017_unblind_multi_1exc/exp/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root --tag asimovPPzX"
+        echo "python test/analysis/pps/doNuisanceReport.py Obs.:s:ppvx_${githash}${pfix}/obs/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root Exp.:s:ppvx_${githash}${pfix}/exp/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root --tag PPzX"
+        echo "python test/analysis/pps/doNuisanceReport.py Obs.:s:ppvx_${githash}${pfix}/obs/inc_xangle_nvtx/fitDiagnosticsPPgX.m1000.root Exp.:s:ppvx_${githash}${pfix}/exp/inc_xangle_nvtx/fitDiagnosticsPPgX.m1000.root --tag PPgX"
         echo "python test/analysis/pps/showNuisancePerCateg.py ppvx_${githash}${pfix}/obs/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root"
         echo "python test/analysis/pps/plotGOF.py ppvx_${githash}${pfix}/obs/inc_xangle_nvtx/higgsCombinePPzX.m1000.gof.GoodnessOfFit.mH1000.root"
-
+        echo "[Postfit plots]"
+        echo "python test/analysis/pps/plotPostFitDistributions.py ppvx_2017_unblind_multi_1exc/obs/inc_xangle_nvtx/fitDiagnosticsPPzX.m1000.root"
+        echo "python test/analysis/pps/plotPostFitDistributions.py ppvx_2017_unblind_multi_1exc/obs/inc_xangle_nvtx/fitDiagnosticsPPgX.m1000.root"
         echo "[Acceptance plots inputs]"
-        echo "python test/analysis/pps/computeFinalAEff.py test/analysis/pps/acc_summary.dat (takes ~1h to loop over original signal files)"
+        echo "python test/analysis/pps/computeFinalAEff.py (takes ~1h to loop over original signal files)"
         echo "python test/analysis/pps/computeFinalAEff.py test/analysis/pps/acc_summary.dat ppvx_2017_unblind_multi_1exc/exp/inc_xangle_nvtx/info.dat"
         ;;
     

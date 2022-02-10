@@ -12,7 +12,14 @@ PHOTONSIGNALXSECS = {120:0.372,130:0.295,140:0.162,150:0.171}
 VALIDLHCXANGLES   = SIGNALXSECS.keys()
 CH_DICT           = {'169':'zmm','121':'zee','22':'g'}
 CH_TITLE_DICT     = {'169':'Z#rightarrow#mu#mu','121':'Z#rightarrowee','22':'#gamma'}
+LUMI              = {'169':37193., '121':37193., '22':2288}
+FINALFID          = 'gencsi1>0.02 && gencsi1<0.16 && gencsi2>0.03 && gencsi2<0.18'
+ERAWEIGHTS        = {'preTS2':14586.4464/41529.3,'postTS2':1-14586.4464/41529.3}
 
+def checkForNullNegativeEntries(h):
+    for xbin in range(h.GetNbinsX()):
+        if h.GetBinContent(xbin+1)>0: continue
+        h.SetBinContent(xbin+1,1e-6)
 
 def defineProcessTemplates(histos,norm=False):
 
@@ -22,42 +29,36 @@ def defineProcessTemplates(histos,norm=False):
 
     #nominal
     templates.append( histos[0] )
+    checkForNullNegativeEntries(templates[0])
     nomStats=templates[-1].Integral()
 
-    #systematic variations
-    #if Up/Down already in the name store directly updating the name
-    #if not, mirror the variation given 
+    #loop over the systematic variations (start at index 1)
+    #if Up/Down is in the systematic name: update final name
+    #otherwise: mirror and update the name
+    #in both cases do not leave <0 counts in a bin
     for i in xrange(1,len(histos)):        
 
         templates.append( histos[i] )
-        if norm : templates[-1].Scale(nomStats/histos[i].Integral())
-        
         key=templates[-1].GetName()
+        checkForNullNegativeEntries(templates[-1])
+        if norm: templates[-1].Scale(nomStats/templates[-1].Integral())
+
+        #systematic needs mirroring
         if not 'Up' in key and not 'Down' in key :
-
+        
+            #update name
             templates[-1].SetName(key+'Up')
-            templates.append( histos[0].Clone(key+'Down') )
             
-            #diff
-            diffH=templates[-1].Clone('ratio')
-            diffH.Add(templates[-2],-1)
-            for xbin in range(templates[0].GetNbinsX()):
-                diffVal=diffH.GetBinContent(xbin+1)
-                templates[-1].SetBinContent(xbin+1,max(1e-6,diffVal+histos[0].GetBinContent(xbin+1)))                
-            diffH.Delete()
-
-            if norm : templates[-1].Scale(nomStats/histos[i].Integral())
+            #define down variation = nom - (up-nom) = 2nom-up
+            templates.append( templates[0].Clone(key+'Down') )
+            templates[-1].Scale(2.)
+            templates[-1].Add(templates[-2],-1)
+            checkForNullNegativeEntries(templates[-1])
+            if norm: templates[-1].Scale(nomStats/templates[-1].Integral())
     
-    #don't leave bins with 0's
     for h in templates:
         h.SetDirectory(0)
-        iStats=h.Integral()
-        if iStats>0: h.Scale(nomStats/iStats)
-        for xbin in range(h.GetNbinsX()):
-            if h.GetBinContent(xbin+1)>0: continue
-            h.SetBinContent(xbin+1,1e-6)
-            h.SetBinError(xbin+1,1e-6)
-            
+
     return templates
 
         
@@ -132,7 +133,47 @@ def fillBackgroundTemplates(opt):
     return totalBkg,templates,data_obs
 
 
-def fillSignalTemplates(mass,signalFile,xsec,opt,fiducialCuts='gencsi1>0.02 && gencsi1<0.16 && gencsi2>0.03 && gencsi2<0.18',postfix=''):
+def computeRPfidAcceptance(signalFile,boson,mass,channel,fiducialCuts=FINALFID):
+
+    """computes the acceptance in the final fiducial region applying the gen-level proton requirements"""
+
+    ntot,npass,nfiles=0.,0.,0
+
+    #define denominator
+    #require events in the category of interest, only for the first mix try (nominal) and first signal hypothesis weighting
+    #(signal is processed several times for different reconstruction hypothesis)
+    totCuts='cat=={} && mixType==1 && sighyp==0'.format(channel)
+    
+    #define numerator with the proton fiducial cuts
+    passCuts='({}) && ({})'.format(totCuts,fiducialCuts)
+    
+    #iterate over the angles
+    for ixangle in VALIDLHCXANGLES:
+
+        xangleCuts = '&& xangle=={}'.format(ixangle)
+
+        for era in ['preTS2','postTS2']:
+
+            data=ROOT.TChain('data')
+            url=signalFile.format(boson=boson,xangle=ixangle,mass=mass).replace('preTS2',era)
+            data.AddFile(url)
+
+            wgt=ERAWEIGHTS[era]
+            intot   = data.GetEntries(totCuts+xangleCuts)*wgt
+            ntot   += intot
+            inpass  = data.GetEntries(passCuts+xangleCuts)*wgt
+            npass  += inpass
+            nfiles+=1
+
+    #require 4 angles x 2 eras
+    assert(nfiles==8)
+
+    #return total RP fiducial acceptance
+    acc=npass/ntot
+    return acc
+
+
+def fillSignalTemplates(mass,signalFile,xsec,rpfidacc,lumi,opt,fiducialCuts=FINALFID,postfix='',fixFidXsec=True):
 
     """fills the signal histograms"""
 
@@ -143,13 +184,15 @@ def fillSignalTemplates(mass,signalFile,xsec,opt,fiducialCuts='gencsi1>0.02 && g
     #import signal events
     data=ROOT.TChain('data')
     data.AddFile(os.path.join(opt.input,signalFile))
-    dataWgt=14586.4464/41529.3 #preTS2/total
 
     dataAlt=ROOT.TChain('data')
     dataAlt.AddFile(os.path.join(opt.input,signalFile).replace('preTS2','postTS2'))
 
-    #common weight exppression
-    wgtExpr='ppsEff*wgt*{xsec}*{lumi}'.format(xsec=xsec,lumi=opt.lumi)
+    #scaling of the fiducial-/out-fiducial-RP components to keep the RP fiducial cross section fixed
+    if fixFidXsec: xsec=xsec/rpfidacc
+
+    #common weight expression
+    wgtExpr='ppsEff*wgt*{xsec}*{lumi}'.format(xsec=xsec,lumi=lumi)
 
     #apply category cuts
     catName=opt.chTag
@@ -172,16 +215,17 @@ def fillSignalTemplates(mass,signalFile,xsec,opt,fiducialCuts='gencsi1>0.02 && g
             name=sigType+name
             templCuts=categCut.replace('csi1',pfix+'csi1')
             templCuts=templCuts.replace('csi2',pfix+'csi2')
+
             if sigType=='outfid':
                 templCuts+=' && !(%s)'%fiducialCuts
-            else:
+            elif sigType=='fid':
                 templCuts+=' && %s'%fiducialCuts
+                
             if pfix=='syst':
                 templCuts=templCuts.replace('protonCat','systprotonCat')
 
             histodef='%smmiss >> h(%d,%f,%f)'%(pfix,opt.nbins,opt.mMin,opt.mMax)           
             if opt.signed:
-                #histodef='(%sypp>=0 ? %smmiss : -%smmiss) >> h(%d,%f,%f)'%(pfix,pfix,pfix,2*opt.nbins,-opt.mMax,opt.mMax)
                 histodef='(bosoneta>=0 ? %smmiss : -%smmiss) >> h(%d,%f,%f)'%(pfix,pfix,2*opt.nbins,-opt.mMax,opt.mMax)
 
             shiftDataWgt=1.0
@@ -192,7 +236,7 @@ def fillSignalTemplates(mass,signalFile,xsec,opt,fiducialCuts='gencsi1>0.02 && g
             data.Draw(histodef,
                       '{0}*{1}*{2}*({3} && mixType=={4} && {5}mmiss>0)'.format(wgtExpr,
                                                                                addWgt if addWgt else '1',
-                                                                               dataWgt*shiftDataWgt,
+                                                                               ERAWEIGHTS['preTS2']*shiftDataWgt,
                                                                                templCuts,
                                                                                mixType,
                                                                                pfix),
@@ -202,7 +246,7 @@ def fillSignalTemplates(mass,signalFile,xsec,opt,fiducialCuts='gencsi1>0.02 && g
             dataAlt.Draw(histodef.replace('h(','halt('),
                          '{0}*{1}*{2}*({3} && mixType=={4} && {5}mmiss>0)'.format(wgtExpr,
                                                                                   addWgt if addWgt else '1',
-                                                                                  (1-dataWgt*shiftDataWgt),
+                                                                                  (1-ERAWEIGHTS['preTS2']*shiftDataWgt),
                                                                                   templCuts,
                                                                                   mixType,
                                                                                   pfix),
@@ -219,9 +263,9 @@ def fillSignalTemplates(mass,signalFile,xsec,opt,fiducialCuts='gencsi1>0.02 && g
 
             h.Reset('ICE')
         
-        templates[sigType]=defineProcessTemplates(histos)
+        templates[sigType]=defineProcessTemplates(histos,True)
     
-    print '\t total signal:',totalSig
+    print '\t total signal:',totalSig,' (lumi=',lumi,')'
     return totalSig,templates,nom_templates
 
 
@@ -337,6 +381,11 @@ def shapesTask(args):
         print '\t filling signal templates' 
         for m in opt.massList:
             try:
+                rpfidacc=computeRPfidAcceptance(signalFile=os.path.join(opt.input,opt.sig),
+                                                boson=boson,
+                                                mass=m,
+                                                channel=ch)
+
                 sigExp,sigTemplates,sigNomTemplates=None,None,None
                 for ixangle in VALIDLHCXANGLES:
                     print '\t @%durad'%ixangle
@@ -345,11 +394,15 @@ def shapesTask(args):
                         sigExp,sigTemplates,sigNomTemplates=fillSignalTemplates(mass=m,
                                                                                 signalFile=signalFile,
                                                                                 xsec=SIGNALXSECS[ixangle] if boson=='Z' else PHOTONSIGNALXSECS[ixangle],
+                                                                                rpfidacc=rpfidacc,
+                                                                                lumi=LUMI[ch],
                                                                                 opt=opt)
                     else:
                         i_sigExp,i_sigTemplates,i_sigNomTemplates=fillSignalTemplates(mass=m,
                                                                                       signalFile=signalFile,
                                                                                       xsec=SIGNALXSECS[ixangle] if boson=='Z' else PHOTONSIGNALXSECS[ixangle],
+                                                                                      rpfidacc=rpfidacc,
+                                                                                      lumi=LUMI[ch],
                                                                                       opt=opt,
                                                                                       postfix='_add')
                         
@@ -393,7 +446,11 @@ def smoothWithLowess(h,href,nbins):
     hratio.Divide(href)
     gr=ROOT.TGraph()
     for xbin in range(1,hratio.GetNbinsX()+1):
-        gr.SetPoint(xbin-1,hratio.GetXaxis().GetBinCenter(xbin),hratio.GetBinContent(xbin))
+        ptval=hratio.GetBinContent(xbin)
+        ptunc=hratio.GetBinError(xbin)
+        if ptunc>1:
+            ptval=1.
+        gr.SetPoint(xbin-1,hratio.GetXaxis().GetBinCenter(xbin),ptval)
     hratio.Delete()
 
     #apply lowess
@@ -541,11 +598,6 @@ def main(args):
                         default=False,
                         help='use signed missing mass [default %default]',
                         action='store_true')
-    parser.add_argument('--lumi',
-                        dest='lumi',
-                        default=37500.,
-                        type=float,
-                        help='integrated luminosity [default: %default]')
     parser.add_argument('--mBin',
                         dest='mBin',
                         default=40.,

@@ -34,6 +34,7 @@ def doNuisanceReport(url_list,tag='',npergroup=20,poi='r'):
                 var = iter.Next()
                 continue
            
+            print name,'->',
             for t,rt in [
                     ('_',' '),
                     ('prop bincat','stat. cat'),
@@ -49,14 +50,16 @@ def doNuisanceReport(url_list,tag='',npergroup=20,poi='r'):
                     ('sigCalib','Time dependency'),
                     ('sigShapeEM','Signal shape HP'),
                     ('g shape','#gamma shape'),
-            ]:                
+            ]:            
                 name=name.replace(t,rt)
+            print name
             
             val=var.getVal()
             ehi=var.getErrorHi()
             elo=var.getErrorLo()
             if name!=poi:
                 corr=fres.correlation(var.GetName(),poi) if fit=='s' else 0.
+                print(fit,var.GetName(),poi,corr)
                 fitResults[title][name]=(val,ehi,elo,corr)
             else:
                 poiResults[title]=(val,ehi,elo)

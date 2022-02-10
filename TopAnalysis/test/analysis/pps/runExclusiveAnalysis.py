@@ -238,7 +238,7 @@ def signalMassPoint(inFile):
 
 def isSignalFiducial(csiPos,csiNeg,gen_pzpp):
 
-    if csiNeg<0.03 or csiPos<0.03 : return False
+    if csiNeg<0.03 or csiPos<0.02 : return False
     if csiNeg>0.16 or csiPos>0.13 : return False
     return True
 
@@ -333,7 +333,7 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,effDir,ppsEffFile,maxEve
         for ch in ['eez','mmz','a']:
             effIn=ROOT.TFile.Open('%s/effsummary_%s_ptboson.root'%(effDir,ch))
             pname='gen%srec_ptboson_ZH#rightarrowllbb_eff'%ch
-            if ch=='a': pname='genarec_ptboson_EWK #gammajj_eff'
+            if ch=='a': pname='genarec_ptboson_#gamma+jets_eff'
             mcEff[ch]=effIn.Get(pname)
         effIn.Close()        
 
@@ -883,7 +883,8 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,effDir,ppsEffFile,maxEve
             #    print '\t',i_neg_protons,i_neg_protons_syst
             #    print '\t--->',i_proton_cat_syst,i_csi_pos_syst,i_csi_neg_syst
 
-            passAtLeastOneSelection=(i_proton_cat>0 or i_proton_cat_syst>0)
+            #passAtLeastOneSelection=(i_proton_cat>0 or i_proton_cat_syst>0)
+            passAtLeastOneSelection=(isSignal and mixType==1) or (i_proton_cat>0 or i_proton_cat_syst>0)
 
             #start event summary
             evSummary.reset()

@@ -48,9 +48,17 @@ def plotShapes(categs_dict,categ_group,lumi):
     relUncGr=[]
     leg=None
     leg_ratio=None
+
+    #find the maximum in y-axis
+    #maxY=0.
+    #for (cat,xangle) in categ_group['group']:
+    #    maxY=max(maxY,categs_dict[cat]['data'].GetMaximum()*1.5)
+
     for icat,(cat,xangle) in enumerate(categ_group['group']):
 
         c.cd()
+
+        maxY=categs_dict[cat]['data'].GetMaximum()*1.5
 
         ix=icat*0.25
         pads.append( ROOT.TPad("p{}".format(icat), "p{}".format(icat), ix, 0., ix+0.25, 1.) )
@@ -62,7 +70,7 @@ def plotShapes(categs_dict,categ_group,lumi):
         pads[icat].cd()
 
         #main pad: data and post-fit expectations
-        lm=0.15 if icat==0 else 0.025
+        lm=0.15 if icat==0 else 0.09
         rm=0.05
         sub_pads.append([])
         sub_pads[icat].append( ROOT.TPad("p{}_1".format(icat), "p{}_1".format(icat),0., 0.5, 1, 1.) )
@@ -88,16 +96,16 @@ def plotShapes(categs_dict,categ_group,lumi):
         data[icat].SetMarkerColor(1)
         data[icat].SetLineColor(1)
         data[icat].SetLineWidth(3)
-        maxY=categs_dict[cat]['data'].GetMaximum()*1.5
 
         frames.append([])
         frames[icat].append( postfit['total'].Clone('frame') )
         frames[icat][0].Reset('ICE')
         frames[icat][0].GetYaxis().SetTitle('Events')
-        frame_yfont=0.07 if icat==0 else 0.
+        frame_yfont=0.07 #if icat==0 else 0.
+        frame_ytitlefont=frame_yfont if icat==0 else 0.
         frames[icat][0].GetYaxis().SetTitleOffset(1.05)
         frames[icat][0].GetYaxis().SetNdivisions(505)
-        frames[icat][0].GetYaxis().SetTitleSize(frame_yfont)
+        frames[icat][0].GetYaxis().SetTitleSize(frame_ytitlefont)
         frames[icat][0].GetYaxis().SetLabelSize(frame_yfont)
         frames[icat][0].GetXaxis().SetTitleSize(0)
         frames[icat][0].GetXaxis().SetLabelSize(0)
@@ -257,7 +265,7 @@ def plotShapes(categs_dict,categ_group,lumi):
         data2fitGr[icat].Draw('PZ0')
 
         if icat==3:
-            leg_ratio = ROOT.TLegend(0.25,0.42,0.75,0.52)
+            leg_ratio = ROOT.TLegend(0.08,0.14,0.5,0.23)
             leg_ratio.SetTextAlign(ROOT.kHAlignCenter+ROOT.kVAlignCenter)
             leg_ratio.SetNColumns(2)
             leg_ratio.SetFillStyle(0)
@@ -314,7 +322,10 @@ def parseCategoriesFromDatacard(url,sources_url):
                     try:
                         nvtx=int(re.findall("nvtx>=([0-9]+)",presel)[0])
                     except:
-                        nvtx=-int(re.findall("nvtx<([0-9]+)",presel)[0])
+                        try:
+                            nvtx=-int(re.findall("nvtx<([0-9]+)",presel)[0])
+                        except:
+                            nvtx=None
                     categ_dict[c]={'cat':int(re.findall("cat==([0-9]+)",presel)[0]),
                                    'protonCat':int(re.findall("protonCat==([0-9]+)",presel)[0]),
                                    'xangle':int(re.findall("xangle==([0-9]+)",presel)[0]),
@@ -384,8 +395,11 @@ def groupCategories(categ_dict):
             if protonCat==2 : title.append('multi-single')
             if protonCat==3 : title.append('single-multi')
             if protonCat==4 : title.append('single-single')
-            title.append( 'N_{{vtx}}{}{}'.format('<' if nvtx<0 else '#geq',abs(nvtx)))
-            pname='mmiss_{}_{}_{}{}'.format(boson,protonCat,'lt' if nvtx<0 else 'gt',abs(nvtx))
+            if not nvtx is None:
+                title.append( 'N_{{vtx}}{}{}'.format('<' if nvtx<0 else '#geq',abs(nvtx)))
+                pname='mmiss_{}_{}_{}{}'.format(boson,protonCat,'lt' if nvtx<0 else 'gt',abs(nvtx))
+            else:
+                pname='mmiss_{}_{}'.format(boson,protonCat)
             categ_groups[key]={'title':title, 'name':pname, 'group':[]}
         categ_groups[key]['group'].append( (c,xangle) )
         
@@ -472,9 +486,8 @@ def mergeCategories(categ_dict):
 
 if __name__ == "__main__":
 
-    parser = optparse.OptionParser(usage='usage: %prog [opts] ', version='%prog 1.0')
+    parser = optparse.OptionParser(usage='usage: %prog datacard [opts] ', version='%prog 1.0')
     parser.add_option('--outdir',    type='string'       , default=''    , help='output directory where the postfit plots are saved.')
-    parser.add_option('--inclusive', action='store_true' , default=False , help='do it for inclusive plots (i.e. non b-tagged)')
     parser.add_option('--prefit',    action='store_true' , default=False , help='make prefit distributions')
     (options, args) = parser.parse_args()
 
@@ -484,7 +497,8 @@ if __name__ == "__main__":
     if 'PPzmmX' in url: boson='zmm'
     if 'PPzeeX' in url: boson='zee'
     if 'PPgX' in url : boson='g'
-    lumi=37193 if 'z' in boson else 2288
+    from generateBinnedWorkspace import LUMI
+    lumi=LUMI['169'] if 'z' in boson else LUMI['22']
     datacard_url='{}/{}_datacard.dat'.format(base_dir,boson)
     datacard_sources_url='{}/{}_cards/'.format(base_dir,boson)
     

@@ -108,9 +108,8 @@ def main(args):
             deltaM=50
             if 'protonCat==1' in ana : deltaM=25
             if 'protonCat==4' in ana : deltaM=75
-            script.write('python ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/generateBinnedWorkspace.py -i ${input} -o ${output} --cuts "${cuts}" ${extraOpt} --finalState ${finalState} --mMin 0 --mMax 2000 --mBin %s\n'%deltaM)
+            script.write('python ${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/generateBinnedWorkspace.py -i ${input} -o ${output} --cuts "${cuts}" ${extraOpt} --finalState ${finalState} --mMin 0 --mMax 2000 --mBin %s\n'%(deltaM))
             script.write('\n')
-
 
     #submit optimization points to crab
     print 'Will submit %d optimization scan points'%len(OPTIMLIST)

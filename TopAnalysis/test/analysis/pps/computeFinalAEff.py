@@ -35,10 +35,7 @@ def getFiducialAcceptance(args):
     nSignalWgtSum,nFidSignalWgtSum=0.,0.
     pzwid=0.391*gen_mX+624
     for i in xrange(0,nEntries):
-        tree.GetEntry(i) 
-       
-        wpz=ROOT.TMath.Gaus(tree.gen_pzpp,0,pzwid)
-        nSignalWgtSum += wpz
+        tree.GetEntry(i)
 
         #require in-fiducial
         tracks=getTracksPerRomanPot(tree,era=era,run=-1,xangle=xangle,mcTruth=True,applyPxFid=False)
@@ -46,17 +43,30 @@ def getFiducialAcceptance(args):
         gencsi1=tracks[0][0][0]
         gencsi2=tracks[1][0][0]
         if gencsi1<0.02 or gencsi1>0.16 or gencsi2<0.03 or gencsi2>0.18: continue
+
+        wpz=ROOT.TMath.Gaus(tree.gen_pzpp,0,pzwid)
+        nSignalWgtSum += wpz
+
+        if tree.evcat==22:
+            if tree.bosonpt<95 : continue
+        elif tree.evcat==121 or tree.cat==169:
+            if tree.l1pt<30: continue
+            if tree.l2pt<20: continue
+            if tree.bosonpt<40 : continue # this should be the only cut removing some events
+        else:
+            continue
+
         nFidSignalWgtSum += wpz
 
     #all done with this file
     fIn.Close()
 
     #finalize computation
-    fid_acc=nFidSignalWgtSum/nSignalWgtSum
+    fid_acc=nFidSignalWgtSum/nSignalWgtSum if nSignalWgtSum>0 else 0.
     xsec=(SIGNALXSECS[xangle] if boson=='Z' else PHOTONSIGNALXSECS[xangle])*_eraFracs[era]
     fid_xsec=xsec*fid_acc
 
-    print('@ {} xsec={}pb'.format(idx,fid_xsec))
+    print('@ {} xsec={:3.3f}pb acc={:3.3f}'.format(idx,fid_xsec, fid_acc))
     with open('acc_job_%d.dat'%idx,'w') as fOut:
         fOut.write('%s %d %d %s %f %f %f'%(boson,gen_mX,xangle,era,xsec,fid_acc,fid_xsec))
 
@@ -64,10 +74,10 @@ def buildAcceptanceSummary():
 
     """build the acceptance summary looping over all the signals"""
 
-    sig_dir='/eos/cms/store/cmst3/group/top/RunIIReReco/2017/vxsimulations_7Sep2020/'
+    sig_dir='/eos/cms/store/cmst3/group/top/RunIIReReco/2017/vxsimulations_7Sep2020'
     task_list=[(i,os.path.join(sig_dir,f)) for i,f in enumerate(os.listdir(sig_dir))]
     import multiprocessing as MP
-    pool = MP.Pool(8)
+    pool = MP.Pool(20)
     pool.map( getFiducialAcceptance, task_list )
 
     summary='test/analysis/pps/acc_summary.dat'
@@ -90,7 +100,7 @@ def getSelectedXsec(shapes):
 
     """computes the final analysis acceptance"""
 
-    lumi=37500. #FIXME this should be different for photons
+    lumi={'zee':37193.,'zmm':37193.,'g':2288,}
 
     optim_rgx=re.compile('.*/optim_(.*)')
 
@@ -125,18 +135,10 @@ def getSelectedXsec(shapes):
                     nevts=-1
                 fIn.Close()
 
-                summary.append( [boson,m,xangle,nvtx,protonCat,nevts,nevts/lumi] )
+                summary.append( [boson,m,xangle,nvtx,protonCat,nevts,nevts/lumi[boson]] )
         
     return pd.DataFrame( np.array(summary), columns=['boson','mX','xangle','nvtx','protonCat','n_sel','xsec_sel'])
                 
-
-               
-    
-
-
-
-
-
 
 info=sys.argv[2]
 

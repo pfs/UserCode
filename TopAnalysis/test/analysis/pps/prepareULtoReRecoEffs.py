@@ -1,5 +1,6 @@
 import ROOT
 import numpy as np
+import os
 
 def divide2DHistograms(hnum,hden):
 
@@ -27,6 +28,7 @@ def divide2DHistograms(hnum,hden):
 
 
 baseDir='/eos/user/p/psilva/www/EXO-19-009/scaleFactors'
+os.system('mkdir -p %s'%baseDir)
 
 ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetOptTitle(0)
@@ -84,3 +86,41 @@ for tag,rereco,ul,out in [ ('gamma',
         hratios[h].SetDirectory(fout)
         hratios[h].Write(h)
     fout.Close()
+
+
+fIn=ROOT.TFile.Open('data/era2017/TriggerSF_2017_UL.root')
+for ch in ['ee','mumu']:
+    h=fIn.Get('h2D_SF_%s_lepABpt_FullError'%ch)
+    h.Draw('colztext')
+    c.SetLogx()
+    c.SetLogy()
+    h.GetZaxis().SetRangeUser(0.9,1)
+    c.SaveAs('%s/trig_sf_%s.pdf'%(baseDir,ch))
+fIn.Close()
+
+hcombSF=None
+for i,hname in [('ID','NUM_TightID_DEN_genTracks_pt_abseta'),
+                ('ISO','NUM_TightRelIso_DEN_TightIDandIPCut_pt_abseta')]:
+
+    fIn=ROOT.TFile.Open('data/era2017/RunBCDEF_SF_Mu%s.root'%i)
+    h=fIn.Get(hname)
+    h.Print("all")
+    if hcombSF is None:
+        hcombSF=h.Clone('muidiso_SF')
+        hcombSF.SetDirectory(0)
+    else:
+        for xbin in range(1,h.GetNbinsX()+1):
+            for ybin in range(1,h.GetNbinsY()+1):
+                sf=hcombSF.GetBinContent(xbin,ybin)
+                sf*=h.GetBinContent(xbin,ybin)
+                hcombSF.SetBinContent(xbin,ybin,sf)
+    fIn.Close()
+
+hcombSF.Draw('colztext')
+c.SetLogx(False)
+c.SetLogy(False)
+hcombSF.GetZaxis().SetRangeUser(0.9,1)
+c.SaveAs('%s/%s.pdf'%(baseDir,hcombSF.GetName()))
+
+
+

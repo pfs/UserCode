@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import ROOT
 import sys
+import os
 
 categ_dict={'multi-multi':[34,32,36,33,37,38,35,39,4,6,3,2,0,5,7,1],
             'multi-single':[40,45,46,44,47,43,42,41,10,8,9,11,13,15,14,12],
@@ -19,6 +20,8 @@ fres=inF.Get('fit_s')
 pars=fres.floatParsFinal()
 iter = pars.createIterator()
 var = iter.Next()
+
+outfbasename=os.path.basename(inF).replace('fitDiagnostics','').replace('.root','')
 
 gr_dict={}
 while var :
@@ -102,7 +105,8 @@ for k,gr in gr_dict.items():
     gr2s.Draw('f')
     gr1s.Draw('f')
     gr.Draw('p')
-    name='{}_{}_grouped_nuisances.png'.format(*k)
+
+    name='{}_{}_grouped_nuisances_{}.png'.format(*k,outfbasename)
     name=name.replace(' ','')
     name=name.replace('-','_')
 

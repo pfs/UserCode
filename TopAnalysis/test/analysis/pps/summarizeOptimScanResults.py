@@ -101,7 +101,7 @@ def main():
                 condor.write("mass = %s\n"%m)
                 condor.write("channel = %s\n"%ch)
                 condor.write("queue 1\n")
-        os.system('condor_submit %s/zxstatana_resub_run.sub'%baseDir)
+        #os.system('condor_submit %s/zxstatana_resub_run.sub'%baseDir)
 
 
 if __name__ == "__main__":

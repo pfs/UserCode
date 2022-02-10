@@ -143,11 +143,11 @@ def main(args):
             script.write('text2workspace.py ${b}_datacard.dat -m ${m} -o ${pfix}_workspace.root --channel-masks\n')
             script.write('\n')
 
-            script.write('baseCmd=\"combine ${pfix}_workspace.root -m ${m} --X-rtd MINIMIZER_analytic --setParameterRanges mu_outfidsig=0,1\"\n')
+            script.write('baseCmd=\"combine ${pfix}_workspace.root -m ${m} --X-rtd MINIMIZER_analytic --setParameterRanges mu_outfidsig=0,0.1\"\n')
             script.write('${baseCmd} -n PP${b}X.obs   -M AsymptoticLimits\n')
             script.write('${baseCmd} -n PP${b}X       -M AsymptoticLimits --run blind\n')
             script.write('${baseCmd} -n PP${b}X.obs   -M Significance\n')
-            script.write('${baseCmd} -n PP${b}X       -M Significance     -t -1 --expectSignal=0.5 --setParameters mu_outfidsig=0.5\n')
+            script.write('${baseCmd} -n PP${b}X       -M Significance     -t -1 --expectSignal=0.1 --setParameters mu_outfidsig=0.1\n')
             script.write('if [ "${m}" = "1000" ]; then\n')
             script.write('  ${baseCmd} --cminDefaultMinimizerStrategy 0 -n PP${b}X.m${m} -M FitDiagnostics --saveShapes --saveWithUncertainties\n')
             script.write('  ${baseCmd} --cminDefaultMinimizerStrategy 0 -n PP${b}X.m${m}.gof -M GoodnessOfFit --algo=saturated\n')

@@ -9,8 +9,8 @@ from TopLJets2015.TopAnalysis.Plot import convertToPoissonErrorGr
 ## python plotPostFitDistributions.py /eos/cms/store/cmst3/group/hintt/fits/datacards_2019-09-19_elPt25muPt20_ttbarBRFix/sphericity/allFlavors.card/fitDiagnosticsobs.root --outdir <directoryForPlots> (--inclusive)
 
 mcStack=[('bkg'       , 'background',   'postfit',  ROOT.kGray) ,
-         ('outfidsig' , 'non-fiducial', 'prefit',  ROOT.kAzure+6 ) ,
-         ('fidsig'    , 'fiducial' ,    'prefit',  ROOT.kOrange), ]
+         ('outfidsig' , 'non-fiducial', 'postfit',  ROOT.kAzure+6 ) ,         
+         ('fidsig'    , 'fiducial' ,    'prefit',   ROOT.kRed+2), ]
 
 def convertHisto(raw_h, target_h):
     
@@ -26,7 +26,7 @@ def convertHisto(raw_h, target_h):
                 
     return h
     
-def plotShapes(categs_dict,categ_group,lumi):
+def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
 
     """does the plot of a collection of shapes"""
 
@@ -70,27 +70,37 @@ def plotShapes(categs_dict,categ_group,lumi):
         pads[icat].cd()
 
         #main pad: data and post-fit expectations
-        lm=0.15 if icat==0 else 0.09
+        lm=0.15 if icat==0 else 0.1
         rm=0.05
         sub_pads.append([])
-        sub_pads[icat].append( ROOT.TPad("p{}_1".format(icat), "p{}_1".format(icat),0., 0.5, 1, 1.) )
+        if doPostfitOverPrefit:
+            sub_pads[icat].append( ROOT.TPad("p{}_1".format(icat), "p{}_1".format(icat),0., 0.5, 1, 1.) )
+        else:
+            sub_pads[icat].append( ROOT.TPad("p{}_1".format(icat), "p{}_1".format(icat),0., 0.4, 1, 1.) )
         sub_pads[icat][0].SetTopMargin(0.1)
         sub_pads[icat][0].SetBottomMargin(0.03)
         sub_pads[icat][0].SetLeftMargin(lm)
         sub_pads[icat][0].SetRightMargin(rm)
         sub_pads[icat][0].SetGridx()        
         sub_pads[icat][0].SetGridy()
+        sub_pads[icat][0].SetFillStyle(0)
         sub_pads[icat][0].Draw()
         sub_pads[icat][0].cd()
 
         postfit=categs_dict[cat]['postfit']
         prefit=categs_dict[cat]['prefit']
 
+        for m in [800,1600]:
+            ibin=categs_dict[cat]['data'].GetXaxis().FindBin(m-50)
+            jbin=categs_dict[cat]['data'].GetXaxis().FindBin(m+50)
+            nobs=categs_dict[cat]['data'].Integral(ibin,jbin)
+            print(m,ibin,jbin,nobs,icat,name,cat,categs_dict[cat]['data'].Integral())
+
+
         data.append(  convertToPoissonErrorGr( categs_dict[cat]['data'] ) )
         for i in range(data[icat].GetN()):
             data[icat].SetPointEXhigh(i,0.)
             data[icat].SetPointEXlow(i,0.)
-        data[icat].SetMarkerStyle(20)
         data[icat].SetMarkerStyle(20)
         data[icat].SetMarkerSize(1.)
         data[icat].SetMarkerColor(1)
@@ -101,9 +111,11 @@ def plotShapes(categs_dict,categ_group,lumi):
         frames[icat].append( postfit['total'].Clone('frame') )
         frames[icat][0].Reset('ICE')
         frames[icat][0].GetYaxis().SetTitle('Events')
-        frame_yfont=0.07 #if icat==0 else 0.
+        frame_yfont=0.06 #if icat==0 else 0.
+        if not doPostfitOverPrefit: frame_yfont=0.052
         frame_ytitlefont=frame_yfont if icat==0 else 0.
-        frames[icat][0].GetYaxis().SetTitleOffset(1.05)
+
+        frames[icat][0].GetYaxis().SetTitleOffset(1.2 if doPostfitOverPrefit else 1.4)
         frames[icat][0].GetYaxis().SetNdivisions(505)
         frames[icat][0].GetYaxis().SetTitleSize(frame_ytitlefont)
         frames[icat][0].GetYaxis().SetLabelSize(frame_yfont)
@@ -117,19 +129,29 @@ def plotShapes(categs_dict,categ_group,lumi):
             leg = ROOT.TLegend(0.6,0.5,0.94,0.8)
             leg.SetFillStyle(0)
             leg.SetBorderSize(0)
-            leg.SetTextSize(0.06)
+            leg.SetTextSize(0.06 if doPostfitOverPrefit else 0.045)
             leg.SetTextAlign(ROOT.kHAlignRight+ROOT.kVAlignCenter)
             leg.AddEntry(data[icat],'Data','ep')
 
         for proc,ptitle,fit_type,ci in mcStack:
-            h=postfit[proc] if fit_type=='postfit' else prefit[proc]
+            ispostfit=(fit_type=='postfit')
+            h=postfit[proc] if ispostfit else prefit[proc]
             h.SetTitle(ptitle)
-            h.SetLineColor(1)
-            h.SetFillStyle(1001)
-            h.SetFillColor(ci)
+            if ispostfit:
+                h.SetLineColor(1)
+                h.SetFillStyle(1001)
+                h.SetFillColor(ci)
+                if icat==3:
+                    leg.AddEntry(h,ptitle,'f')
+            else:
+                h.SetLineWidth(2)
+                h.SetFillStyle(0)
+                h.SetLineColor(ci)
+                if icat==3:
+                    leg.AddEntry(h,ptitle, 'l')
+
             h.Draw('histsame')
-            if icat==3:
-                leg.AddEntry(h,ptitle,'f')
+
 
         if not leg is None:
             leg.Draw()
@@ -145,7 +167,7 @@ def plotShapes(categs_dict,categ_group,lumi):
             sub_categ_txt=xangle
         if icat==0:
             tex.SetTextAlign(ROOT.kHAlignLeft+ROOT.kVAlignCenter)
-            tex.DrawLatex(0.14,0.96,'#bf{CMS}')            
+            tex.DrawLatex(0.14,0.96,'#bf{CMS-Totem} #it{Preliminary}')            
             tex.SetTextAlign(ROOT.kHAlignLeft+ROOT.kVAlignCenter)
             tex.SetTextSize(0.06)
             for it,txt in enumerate(title):
@@ -162,71 +184,80 @@ def plotShapes(categs_dict,categ_group,lumi):
         sub_pads[icat][0].RedrawAxis()
 
         #post/pre-fit expectations for the background
-        pads[icat].cd()
-        sub_pads[icat].append( ROOT.TPad("p{}_1".format(icat), "p{}_1".format(icat),0., 0.3, 1, 0.49) )
-        sub_pads[icat][1].SetTopMargin(0.04)
-        sub_pads[icat][1].SetBottomMargin(0.04)
-        sub_pads[icat][1].SetLeftMargin(lm)
-        sub_pads[icat][1].SetRightMargin(rm)
-        sub_pads[icat][1].SetGridx()
-        sub_pads[icat][1].SetGridy()
-        sub_pads[icat][1].Draw()
-        sub_pads[icat][1].cd()
+        if doPostfitOverPrefit:
+            pads[icat].cd()
+            sub_pads[icat].append( ROOT.TPad("p{}_1".format(icat), "p{}_1".format(icat),0., 0.3, 1, 0.49) )
+            sub_pads[icat][1].SetTopMargin(0.04)
+            sub_pads[icat][1].SetBottomMargin(0.04)
+            sub_pads[icat][1].SetLeftMargin(lm)
+            sub_pads[icat][1].SetRightMargin(rm)
+            sub_pads[icat][1].SetGridx()
+            sub_pads[icat][1].SetGridy()
+            sub_pads[icat][1].Draw()
+            sub_pads[icat][1].cd()
 
-        frames[icat].append( frames[icat][-1].Clone('frame_{}_2'.format(icat) ) )
-        frames[icat][1].GetYaxis().SetTitle('Postfit/Prefit')
-        frames[icat][1].GetYaxis().SetTitleOffset(0.4)
-        frame_yfont=0.18 if icat==0 else 0.
-        frames[icat][1].GetYaxis().SetTitleSize(frame_yfont)
-        frames[icat][1].GetYaxis().SetLabelSize(frame_yfont)
-        frames[icat][1].GetYaxis().SetNdivisions(5)
-        frames[icat][1].GetXaxis().SetTitleSize(0.0)
-        frames[icat][1].GetXaxis().SetLabelSize(0.0)
-        frames[icat][1].GetYaxis().SetRangeUser(0.66,1.304)
-        frames[icat][1].GetXaxis().SetNdivisions(505)
-        frames[icat][1].Draw()
+            frames[icat].append( frames[icat][-1].Clone('frame_{}_2'.format(icat) ) )
+            frames[icat][1].GetYaxis().SetTitle('Postfit/Prefit')
+            frames[icat][1].GetYaxis().SetTitleOffset(0.4)
+            frame_yfont=0.18 if icat==0 else 0.
+            frames[icat][1].GetYaxis().SetTitleSize(frame_yfont)
+            frames[icat][1].GetYaxis().SetLabelSize(frame_yfont)
+            frames[icat][1].GetYaxis().SetNdivisions(5)
+            frames[icat][1].GetXaxis().SetTitleSize(0.0)
+            frames[icat][1].GetXaxis().SetLabelSize(0.0)
+            frames[icat][1].GetYaxis().SetRangeUser(0.66,1.304)
+            frames[icat][1].GetXaxis().SetNdivisions(505)
+            frames[icat][1].Draw()
+            
+            postpre_ratios.append( postfit['bkg'].Clone('bkg_ratio_{}'.format(icat) ) )
+            postpre_ratios[-1].Divide( prefit['bkg'] )
+            postpre_ratios[-1].SetLineWidth(2)
+            postpre_ratios[-1].SetFillStyle(0)
+            postpre_ratios[-1].Draw('histsame')
+            for ibin in range(1,postfit['bkg'].GetNbinsX()+1):
+                pos=postfit['bkg'].GetBinContent(ibin)
+                pre=prefit['bkg'].GetBinContent(ibin)
+                if pos<0.1 and pre<0.1:
+                    postpre_ratios[icat].SetBinContent(ibin,1)
 
-        postpre_ratios.append( postfit['bkg'].Clone('bkg_ratio_{}'.format(icat) ) )
-        postpre_ratios[-1].Divide( prefit['bkg'] )
-        postpre_ratios[-1].SetLineWidth(2)
-        postpre_ratios[-1].SetFillStyle(0)
-        postpre_ratios[-1].Draw('histsame')
-        for ibin in range(1,postfit['bkg'].GetNbinsX()+1):
-            pos=postfit['bkg'].GetBinContent(ibin)
-            pre=prefit['bkg'].GetBinContent(ibin)
-            if pos<0.1 and pre<0.1:
-                postpre_ratios[icat].SetBinContent(ibin,1)
+            sub_pads[icat][1].RedrawAxis()
 
-        sub_pads[icat][1].RedrawAxis()
 
         #data/MC
         pads[icat].cd()
-        sub_pads[icat].append( ROOT.TPad("p{}_2".format(icat), "p{}_2".format(icat),0., 0., 1, 0.29) )
-        sub_pads[icat][2].SetTopMargin(0.04)
-        sub_pads[icat][2].SetBottomMargin(0.4)
-        sub_pads[icat][2].SetLeftMargin(lm)
-        sub_pads[icat][2].SetRightMargin(rm)
-        sub_pads[icat][2].SetGridx()
-        sub_pads[icat][2].SetGridy()
-        sub_pads[icat][2].Draw()
-        sub_pads[icat][2].cd()
+        if doPostfitOverPrefit:
+            sub_pads[icat].append( ROOT.TPad("p{}_2".format(icat), "p{}_2".format(icat),0., 0., 1, 0.29) )
+        else:
+            sub_pads[icat].append( ROOT.TPad("p{}_2".format(icat), "p{}_2".format(icat),0., 0., 1, 0.39) )
+        sub_pads[icat][-1].SetTopMargin(0.04)
+        sub_pads[icat][-1].SetBottomMargin(0.4)
+        sub_pads[icat][-1].SetLeftMargin(lm)
+        sub_pads[icat][-1].SetRightMargin(rm)
+        sub_pads[icat][-1].SetGridx()
+        sub_pads[icat][-1].SetGridy()
+        sub_pads[icat][-1].Draw()
+        sub_pads[icat][-1].cd()
 
         frame_xfont=0.12
         frame_yfont=0.12 if icat==0 else 0
+        if not doPostfitOverPrefit:
+            frame_xfont=0.085
+            frame_yfont=0.085 if icat==0 else 0
         frames[icat].append( frames[icat][-1].Clone('frame_{}_3'.format(icat) ) )
-        frames[icat][2].GetYaxis().SetTitle('Data/Pred.')
-        frames[icat][2].GetYaxis().SetTitleOffset(0.6)
-        frames[icat][2].GetYaxis().SetTitleSize(frame_yfont)
-        frames[icat][2].GetYaxis().SetLabelSize(frame_yfont)
-        frames[icat][2].GetYaxis().SetNdivisions(5)
-        frames[icat][2].GetXaxis().SetTitleSize(frame_xfont)
-        frames[icat][2].GetXaxis().SetLabelOffset(0.03)
-        frames[icat][2].GetYaxis().SetLabelOffset(0.01)
-        frames[icat][2].GetXaxis().SetLabelSize(frame_xfont)
-        frames[icat][2].GetXaxis().SetTitle('Missing mass [GeV]')
-        frames[icat][2].GetXaxis().SetNdivisions(505)
-        frames[icat][2].GetYaxis().SetRangeUser(0.66,1.304)
-        frames[icat][2].Draw()
+        frames[icat][-1].GetYaxis().SetTitle('Data/Pred.')
+        frames[icat][-1].GetYaxis().SetTitleOffset(0.6 if doPostfitOverPrefit else 0.9)
+        frames[icat][-1].GetYaxis().SetTitleSize(frame_yfont)
+        frames[icat][-1].GetYaxis().SetLabelSize(frame_yfont)
+        frames[icat][-1].GetYaxis().SetNdivisions(5)
+        frames[icat][-1].GetXaxis().SetTitleSize(frame_xfont)
+        frames[icat][-1].GetXaxis().SetLabelOffset(0.01)
+        frames[icat][-1].GetYaxis().SetLabelOffset(0.03)
+        frames[icat][-1].GetXaxis().SetTitleOffset(1.2)
+        frames[icat][-1].GetXaxis().SetLabelSize(frame_xfont)
+        frames[icat][-1].GetXaxis().SetTitle('Missing mass [GeV]')
+        frames[icat][-1].GetXaxis().SetNdivisions(505)
+        frames[icat][-1].GetYaxis().SetRangeUser(0.66,1.304)
+        frames[icat][-1].Draw()
 
         relUnc=postfit['total'].Clone()
         data2fitGr.append( data[icat].Clone('data2fit') )
@@ -265,24 +296,27 @@ def plotShapes(categs_dict,categ_group,lumi):
         data2fitGr[icat].Draw('PZ0')
 
         if icat==3:
-            leg_ratio = ROOT.TLegend(0.08,0.14,0.5,0.23)
+            if doPostfitOverPrefit:
+                leg_ratio = ROOT.TLegend(0.08,0.14,0.5,0.23)
+            else:
+                leg_ratio = ROOT.TLegend(0.12,0.43,0.6,0.5)
             leg_ratio.SetTextAlign(ROOT.kHAlignCenter+ROOT.kVAlignCenter)
             leg_ratio.SetNColumns(2)
             leg_ratio.SetFillStyle(0)
             leg_ratio.SetBorderSize(0)
-            leg_ratio.SetTextSize(0.1)
+            leg_ratio.SetTextSize(0.1 if doPostfitOverPrefit else 0.08)
             leg_ratio.AddEntry(data2fitGr[icat],'Data','ep')
             leg_ratio.AddEntry(relUncGr[icat],'Postfit unc.','f')
             leg_ratio.Draw()
 
-        sub_pads[icat][2].RedrawAxis()
+        sub_pads[icat][-1].RedrawAxis()
 
     c.cd()
     c.Modified()
     c.Update()
     for ext in ['png','pdf']:
+        name=name if doPostfitOverPrefit else name+'_simple'
         c.SaveAs('{}.{}'.format(name,ext))
-
 
 
 
@@ -355,6 +389,7 @@ def fillFitShapes(url,outDir,categ_dict,xtitle='Missing mass [GeV]'):
     print('[fillFitShapes with {} categories expected'.format(len(categ_dict)))
 
     inF = ROOT.TFile(url)
+    print(url)
     for shapes_dir in ['shapes_prefit','shapes_fit_s']:
 
         fit_type='prefit' if 'prefit' in shapes_dir else 'postfit'
@@ -364,6 +399,7 @@ def fillFitShapes(url,outDir,categ_dict,xtitle='Missing mass [GeV]'):
         for ch in inF.Get(shapes_dir).GetListOfKeys():
             chName=ch.GetName()
             chDir=ch.ReadObj()
+            print(chDir.GetName())
             for proc in chDir.GetListOfKeys():
                 pname=proc.GetName()
                 if pname=='total_covar' : continue
@@ -519,3 +555,4 @@ if __name__ == "__main__":
 
     for cg in merged_categ_groups:
         plotShapes( merged_categs_dict, merged_categ_groups[cg], lumi )
+        plotShapes( merged_categs_dict, merged_categ_groups[cg], lumi, False)

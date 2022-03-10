@@ -5,7 +5,7 @@ import re
 from TopLJets2015.TopAnalysis.Plot import *
 from generateBinnedWorkspace import SIGNALXSECS,VALIDLHCXANGLES
 
-LUMI=37500.
+LUMI=37200.
 FPRETS2=14586.4464/41529.3
 FPOSTTS2=1.-FPRETS2
 FIDUCIALCUTS='gencsi1>0.02 & gencsi1<0.16 && gencsi2>0.03 && gencsi2<0.18 && !isOffZ && (cat==121 || cat==169)'
@@ -88,21 +88,24 @@ def main():
         finalExtraText='m_{{X}}={0} GeV ({1})'.format(mass,pcatTitle)
 
         p=Plot('mmass_{0}_sigacc_{1}{2}'.format(mass,icat,pfix),com='13 TeV')
+        p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
+        p.plotformats=['pdf','png','C']
         p.saveLog=True
-        p.xtitle='Missing mass [GeV]'
-        p.ytitle='Events'
+        p.xtit='Missing mass [GeV]'
+        p.ytit='Events'
         hin[icat].SetLineWidth(2)
         p.add(hin[icat],  title='in accept.',  color=ROOT.kRed,   isData=False, spImpose=False, isSyst=False)
         p.add(hout[icat], title='out accept.', color=ROOT.kBlack, isData=False, spImpose=True,  isSyst=False)
-        p.show(outDir='./', lumi=37500, extraText=finalExtraText)
+        p.show(outDir='./', lumi=LUMI, extraText=finalExtraText)
         
         p=Plot('mmass_{0}_puonfidsig_{1}{2}'.format(mass,icat,pfix),com='13 TeV')
+        p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
         p.saveLog=True
-        p.xtitle='Missing mass [GeV]'
-        p.ytitle='Events'
+        p.xtit='Missing mass [GeV]'
+        p.ytit='Events'
         p.add(hnopu[icat],      title='no pileup',   color=ROOT.kGray, isData=False, spImpose=False, isSyst=False)
         p.add(hrpinhpur[icat],  title='pileup+cuts', color=1,          isData=False, spImpose=True,  isSyst=False)
-        p.show(outDir='./', lumi=37500,extraText=finalExtraText)
+        p.show(outDir='./', lumi=LUMI,extraText=finalExtraText)
     
 
 if __name__ == "__main__":

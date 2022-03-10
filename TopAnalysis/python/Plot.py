@@ -236,7 +236,7 @@ class Plot(object):
         else:
             p1=ROOT.TPad('p1','p1',0.0,0.0,1.0,1.0)
             p1.SetRightMargin(0.05)
-            p1.SetLeftMargin(0.12)
+            p1.SetLeftMargin(0.15)
             p1.SetTopMargin(0.08)
             if noRatio:
                 p1.SetTopMargin(0.05)
@@ -428,9 +428,9 @@ class Plot(object):
         if self.xtit:
             frame.GetXaxis().SetTitle(self.xtit)
 
-        frame.GetYaxis().SetTitleOffset(1.2)
+        frame.GetYaxis().SetTitleOffset(1.25)
         if noRatio:
-            frame.GetYaxis().SetTitleOffset(0.9)
+            frame.GetYaxis().SetTitleOffset(1.1)
         if self.dataH:
             frame.GetXaxis().SetTitleSize(0.0)
             frame.GetXaxis().SetLabelSize(0.0)
@@ -497,9 +497,9 @@ class Plot(object):
         txt.SetTextAlign(12)
         iniy=0.88 if self.wideCanvas else 0.88
  
-        ycms=0.9
-        if noRatio or self.dataH is None or len(self.mc)==0: ycms=0.88
-        txt.DrawLatex(0.16,ycms,self.cmsLabel)
+        xcms,ycms=0.16,0.9
+        if noRatio or self.dataH is None or len(self.mc)==0: xcms,ycms=0.18,0.88
+        txt.DrawLatex(xcms,ycms,self.cmsLabel)
         txt.SetTextAlign(ROOT.kHAlignRight+ROOT.kVAlignCenter)
         if lumi<1:
             txt.DrawLatex(0.95,0.97,'#scale[0.8]{%3.1f nb^{-1} (%s)}' % (lumi*1000.,self.com) )
@@ -529,7 +529,7 @@ class Plot(object):
             for extra in extraText.split('\\'):
                 if inix>0.5:
                     txt.SetTextAlign(ROOT.kHAlignLeft+ROOT.kVAlignCenter)
-                txt.DrawLatex(0.93 if inix<0.5 else 0.16,iniy-0.05*extraCtr,'#scale[0.9]{%s}'%extra)
+                txt.DrawLatex(0.93 if inix<0.5 else xcms,iniy-0.05*extraCtr,'#scale[0.9]{%s}'%extra)
                 extraCtr+=1
         except Exception as e:
             print e

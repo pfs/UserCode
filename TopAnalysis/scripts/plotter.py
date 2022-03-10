@@ -31,7 +31,7 @@ def main():
     parser.add_option(      '--binWid',      dest='binWid',      help='divide by bin width',            default=False,             action='store_true')
     parser.add_option(      '--saveLog',     dest='saveLog' ,    help='save log versions of the plots', default=False,             action='store_true')
     parser.add_option(      '--silent',      dest='silent' ,     help='only dump to ROOT file',         default=False,             action='store_true')
-    parser.add_option(      '--ratioRange',  dest='ratioRange' , help='ratio range',                    default="0.46,1.54",         type='string')
+    parser.add_option(      '--ratioRange',  dest='ratioRange' , help='ratio range',                    default="0.41,1.59",         type='string')
     parser.add_option(      '--onlyData',    dest='onlyData' ,   help='only plots containing data',     default=False,             action='store_true')
     parser.add_option(      '--saveTeX',     dest='saveTeX' ,    help='save as tex file as well',       default=False,             action='store_true')
     parser.add_option(      '--rebin',       dest='rebin',       help='rebin factor',                   default=1,                 type=int)
@@ -41,11 +41,14 @@ def main():
     parser.add_option(      '--strictOnly',  dest='strictOnly',  help='strict matching for only plots', default=False, action='store_true')
     parser.add_option(      '--skip',        dest='skip',        help='skip these samples (csv)',       default='MC13TeV_TTJets_cflip',                type='string')
     parser.add_option(      '--rawList',     dest='rawList',     help='don\'t scale these samples',     default='',                type='string')
+    parser.add_option(      '--cmsLabel',    dest='cmsLabel',    help='cms label [%default]',     default='#bf{CMS-Totem} #it{Preliminary}',                type='string')
+    parser.add_option(      '--pformats',    dest='pformats',    help='plot formats [%default]',     default='png,pdf',                type='string')
     parser.add_option(      '--puNormSF',    dest='puNormSF',    help='Use this histogram to correct pu weight normalization', default=None, type='string')
     parser.add_option(      '--procSF',      dest='procSF',      help='Use this to scale a given process component e.g. "W":.wjetscalefactors.pck,"DY":dyscalefactors.pck', default=None, type='string')
     (opt, args) = parser.parse_args()
 
     opt.ratioRange=[float(x) for x in opt.ratioRange.split(',')]
+    opt.pformats=opt.pformats.split(',')
 
     #read lists of samples
     samplesList=[]
@@ -232,6 +235,8 @@ def main():
                             #create new plot if needed
                             if not key in plots : 
                                 plots[key]=Plot(key,com=opt.com)
+                                plots[key].plotformats = opt.pformats
+                                plots[key].cmsLabel=opt.cmsLabel
                                 plots[key].ratiorange=opt.ratioRange
 
                             #add process to plot

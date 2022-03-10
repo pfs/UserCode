@@ -42,6 +42,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
 
         try:
             p=Plot('%s_%s_inc%s'%(name,v,plotpfix))
+            p.cmsLabel='#bf{CMS+Totem} #it{Preliminary}'
             p.xtit='Missing mass [GeV]'
             p.ytit='Events'
             if fidsigH and not plotData:
@@ -76,6 +77,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
                 dataSubH=dataH.Clone(dataH.GetName()+'_sub')
                 dataSubH.Add(bkgH,-1)
                 p=Plot('%s_%s_sub_inc%s'%(name,v,plotpfix))
+                p.cmsLabel='#bf{CMS+Totem} #it{Preliminary}'
                 p.frameMin=None
                 p.frameMax=None
                 p.doPoissonErrorBars=False
@@ -92,6 +94,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
 
             #background systs
             p=Plot('%s_%s_inc_bkgunc%s'%(name,v,plotpfix))
+            p.cmsLabel='#bf{CMS+Totem} #it{Preliminary}'
             p.noErrorsOnRatio=True
             p.doPoissonErrorBars=False
             p.xtit='Missing mass [GeV]'
@@ -111,6 +114,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
             #signal systs
             if fidsigH:
                 p=Plot('%s_%s_sigunc%s'%(name,v,plotpfix))
+                p.cmsLabel='#bf{CMS+Totem} #it{Preliminary}'
                 #fidsigH.Scale(1./5.)
                 p.doPoissonErrorBars=False
                 p.noErrorsOnRatio=True
@@ -132,6 +136,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
             #out fiducial signal systs
             if outfidsigH:
                 p=Plot('%s_%s_outfidsigunc%s'%(name,v,plotpfix))
+                p.cmsLabel='#bf{CMS+Totem} #it{Preliminary}'
                 #outfidsigH.Scale(1./5.)
                 p.doPoissonErrorBars=False
                 p.noErrorsOnRatio=True

@@ -225,6 +225,7 @@ def main(args):
             pname='%s_%d'%(dist,i)
             for c in [':',',','>','=','(',')','-','<','?']: pname=pname.replace(c,'')
             p=Plot(pname)
+            p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
             p.doChi2=False #True
             p.nominalDistForSystsName='background'
             
@@ -253,7 +254,7 @@ def main(args):
                       isSyst=True)     #False)
 
             #p.ratiorange=[0.78,1.22]
-            p.ratiorange=[0.58,1.43]
+            p.ratiorange=[0.41,1.59]
             p.show(opt.output,opt.lumi,extraText='\\'.join(titleCut))
             p.appendTo(outF)
             p.reset()

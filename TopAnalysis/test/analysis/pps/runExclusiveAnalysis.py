@@ -366,6 +366,7 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,effDir,ppsEffFile,maxEve
     ht.add(ROOT.TH1F('ptll',';Transverse momentum [GeV];Events',50,0,250))
     ht.add(ROOT.TH1F('ptll_high',';Transverse momentum [GeV];Events',50,50,500))
     ht.add(ROOT.TH1F('l1eta',';Pseudo-rapidiy;Events',50,0,2.5))
+    ht.add(ROOT.TH1F('count',';Count;Events',6,0,6)) # {fid,non-fid} x {gen,central,RP} 
     ht.add(ROOT.TH1F('l1pt',';Transverse momentum [GeV];Events',50,0,250))
     ht.add(ROOT.TH1F('l2eta',';Pseudo-rapidiy;Events',50,0,2.5))
     ht.add(ROOT.TH1F('l2pt',';Transverse momentum [GeV];Events',50,0,250))
@@ -725,13 +726,49 @@ def runExclusiveAnalysis(inFile,outFileName,runLumiList,effDir,ppsEffFile,maxEve
 
                 elif isPhotonSignal:
                     finalPlots=[ [wgt*ppsEff*gen_pzwgt[0]*mcEff['a'].Eval(boson.Pt())/nSignalWgtSum, cats] ]
+
+                #acceptance plots
+                isrpfid=isSignalFiducial(gen_csiPos,gen_csiNeg,tree.gen_pzpp)
+                iscenfid=True
+                if isZ: 
+                    iscenfid=True if boson.Pt()>40 and l1p4.Pt()>30 and l2p4.Pt()>20 else False
+                elif isPhotonSignal: 
+                    iscenfid=True if boson.Pt()>95 and abs(boson.Eta())<1.44442 else False
+                else:
+                    iscenfid=False
+                if iscenfid:
+                    if isZ:
+                        wgt_gen=wgt*gen_pzwgt[0]/nSignalWgtSum
+                        wgt_ee=wgt_gen*mcEff['eez'].Eval(boson.Pt())
+                        wgt_ee_pps=wgt_ee*ppsEff
+                        ht.fill( (0.5+int(isrpfid)*3,wgt_gen),    'count', ['ee','ee%s'%proton_cat])
+                        ht.fill( (1.5+int(isrpfid)*3,wgt_ee),     'count', ['ee','ee%s'%proton_cat])
+                        ht.fill( (2.5+int(isrpfid)*3,wgt_ee_pps), 'count', ['ee','ee%s'%proton_cat])
+
+                        wgt_gen=wgt*gen_pzwgt[0]/nSignalWgtSum
+                        wgt_mm=wgt_gen*mcEff['mmz'].Eval(boson.Pt())
+                        wgt_mm_pps=wgt_mm*ppsEff
+                        ht.fill( (0.5+int(isrpfid)*3,wgt_gen),    'count', ['mm','mm%s'%proton_cat])
+                        ht.fill( (1.5+int(isrpfid)*3,wgt_mm),     'count', ['mm','mm%s'%proton_cat])
+                        ht.fill( (2.5+int(isrpfid)*3,wgt_mm_pps), 'count', ['mm','mm%s'%proton_cat])
+                    else:
+                        wgt_gen=wgt*gen_pzwgt[0]/nSignalWgtSum
+                        wgt_a=wgt_gen*mcEff['a'].Eval(boson.Pt())
+                        wgt_a_pps=wgt_a*ppsEff
+                        ht.fill( (0.5+int(isrpfid)*3,wgt_gen),   'count', ['a','a%s'%proton_cat])
+                        ht.fill( (1.5+int(isrpfid)*3,wgt_a),     'count', ['a','a%s'%proton_cat])
+                        ht.fill( (2.5+int(isrpfid)*3,wgt_a_pps), 'count', ['a','a%s'%proton_cat])
+
             else:
                 finalPlots=[ [wgt*ppsEff*gen_pzwgt[0]/nSignalWgtSum, cats] ]
+                
 
-        for pwgt,pcats in finalPlots:   
 
-            #fill plots only with fiducial signal contribution
-            if isSignal and not isSignalFiducial(gen_csiPos,gen_csiNeg,tree.gen_pzpp): continue
+        for iplot,(pwgt,pcats) in enumerate(finalPlots):   
+
+            if isSignal:
+                issigfid=isSignalFiducial(gen_csiPos,gen_csiNeg,tree.gen_pzpp)
+                if not issigfid: continue
 
             #boson kinematics
             ht.fill((l1p4.Pt(),pwgt),             'l1pt',         pcats)

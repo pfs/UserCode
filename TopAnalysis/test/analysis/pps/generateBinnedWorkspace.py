@@ -170,6 +170,7 @@ def computeRPfidAcceptance(signalFile,boson,mass,channel,fiducialCuts=FINALFID):
 
     #return total RP fiducial acceptance
     acc=npass/ntot
+    print(acc)
     return acc
 
 

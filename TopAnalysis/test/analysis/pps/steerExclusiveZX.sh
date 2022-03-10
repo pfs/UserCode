@@ -350,9 +350,9 @@ case $WHAT in
             lumiSpecs="${lumiSpecs},mmrpin${c}:${ppsLumi},eerpin${c}:${ppsLumi},emrpin${c}:${ppsLumi},arpin${c}:${lptappslumi}";
         done
 
-	baseOpts="-i ${indirForPlots} --lumiSpecs ${lumiSpecs} --procSF #gamma+jets:1.4 -l ${lumi} --mcUnc ${lumiUnc} ${lumiSpecs} ${kFactorList}"
+	baseOpts="-i ${indirForPlots} --lumiSpecs ${lumiSpecs} --procSF #gamma+jets:1.4 -l ${lumi} --mcUnc ${lumiUnc} ${lumiSpecs} ${kFactorList} --pformats png,pdf,C"
         commonOpts="${baseOpts} -j ${cleanmcjson},${datajson} --signalJson ${plot_signal_json} -O ${indirForPlots}/plots"
-
+        
         plots=xangle_arpinhpur,xangle_eerpinhpur,xangle_mmrpinhpur,xangle_emrpinhpur,xangle_arpinhpur
         python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/scripts/plotter.py ${commonOpts} --only ${plots} --strictOnly --saveTeX --rebin 4;
 
@@ -366,7 +366,7 @@ case $WHAT in
             "rpinhpur0neg"  "rpinhpur1neg"  "rpinhpur2neg"
             "rpinhpur1"     "rpinhpur2"     "rpinhpur3"     "rpinhpur4"            
         )
-        channels=(mm ee a em offz)
+        channels=(mm a) #mm ee a em offz)
         for ch in ${channels[@]}; do
            plots=""
 
@@ -461,7 +461,7 @@ case $WHAT in
         echo "Running with the default values for ${commonOpts} and output @ ppvx_${githash}${pfix}/test"
         
         #python test/analysis/pps/generateBinnedWorkspace.py ${commonOpts} -o ppvx_${githash}${pfix}/test --doBackground    
-        python test/analysis/pps/generateBinnedWorkspace.py ${commonOpts} -o ppvx_${githash}${pfix}/test --massList 960 
+        python test/analysis/pps/generateBinnedWorkspace.py ${commonOpts} -o ppvx_${githash}${pfix}/test --massList 1200 
 
         #python test/analysis/pps/generateBinnedWorkspace.py ${commonOpts} -o ppvx_${githash}${pfix}/test --doDataCards 
         

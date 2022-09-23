@@ -318,7 +318,8 @@ case $WHAT in
     BKGVALIDATION )       
 
         indirForPlots=/eos/cms/${anadir}${pfix}
-        ptlist=(0 40)        
+        #ptlist=(0 40)        
+        ptlist=(40)
         baseOpts="-i ${indirForPlots} --doPerEra --doPerPU --doPerAngle --doPerNch"
         for pt in ${ptlist[@]}; do 
             output=${indirForPlots}/bkg_ptll${pt}
@@ -366,7 +367,7 @@ case $WHAT in
             "rpinhpur0neg"  "rpinhpur1neg"  "rpinhpur2neg"
             "rpinhpur1"     "rpinhpur2"     "rpinhpur3"     "rpinhpur4"            
         )
-        channels=(mm a) #mm ee a em offz)
+        channels=(mm) #(ee mm a) #mm ee a em offz)
         for ch in ${channels[@]}; do
            plots=""
 
@@ -377,7 +378,7 @@ case $WHAT in
                 #proton-related plots
                 if [[ $evcat == *"rpin"* ]]; then
 
-                    for p in mmass_full mmass ppcount ypp mpp pzpp met njets mpf zjb zj2b nch; do
+                    for p in ypp; do # mmass_full mmass ppcount ypp mpp pzpp met njets mpf zjb zj2b nch; do
                         plots="${p}_${evcat},${plots}"
                     done
 
@@ -389,6 +390,7 @@ case $WHAT in
 
                 #central-kinematics plots
                 else
+                    continue
                     for p in nextramu extramupt extramueta ptll mll nvtx rho xangle mll mll_full yll etall ptll ptll_high l1eta l1pt l2eta l2pt acopl costhetacs met njets mpf zjb zj2b nch; do
                         plots="${p}_${evcat},${plots}"
                     done
@@ -599,7 +601,7 @@ case $WHAT in
         echo "for m in 800 1000 1400 1600; do python test/analysis/pps/showMigrationMatrix.py Z_m_X_${m} /eos/cms/store/cmst3/user/psilva/ExclusiveAna/final/2017_unblind_multi/analysis_1exc/; done"
         echo "python test/analysis/pps/checkPPSperEra.py fill"
         echo "python test/analysis/pps/checkPPSperEra.py plot"
-        echo "for m in 600 800 1000 1200 1400; do python test/analysis/pps/drawSignalPeak.py /eos/cms//store/cmst3/user/psilva/ExclusiveAna/final/2017_unblind_multi/analysis_1exc/Z_m_X_${m}_xangle_{0}_2017_{1}.root; done"
+        echo "for m in 600 800 1000 1200 1400; do python test/analysis/pps/drawSignalPeak.py /eos/cms//store/cmst3/user/psilva/ExclusiveAna/final/2017_unblind_multi/analysis_1exc/Z_m_X_\${m}_xangle_{0}_2017_{1}.root; done"
         echo "[Display fit shapes/uncertainties]"
         echo "python test/analysis/pps/showUncs.py > statana_zmm_m1000_uncs.dat"
         echo "python test/analysis/pps/showFitShapes.py ppvx_${githash}${pfix}/optim_0  -m 1000 -b z -t mm -u -s"

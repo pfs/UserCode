@@ -79,32 +79,35 @@ def main():
     #final plots
     for icat in hin:
 
-        pcatTitle='single-single'
+        pcatTitle='single(+z)-single(-z)'
         if not isSingleRP:
-            pcatTitle='multi-multi'
-            if icat==2: pcatTitle='multi-single'
-            if icat==3: pcatTitle='single-multi'
-            if icat==4: pcatTitle='single-single'
-        finalExtraText='m_{{X}}={0} GeV ({1})'.format(mass,pcatTitle)
+            pcatTitle='multi(+z)-multi(-z)'
+            if icat==2: pcatTitle='multi(+z)-single(-z)'
+            if icat==3: pcatTitle='single(+z)-multi(-z)'
+            if icat==4: pcatTitle='single(+z)-single(-z)'
+        finalExtraText='m_{{X}}={0} GeV\\{1}'.format(mass,pcatTitle)
 
         p=Plot('mmass_{0}_sigacc_{1}{2}'.format(mass,icat,pfix),com='13 TeV')
-        p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
-        p.plotformats=['pdf','png','C']
+        #p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
+        p.cmsLabel='#bf{CMS-TOTEM}'
+        p.plotformats=['pdf','png','C','root']
         p.saveLog=True
         p.xtit='Missing mass [GeV]'
         p.ytit='Events'
+
         hin[icat].SetLineWidth(2)
-        p.add(hin[icat],  title='in accept.',  color=ROOT.kRed,   isData=False, spImpose=False, isSyst=False)
-        p.add(hout[icat], title='out accept.', color=ROOT.kBlack, isData=False, spImpose=True,  isSyst=False)
+        p.add(hin[icat],  title='In fiducial',  color=ROOT.kRed,   isData=False, spImpose=False, isSyst=False)
+        p.add(hout[icat], title='Out fiducial', color=ROOT.kBlack, isData=False, spImpose=True,  isSyst=False)
         p.show(outDir='./', lumi=LUMI, extraText=finalExtraText)
         
         p=Plot('mmass_{0}_puonfidsig_{1}{2}'.format(mass,icat,pfix),com='13 TeV')
-        p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
+        #p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
+        p.cmsLabel='#bf{CMS-TOTEM}'
         p.saveLog=True
         p.xtit='Missing mass [GeV]'
         p.ytit='Events'
-        p.add(hnopu[icat],      title='no pileup',   color=ROOT.kGray, isData=False, spImpose=False, isSyst=False)
-        p.add(hrpinhpur[icat],  title='pileup+cuts', color=1,          isData=False, spImpose=True,  isSyst=False)
+        p.add(hnopu[icat],      title='No pileup',   color=ROOT.kGray, isData=False, spImpose=False, isSyst=False)
+        p.add(hrpinhpur[icat],  title='Pileup+cuts', color=1,          isData=False, spImpose=True,  isSyst=False)
         p.show(outDir='./', lumi=LUMI,extraText=finalExtraText)
     
 

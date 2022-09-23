@@ -24,6 +24,7 @@ def printUncertainties(flist,m=1000,bosonTag='zmm'):
 
     for f in flist:
         r=ROOT.TFile.Open(f)
+        print(f)
         baseH={'bkg'       : r.Get('bkg_{}'.format(bosonTag)),
                'fidsig'    : r.Get('fidsig_{}_m{}'.format(bosonTag,m)),
                'outfidsig' : r.Get('outfidsig_{}_m{}'.format(bosonTag,m))}
@@ -56,8 +57,11 @@ def printUncertainties(flist,m=1000,bosonTag='zmm'):
                 h.Divide(baseH[proc])
                 
             vals=[]
+            xbin1000=h.GetXaxis().FindBin(1000)
             for xbin in xrange(1,h.GetNbinsX()):
                 val=h.GetBinContent(xbin)
+                #if proc=='fidsig':
+                #    if abs(xbin-xbin1000)>4: continue
                 if sname=='mcstats':
                     if val<=0.01 :continue
                     vals.append( h.GetBinError(xbin)/val )
@@ -75,9 +79,11 @@ def printUncertainties(flist,m=1000,bosonTag='zmm'):
             for i in range(len(flist)):
 
                 q=np.percentile( uncVals[p][s][i], [50,10,90])
+                #q=np.percentile( uncVals[p][s][i], [50,16,84])
                 
                 if i==0: print '\n\t & %10s'%p,
                 print ' & %3.3f~~$]%3.3f,%3.3f[$'%(q[0],q[1],q[2]),
+                #print ' & %3.3f~~$]%3.3f,%3.3f[$'%(np.mean(np.abs(uncVals[p][s][i])),q[1],q[2]),
                 print '\\\\',
         print '\n'
 

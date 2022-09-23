@@ -46,6 +46,8 @@ def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
     postpre_ratios=[]        
     data2fitGr=[]
     relUncGr=[]
+    grout=[]
+    scaledh=[]
     leg=None
     leg_ratio=None
 
@@ -77,7 +79,7 @@ def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
             sub_pads[icat].append( ROOT.TPad("p{}_1".format(icat), "p{}_1".format(icat),0., 0.5, 1, 1.) )
         else:
             sub_pads[icat].append( ROOT.TPad("p{}_1".format(icat), "p{}_1".format(icat),0., 0.4, 1, 1.) )
-        sub_pads[icat][0].SetTopMargin(0.1)
+        sub_pads[icat][0].SetTopMargin(0.08)
         sub_pads[icat][0].SetBottomMargin(0.03)
         sub_pads[icat][0].SetLeftMargin(lm)
         sub_pads[icat][0].SetRightMargin(rm)
@@ -90,7 +92,7 @@ def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
         postfit=categs_dict[cat]['postfit']
         prefit=categs_dict[cat]['prefit']
 
-        for m in [800,1600]:
+        for m in [800,1000,1400]:
             ibin=categs_dict[cat]['data'].GetXaxis().FindBin(m-50)
             jbin=categs_dict[cat]['data'].GetXaxis().FindBin(m+50)
             nobs=categs_dict[cat]['data'].Integral(ibin,jbin)
@@ -135,7 +137,17 @@ def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
 
         for proc,ptitle,fit_type,ci in mcStack:
             ispostfit=(fit_type=='postfit')
+
             h=postfit[proc] if ispostfit else prefit[proc]
+            if proc=='fidsig':
+                if '22' in name:
+                    h=h.Clone()
+                    h.Scale(10.)
+                    scaledh.append(h)
+                    ptitle = ptitle + ' (10 pb)'
+                else:
+                    ptitle = ptitle + ' (1 pb)'
+
             h.SetTitle(ptitle)
             if ispostfit:
                 h.SetLineColor(1)
@@ -167,18 +179,18 @@ def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
             sub_categ_txt=xangle
         if icat==0:
             tex.SetTextAlign(ROOT.kHAlignLeft+ROOT.kVAlignCenter)
-            tex.DrawLatex(0.14,0.96,'#bf{CMS-Totem} #it{Preliminary}')            
+            tex.DrawLatex(0.165,0.88,'#bf{CMS-TOTEM}')            
             tex.SetTextAlign(ROOT.kHAlignLeft+ROOT.kVAlignCenter)
             tex.SetTextSize(0.06)
             for it,txt in enumerate(title):
-                tex.DrawLatex(0.16,0.86-it*0.06,'%s'%txt)
+                tex.DrawLatex(0.165,0.88-(it+1)*0.07,'%s'%txt)
         tex.SetTextAlign(ROOT.kHAlignRight+ROOT.kVAlignCenter)
         tex.SetTextSize(0.06)
         tex.DrawLatex(0.93,0.86,sub_categ_txt)
         if icat==3:
-            tex.SetTextSize(0.07)
-            tex.SetTextAlign(ROOT.kHAlignRight+ROOT.kVAlignCenter)
-            tex.DrawLatex(0.96,0.96,'%3.1f fb^{-1} (#sqrt{s} = 13 TeV)'%(lumi*1e-3))
+            tex.SetTextSize(0.055)
+            tex.SetTextAlign(ROOT.kHAlignRight+ROOT.kVAlignBottom)
+            tex.DrawLatex(0.96,0.94,'%3.1f fb^{-1} (#sqrt{s} = 13 TeV)'%(lumi*1e-3))
 
         data[icat].Draw('PZ0')
         sub_pads[icat][0].RedrawAxis()
@@ -230,7 +242,7 @@ def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
         else:
             sub_pads[icat].append( ROOT.TPad("p{}_2".format(icat), "p{}_2".format(icat),0., 0., 1, 0.39) )
         sub_pads[icat][-1].SetTopMargin(0.04)
-        sub_pads[icat][-1].SetBottomMargin(0.4)
+        sub_pads[icat][-1].SetBottomMargin(0.3)
         sub_pads[icat][-1].SetLeftMargin(lm)
         sub_pads[icat][-1].SetRightMargin(rm)
         sub_pads[icat][-1].SetGridx()
@@ -257,16 +269,27 @@ def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
         frames[icat][-1].GetXaxis().SetTitle('Missing mass [GeV]')
         frames[icat][-1].GetXaxis().SetNdivisions(505)
         frames[icat][-1].GetYaxis().SetRangeUser(0.66,1.304)
+        #frames[icat][-1].GetYaxis().SetRangeUser(0.56,1.404)
+        #frames[icat][-1].GetYaxis().SetRangeUser(0.46,1.504)
         frames[icat][-1].Draw()
 
         relUnc=postfit['total'].Clone()
         data2fitGr.append( data[icat].Clone('data2fit') )
         data2fitGr[icat].Set(0)
+        xmax=0
+        grout.append( ROOT.TGraph() )
+        grout[-1].SetMarkerStyle(22)
+        grout[-1].SetMarkerColor(9)
+        grout[-1].SetMarkerSize(1.8)
+        grout[-1].SetLineColor(9)
+        grout[-1].SetFillStyle(0)
+        grout.append( grout[-1].Clone() )
+        grout[-1].SetMarkerStyle(23)
         for i in range(data[icat].GetN()):
 
             den=postfit['total'].GetBinContent(i+1)
             denUnc=postfit['total'].GetBinError(i+1)
-            if float(den)>0 : 
+            if float(den)>1e-4:
 
                 relUnc.SetBinContent(i+1,1)
                 relUnc.SetBinError(i+1,denUnc/den)
@@ -276,16 +299,26 @@ def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
                 data[icat].GetPoint(i,x,y)
                 eyhi=data[icat].GetErrorYhigh(i)
                 eylo=data[icat].GetErrorYlow(i)
-
+                
+                #if y>0:
                 np=data2fitGr[icat].GetN()
                 data2fitGr[icat].SetPoint(np,x,y/den)
                 data2fitGr[icat].SetPointEYhigh(np,eyhi/den)
                 data2fitGr[icat].SetPointEYlow(np,eylo/den)
+                if y/den>1.304:
+                    grout[-2].SetPoint(grout[-2].GetN(),x,1.30)
+                if y/den<0.66:
+                    grout[-1].SetPoint(grout[-1].GetN(),x,0.664)
+                xmax=max(xmax,x)
 
             else:
                 relUnc.SetBinContent(i+1,0)
                 relUnc.SetBinError(i+1,0)
-
+        
+        frames[icat][-1].GetXaxis().SetRangeUser(0,xmax)
+        frames[icat][0].GetXaxis().SetRangeUser(0,xmax)
+        if doPostfitOverPrefit:
+            frames[icat][1].GetXaxis().SetRangeUser(0,xmax)
         relUncGr.append( ROOT.TGraphErrors(relUnc) )
         relUnc.Delete()
         relUncGr[icat].SetFillStyle(3244)
@@ -293,13 +326,15 @@ def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
         relUncGr[icat].SetMarkerSize(2.0)
         relUncGr[icat].Draw('E20')
 
-        data2fitGr[icat].Draw('PZ0')
+        data2fitGr[icat].Draw('PZ0Y0')
+        grout[-2].Draw('P')
+        grout[-1].Draw('P')
 
         if icat==3:
             if doPostfitOverPrefit:
                 leg_ratio = ROOT.TLegend(0.08,0.14,0.5,0.23)
             else:
-                leg_ratio = ROOT.TLegend(0.12,0.43,0.6,0.5)
+                leg_ratio = ROOT.TLegend(0.12,0.3,0.6,0.4)
             leg_ratio.SetTextAlign(ROOT.kHAlignCenter+ROOT.kVAlignCenter)
             leg_ratio.SetNColumns(2)
             leg_ratio.SetFillStyle(0)
@@ -314,9 +349,11 @@ def plotShapes(categs_dict,categ_group,lumi,doPostfitOverPrefit=True):
     c.cd()
     c.Modified()
     c.Update()
-    for ext in ['png','pdf']:
-        name=name if doPostfitOverPrefit else name+'_simple'
-        c.SaveAs('{}.{}'.format(name,ext))
+    name=name if doPostfitOverPrefit else name+'_simple'
+    c.SaveAs('{}.png'.format(name))
+    os.system('convert {0}.png {0}.pdf'.format(name))
+
+
 
 
 
@@ -427,10 +464,10 @@ def groupCategories(categ_dict):
             if boson==121:    title.append('pp#rightarrow ppZeeX')
             if boson==169:    title.append('pp#rightarrow ppZ#mu#muX')
             if boson==22:     title.append('pp#rightarrow pp#gammaX')
-            if protonCat==1 : title.append('multi-multi')
-            if protonCat==2 : title.append('multi-single')
-            if protonCat==3 : title.append('single-multi')
-            if protonCat==4 : title.append('single-single')
+            if protonCat==1 : title.append('multi(+z)-multi(-z)')
+            if protonCat==2 : title.append('multi(+z)-single(-z)')
+            if protonCat==3 : title.append('single(+z)-multi(-z)')
+            if protonCat==4 : title.append('single(+z)-single(-z)')
             if not nvtx is None:
                 title.append( 'N_{{vtx}}{}{}'.format('<' if nvtx<0 else '#geq',abs(nvtx)))
                 pname='mmiss_{}_{}_{}{}'.format(boson,protonCat,'lt' if nvtx<0 else 'gt',abs(nvtx))
@@ -499,10 +536,10 @@ def mergeCategories(categ_dict):
             categ_groups[key]={'title':title, 'name':pname, 'group':[]}
             categs_to_merge[key]={}
 
-        protonCatStr='multi-multi'
-        if protonCat==2 : protonCatStr='multi-single'
-        if protonCat==3 : protonCatStr='single-multi'
-        if protonCat==4 : protonCatStr='single-single'
+        protonCatStr='multi(+z)-multi(-z)'
+        if protonCat==2 : protonCatStr='multi(+z)-single(-z)'
+        if protonCat==3 : protonCatStr='single(+z)-multi(-z)'
+        if protonCat==4 : protonCatStr='single(+z)-single(-z)'
 
         #this is done to keep the same format as used in groupCategories method
         mergedcat='mergedcat{}_{}'.format(boson,protonCat)

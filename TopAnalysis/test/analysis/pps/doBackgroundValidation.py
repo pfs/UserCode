@@ -12,8 +12,8 @@ def parseTitleFromCut(cut):
     title=[]
     for icut in cut.split('&&'):
         for var,token in [ ('p_{T}(V)',      'bosonpt'),
-                           ('p_{T}(1)',      'l1pt'),
-                           ('p_{T}(2)',      'l2pt'),
+                           ('p_{T}(l_{1})',  'l1pt'),
+                           ('p_{T}(l_{2})',  'l2pt'),
                            ('multi-multi',   'protonCat==1'),
                            ('multi-single',  'protonCat==2'),
                            ('single-multi',  'protonCat==3'),
@@ -25,9 +25,13 @@ def parseTitleFromCut(cut):
                            ('#leq',          '<='),
                            ('',              ' ')]:
             icut=icut.replace(token,var)
+
+        if 'p_{T}' in icut : 
+            icut += ' GeV'
         if 'era' in icut:
             icut='2017%s'%str(unichr(int(icut.split('=')[1])))
         title.append(icut)
+
     return title
 
 def rebinUnequalBinSize(h,newBins):
@@ -50,8 +54,8 @@ def fillShapes(inputDir,selCuts,proc='MuonEG'):
     sf=None
     for dist,hist,title in [('mmiss',                    '(50,0,2000)',             'Missing mass [GeV]'),
                             #('(bosony>=0?mmiss:-mmiss)', '(100,-2000,2000)',        'Missing mass x sgn[y(e#mu)] [GeV]'),
-                            ('csi1',                     '(25,0.025,0.18)',         '#xi(+)'),
-                            ('csi2',                     '(25,0.025,0.18)',         '#xi(-)'),
+                            ('csi1',                     '(25,0.025,0.18)',         '#xi'),
+                            ('csi2',                     '(25,0.025,0.18)',         '#xi'),
                             ('mpp',                      '(25,500,2500)',           'Di-proton mass [GeV]'),
                             #('ypp',                      '(50,-1,1)',               'Di-proton rapidity'),
                             #('mmiss:mpp',                '(25,500,2500,30,0,2500)', 'Missing mass [GeV];Di-proton mass [GeV]'),
@@ -170,7 +174,7 @@ def main(args):
                         help='break-down per angle [default: %default]')
     parser.add_argument('--lumi',
                         dest='lumi',
-                        default=37500.,
+                        default=37200.,
                         type=float,
                         help='integrated luminosity [default: %default]')
     parser.add_argument('-o', '--output',
@@ -225,9 +229,10 @@ def main(args):
             pname='%s_%d'%(dist,i)
             for c in [':',',','>','=','(',')','-','<','?']: pname=pname.replace(c,'')
             p=Plot(pname)
-            p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
+            #p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
+            p.cmsLabel='#bf{CMS-TOTEM}'
             p.doChi2=False #True
-            p.nominalDistForSystsName='background'
+            p.nominalDistForSystsName='Background'
             
             #if dist=='mmiss':
             #    newBins=range(0,1000,40)+[1000,1100,1200,1500,2000]
@@ -235,8 +240,8 @@ def main(args):
             #    for k in data[dist]:
             #        data[dist][k]=rebinUnequalBinSize(data[dist][k],newBins)
 
-            p.add(data[dist]['data'], title='data',       color=ROOT.kBlack,  isData=True,  spImpose=False, isSyst=False)
-            p.add(data[dist]['bkg'],  title='background', color=ROOT.kCyan-6, isData=False, spImpose=False, isSyst=False)
+            p.add(data[dist]['data'], title='Data',       color=ROOT.kBlack,  isData=True,  spImpose=False, isSyst=False)
+            p.add(data[dist]['bkg'],  title='Background', color=ROOT.kCyan-6, isData=False, spImpose=False, isSyst=False)
 
             #background systematics
             ci=1
@@ -255,7 +260,13 @@ def main(args):
 
             #p.ratiorange=[0.78,1.22]
             p.ratiorange=[0.41,1.59]
-            p.show(opt.output,opt.lumi,extraText='\\'.join(titleCut))
+            extraText=''titleCut
+            if pname.find('csi2')>=0 :
+                extraText = ['sector 56 (R, z-)']+titleCut
+            if pname.find('csi1')>=0 :
+                extraText = ['sector 45 (L, z+)']+titleCut
+
+            p.show(opt.output,opt.lumi,extraText='\\'.join(extraText))
             p.appendTo(outF)
             p.reset()
 

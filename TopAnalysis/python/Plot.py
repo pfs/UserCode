@@ -69,7 +69,7 @@ class Plot(object):
         self.normUncGr  = None #external input for normalization uncertainty
         self.relShapeGr = None #external input for relative shape
         self.range=None
-        self.ratiotitle='Ratio '
+        self.ratiotitle='Obs./Exp.'
         self.ratiorange = [0.4,1.6]
         self.xtit=None
         self.ytit=None
@@ -227,10 +227,10 @@ class Plot(object):
         c.cd()
         p1 = None
         if self.dataH and not noRatio:
-            p1=ROOT.TPad('p1','p1',0.0,0.2,1.0,1.0) if cwid!=1000 else ROOT.TPad('p1','p1',0.0,0.0,1.0,1.0)
+            p1=ROOT.TPad('p1','p1',0.0,0.25,1.0,1.0) if cwid!=1000 else ROOT.TPad('p1','p1',0.0,0.0,1.0,1.0)
             p1.SetRightMargin(0.05)
-            p1.SetLeftMargin(0.12)
-            p1.SetTopMargin(0.06)
+            p1.SetLeftMargin(0.15)
+            p1.SetTopMargin(0.07)
             p1.SetBottomMargin(0.01)
             if self.wideCanvas and len(self.mc)==0 : p1.SetBottomMargin(0.12)
         else:
@@ -251,18 +251,18 @@ class Plot(object):
         iniy=0.9 if self.wideCanvas else 0.85
         dy=0.05
         ndy= max(len(self.mc)+len(self.spimpose),1)
-        inix,dx =0.65,0.4
+        inix,dx =0.6,0.4
         if noRatio: inix=0.6
         if noStack:
             inix,dx=0.6,0.35
-            iniy,dy,ndy=0.85,0.03,len(self.mc)
+            iniy,dy,ndy=0.85,0.04,len(self.mc)
 
         leg = ROOT.TLegend(inix, iniy-dy*ndy, inix+dx, iniy+0.06)
 
         leg.SetBorderSize(0)
         leg.SetFillStyle(0)
         leg.SetTextFont(42)
-        leg.SetTextSize(0.045 if self.wideCanvas else 0.04)
+        leg.SetTextSize(0.04 if self.wideCanvas else 0.05)
         if noRatio : leg.SetTextSize(0.035)
         nlegCols = 0
 
@@ -417,8 +417,8 @@ class Plot(object):
             frame.SetDirectory(0)
             frame.Reset('ICE')
 
-            frame.GetYaxis().SetTitleSize(0.05)
-            frame.GetYaxis().SetLabelSize(0.045)
+            frame.GetYaxis().SetTitleSize(0.06)
+            frame.GetYaxis().SetLabelSize(0.05)
         else:
             frame.Draw('ap')
             maxY=frame.GetYaxis().GetXmax()
@@ -430,7 +430,7 @@ class Plot(object):
 
         frame.GetYaxis().SetTitleOffset(1.25)
         if noRatio:
-            frame.GetYaxis().SetTitleOffset(1.1)
+            frame.GetYaxis().SetTitleOffset(1.4)
         if self.dataH:
             frame.GetXaxis().SetTitleSize(0.0)
             frame.GetXaxis().SetLabelSize(0.0)
@@ -493,20 +493,35 @@ class Plot(object):
         txt=ROOT.TLatex()
         txt.SetNDC(True)
         txt.SetTextFont(42)
-        txt.SetTextSize(0.045)
         txt.SetTextAlign(12)
         iniy=0.88 if self.wideCanvas else 0.88
  
-        xcms,ycms=0.16,0.9
+        xcms,ycms=0.2,0.89
         if noRatio or self.dataH is None or len(self.mc)==0: xcms,ycms=0.18,0.88
+        txt.SetTextSize(0.06)
         txt.DrawLatex(xcms,ycms,self.cmsLabel)
+        txt.SetTextSize(0.05)
+        if self.name.find('neg')>=0 and self.name.find('csi')>=0:
+            txt.DrawLatex(xcms,ycms-0.08,'sector 56 (R, z-)')
+        if self.name.find('pos')>=0 and self.name.find('csi')>=0:
+            txt.DrawLatex(xcms,ycms-0.08,'sector 45 (L, z+)')
+        if self.name.find('eerpin')>=0:
+            txt.DrawLatex(xcms,ycms-0.14,'ee events')
+        if self.name.find('mmrpin')>=0:
+            txt.DrawLatex(xcms,ycms-0.14,'#mu#mu events')
+        if self.name.find('emrpin')>=0:
+            txt.DrawLatex(xcms,ycms-0.14,'e#mu events')
+        if self.name.find('arpin')>=0:
+            txt.DrawLatex(xcms,ycms-0.14,'#gamma events')
+
         txt.SetTextAlign(ROOT.kHAlignRight+ROOT.kVAlignCenter)
         if lumi<1:
-            txt.DrawLatex(0.95,0.97,'#scale[0.8]{%3.1f nb^{-1} (%s)}' % (lumi*1000.,self.com) )
+            txt.DrawLatex(0.95,0.97,'%3.1f nb^{-1} (%s)' % (lumi*1000.,self.com) )
         elif lumi<100:
-            txt.DrawLatex(0.95,0.97,'#scale[0.8]{%3.1f pb^{-1} (%s)}' % (lumi,self.com) )
+            txt.DrawLatex(0.95,0.97,'%3.1f pb^{-1} (%s)' % (lumi,self.com) )
         else:
-            txt.DrawLatex(0.95,0.97,'#scale[0.8]{%3.1f fb^{-1} (%s)}' % (lumi/1000.,self.com) )
+            txt.DrawLatex(0.95,0.97,'%3.1f fb^{-1} (%s)' % (lumi/1000.,self.com) )
+
         try:
             
             if self.doChi2 and totalMC and self.dataH:
@@ -538,11 +553,11 @@ class Plot(object):
         #holds the ratio
         c.cd()
         if not noRatio and self.dataH and len(self.mc)>0 :
-            p2 = ROOT.TPad('p2','p2',0.0,0.0,1.0,0.2)
+            p2 = ROOT.TPad('p2','p2',0.0,0.0,1.0,0.25)
             p2.Draw()
-            p2.SetBottomMargin(0.4)
+            p2.SetBottomMargin(0.5)
             p2.SetRightMargin(0.05)
-            p2.SetLeftMargin(0.12)
+            p2.SetLeftMargin(0.15)
             p2.SetTopMargin(0.01)
             p2.SetGridx(False)
             p2.SetGridy(True)
@@ -553,18 +568,19 @@ class Plot(object):
             ratioframe.GetYaxis().SetRangeUser(self.ratiorange[0], self.ratiorange[1])
             self._garbageList.append(ratioframe)
             ratioframe.GetYaxis().SetNdivisions(503)
-            ratioframe.GetYaxis().SetLabelSize(0.18)
-            ratioframe.GetYaxis().SetTitleSize(0.2)
+            ratioframe.GetYaxis().SetLabelSize(0.16)
+            ratioframe.GetYaxis().SetTitleSize(0.18)
             ratioframe.GetYaxis().SetTitleOffset(0.3)
-            ratioframe.GetXaxis().SetLabelSize(0.18)
-            ratioframe.GetXaxis().SetTitleSize(0.2)
-            ratioframe.GetXaxis().SetTitleOffset(0.8)
+            ratioframe.GetXaxis().SetLabelSize(0.16)
+            ratioframe.GetXaxis().SetTitleSize(0.25)
+            ratioframe.GetXaxis().SetTitleOffset(0.9)
             ratioframe.SetFillStyle(3254)
             ratioframe.SetFillColor(1) #ROOT.TColor.GetColor('#99d8c9'))
 
 
             #in case we didn't stack compare each distribution
             ratioGrs=[]
+            grout=[]
             if noStack:
                 
                 ratioframe.Draw('e2')
@@ -581,8 +597,8 @@ class Plot(object):
                     ratioGrs[-1].SetMarkerColor(ci)
                     ratioGrs[-1].SetLineColor(ci)
                     ratioGrs[-1].SetLineWidth(self.data.GetLineWidth())
-                    ratioGrs[-1].Draw('lX' if self.noErrorsOnRatio  else '0P')
-                    
+                    ratioGrs[-1].Draw('lX' if self.noErrorsOnRatio  else 'Z0PY0')
+
             #in case we stacked compare only the total
             else:
                 if self.relShapeGr:
@@ -627,8 +643,33 @@ class Plot(object):
                     if self.fitRatio:
                         gr.Fit('pol1')
 
-                    gr.Draw('p0')
-                except:
+                    gr.Draw('p0ZY0')
+
+
+                    grout.append( ROOT.TGraph() )
+                    grout[-1].SetMarkerStyle(22)
+                    grout[-1].SetMarkerColor(9)
+                    grout[-1].SetMarkerSize(1.6)
+                    grout[-1].SetLineColor(9)
+                    grout[-1].SetFillStyle(0)
+                    grout.append( grout[-1].Clone() )
+                    grout[-1].SetMarkerStyle(23)
+
+                    for ipt in range(gr.GetN()):
+                        x,y=ROOT.Double(0),ROOT.Double(0)
+                        gr.GetPoint(ipt,x,y)
+                        if y>self.ratiorange[1]:
+                            grout[-2].SetPoint(grout[-2].GetN(),x,self.ratiorange[1]-0.04)
+                        if y<self.ratiorange[0] and y>0:
+                            grout[-1].SetPoint(grout[-1].GetN(),x,self.ratiorange[0]+0.04)
+                    grout[-2].Draw('P')
+                    grout[-1].Draw('P')
+                    grout[-2].Print('all')
+                    grout[-1].Print('all')
+
+
+                except Exception as e:
+                    print e
                     pass
         #all done
         if p1: p1.RedrawAxis()
@@ -642,7 +683,7 @@ class Plot(object):
         for ext in self.plotformats : c.SaveAs(os.path.join(outDir, self.name+'.'+ext))
         if self.savelog:
             p1.cd()
-            frame.GetYaxis().SetRangeUser(1,maxY*50)
+            frame.GetYaxis().SetRangeUser(0.5,maxY*50)
             if self.range:
                 frame.GetYaxis().SetRangeUser(self.range[0],self.range[1])
             p1.SetLogy()
@@ -744,6 +785,8 @@ def convertToPoissonErrorGr(h):
     alpha = 1 - 0.6827;
     grpois = ROOT.TGraphAsymmErrors(h);
     for i in xrange(0,grpois.GetN()) :
+        grpois.SetPointEXlow(i,0.)
+        grpois.SetPointEXhigh(i,0.)
         N = grpois.GetY()[i]
         if N<200 :
             L = 0

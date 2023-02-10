@@ -43,6 +43,8 @@ RPout_json=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/golden_noR
 mcdir=/store/cmst3/group/top/RunIIReReco/ab05162
 mcjson=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/mcsamples.json
 cleanmcjson=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/mcsamples_nowqcd.json
+cleanmcjson_z=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/mcsamples_nores_z.json
+cleanmcjson_a=${CMSSW_BASE}/src/TopLJets2015/TopAnalysis/test/analysis/pps/mcsamples_nores_gamma.json
 zxjson=$CMSSW_BASE/src/TopLJets2015/TopAnalysis/test/analysis/pps/zx_samples.json
 genweights=genweights_ab05162.root
 
@@ -351,7 +353,7 @@ case $WHAT in
             lumiSpecs="${lumiSpecs},mmrpin${c}:${ppsLumi},eerpin${c}:${ppsLumi},emrpin${c}:${ppsLumi},arpin${c}:${lptappslumi}";
         done
 
-	baseOpts="-i ${indirForPlots} --lumiSpecs ${lumiSpecs} --procSF #gamma+jets:1.4 -l ${lumi} --mcUnc ${lumiUnc} ${lumiSpecs} ${kFactorList} --pformats png,pdf,C"
+	baseOpts="-i ${indirForPlots} --lumiSpecs ${lumiSpecs} --procSF #gamma+jets:1.4 -l ${lumi} --mcUnc ${lumiUnc} ${lumiSpecs} ${kFactorList} --pformats png,pdf,root"
         commonOpts="${baseOpts} -j ${cleanmcjson},${datajson} --signalJson ${plot_signal_json} -O ${indirForPlots}/plots"
         
         plots=xangle_arpinhpur,xangle_eerpinhpur,xangle_mmrpinhpur,xangle_emrpinhpur,xangle_arpinhpur
@@ -359,7 +361,6 @@ case $WHAT in
 
         python $CMSSW_BASE/src/TopLJets2015/TopAnalysis/scripts/plotter.py ${commonOpts} --only catcount --saveTeX;
 
-        commonOpts="${baseOpts} -j ${cleanmcjson},${datajson} --signalJson ${plot_signal_json} -O ${indirForPlots}/plots"
         cats=(
             "" 
             "rpinhpur"      
@@ -367,11 +368,17 @@ case $WHAT in
             "rpinhpur0neg"  "rpinhpur1neg"  "rpinhpur2neg"
             "rpinhpur1"     "rpinhpur2"     "rpinhpur3"     "rpinhpur4"            
         )
-        channels=(mm) #(ee mm a) #mm ee a em offz)
+        channels=(ee mm a) #mm ee a em offz)
         for ch in ${channels[@]}; do
            plots=""
 
-            for c in "${cats[@]}"; do 
+           chmcjson=${cleanmcjson_z}
+           if [ "$ch" = "a" ]; then
+               chmcjson=${cleanmcjson_a}
+           fi
+           commonOpts="${baseOpts} -j ${chmcjson},${datajson} --signalJson ${plot_signal_json} -O ${indirForPlots}/plots"
+
+           for c in "${cats[@]}"; do 
 
                 evcat=${ch}${c};
                 

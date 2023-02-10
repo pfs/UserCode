@@ -87,17 +87,16 @@ def main():
             if icat==4: pcatTitle='single(+z)-single(-z)'
         finalExtraText='m_{{X}}={0} GeV\\{1}'.format(mass,pcatTitle)
 
-        p=Plot('mmass_{0}_sigacc_{1}{2}'.format(mass,icat,pfix),com='13 TeV')
-        #p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
-        p.cmsLabel='#bf{CMS-TOTEM}'
+        p=Plot('mmass_{0}_sigacc_{1}{2}'.format(mass,icat,pfix),com='13 TeV')        
+        p.cmsLabel='#splitline{#bf{CMS-TOTEM}}{#it{Simulation}}'
         p.plotformats=['pdf','png','C','root']
         p.saveLog=True
         p.xtit='Missing mass [GeV]'
-        p.ytit='Events'
+        p.ytit='Events / bin'
 
         hin[icat].SetLineWidth(2)
-        p.add(hin[icat],  title='In fiducial',  color=ROOT.kRed,   isData=False, spImpose=False, isSyst=False)
-        p.add(hout[icat], title='Out fiducial', color=ROOT.kBlack, isData=False, spImpose=True,  isSyst=False)
+        p.add(hin[icat],  title='In fiducial (1 pb)',  color=ROOT.kRed,   isData=False, spImpose=False, isSyst=False)
+        p.add(hout[icat], title='Out fiducial (1 pb)', color=ROOT.kBlack, isData=False, spImpose=True,  isSyst=False)
         p.show(outDir='./', lumi=LUMI, extraText=finalExtraText)
         
         p=Plot('mmass_{0}_puonfidsig_{1}{2}'.format(mass,icat,pfix),com='13 TeV')

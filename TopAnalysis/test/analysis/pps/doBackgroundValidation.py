@@ -229,6 +229,7 @@ def main(args):
             pname='%s_%d'%(dist,i)
             for c in [':',',','>','=','(',')','-','<','?']: pname=pname.replace(c,'')
             p=Plot(pname)
+            p.plotformats=['pdf','png','C','root']
             #p.cmsLabel='#bf{CMS-Totem} #it{Preliminary}'
             p.cmsLabel='#bf{CMS-TOTEM}'
             p.doChi2=False #True
@@ -260,7 +261,8 @@ def main(args):
 
             #p.ratiorange=[0.78,1.22]
             p.ratiorange=[0.41,1.59]
-            extraText=''titleCut
+            titleCut=[]
+            extraText=titleCut
             if pname.find('csi2')>=0 :
                 extraText = ['sector 56 (R, z-)']+titleCut
             if pname.find('csi1')>=0 :

@@ -42,6 +42,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
 
         try:
             p=Plot('%s_%s_inc%s'%(name,v,plotpfix))
+            p.plotformats = ['pdf','png','root']
             p.cmsLabel='#bf{CMS+Totem} #it{Preliminary}'
             p.xtit='Missing mass [GeV]'
             p.ytit='Events'
@@ -50,7 +51,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
     
             if showAllBkgs:
                 if outfidsigH and not plotData:
-                    p.add(outfidsigH,     title='non-fiducial',  color=ROOT.TColor.GetColor('#a6cee3'), isData=False, spImpose=False, isSyst=False)
+                    p.add(outfidsigH,     title='out fiducial',  color=ROOT.TColor.GetColor('#a6cee3'), isData=False, spImpose=False, isSyst=False)
                 p.add(bkgH,               title='background',    color=ROOT.TColor.GetColor('#1f78b4'), isData=False, spImpose=False,    isSyst=False)
             else:
                 allBkg=bkgH.Clone('allbkg')
@@ -67,7 +68,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
                 p.add(fidsigH.Clone(),    title='fiducial', color=ROOT.TColor.GetColor('#fdc086'), isData=False, spImpose=True,  isSyst=False)
 
             if showAllBkgs and outfidsigH:
-                p.add(outfidsigH.Clone(), title='non-fiducial',  color=ROOT.TColor.GetColor('#a6cee3'), isData=False, spImpose=True,  isSyst=False)
+                p.add(outfidsigH.Clone(), title='out fiducial',  color=ROOT.TColor.GetColor('#a6cee3'), isData=False, spImpose=True,  isSyst=False)
             
             p.ratiorange=[0.68,1.32]
             p.show('./',lumi*1000,extraText=extraText)
@@ -77,6 +78,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
                 dataSubH=dataH.Clone(dataH.GetName()+'_sub')
                 dataSubH.Add(bkgH,-1)
                 p=Plot('%s_%s_sub_inc%s'%(name,v,plotpfix))
+                p.plotformats = ['pdf','png','root']
                 p.cmsLabel='#bf{CMS+Totem} #it{Preliminary}'
                 p.frameMin=None
                 p.frameMax=None
@@ -87,13 +89,14 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
                 if fidsigH:
                     p.add(fidsigH.Clone(),    title='fiducial', color=ROOT.TColor.GetColor('#fdc086'), isData=False, spImpose=True,  isSyst=False)
                 if outfidsigH:
-                    p.add(outfidsigH.Clone(), title='non-fiducial',  color=ROOT.TColor.GetColor('#a6cee3'), isData=False, spImpose=True,  isSyst=False)
+                    p.add(outfidsigH.Clone(), title='out fiducial',  color=ROOT.TColor.GetColor('#a6cee3'), isData=False, spImpose=True,  isSyst=False)
                 p.show('./',lumi*1000,extraText=extraText,noRatio=True)
 
             if not showSysts: continue
 
             #background systs
             p=Plot('%s_%s_inc_bkgunc%s'%(name,v,plotpfix))
+            p.plotformats = ['pdf','png','root']
             p.cmsLabel='#bf{CMS+Totem} #it{Preliminary}'
             p.noErrorsOnRatio=True
             p.doPoissonErrorBars=False
@@ -114,6 +117,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
             #signal systs
             if fidsigH:
                 p=Plot('%s_%s_sigunc%s'%(name,v,plotpfix))
+                p.plotformats = ['pdf','png','root']
                 p.cmsLabel='#bf{CMS+Totem} #it{Preliminary}'
                 #fidsigH.Scale(1./5.)
                 p.doPoissonErrorBars=False
@@ -136,6 +140,7 @@ def showShapes(resultsDir,name,plotTitle,mass,boson,lumi,plotData=True,showSysts
             #out fiducial signal systs
             if outfidsigH:
                 p=Plot('%s_%s_outfidsigunc%s'%(name,v,plotpfix))
+                p.plotformats = ['pdf','png','root']
                 p.cmsLabel='#bf{CMS+Totem} #it{Preliminary}'
                 #outfidsigH.Scale(1./5.)
                 p.doPoissonErrorBars=False

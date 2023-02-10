@@ -71,6 +71,7 @@ class Plot(object):
         self.range=None
         self.ratiotitle='Obs./Exp.'
         self.ratiorange = [0.4,1.6]
+        self.xrange = None
         self.xtit=None
         self.ytit=None
         self.frameMin=0.01
@@ -78,6 +79,9 @@ class Plot(object):
         self.mcUnc=0
         self.noErrorsOnRatio=False
         ROOT.TGaxis.SetMaxDigits(4)
+        ROOT.gStyle.SetPadTickX(1)  # To get tick marks on the opposite side of the frame
+        ROOT.gStyle.SetPadTickY(1)
+
         self.nominalDistForSystsName='t#bar{t}'
 
     def normToData(self):
@@ -251,10 +255,10 @@ class Plot(object):
         iniy=0.9 if self.wideCanvas else 0.85
         dy=0.05
         ndy= max(len(self.mc)+len(self.spimpose),1)
-        inix,dx =0.6,0.4
-        if noRatio: inix=0.6
+        inix,dx =0.56,0.4
+        if noRatio: inix=0.56
         if noStack:
-            inix,dx=0.6,0.35
+            inix,dx=0.55,0.35
             iniy,dy,ndy=0.85,0.04,len(self.mc)
 
         leg = ROOT.TLegend(inix, iniy-dy*ndy, inix+dx, iniy+0.06)
@@ -262,8 +266,8 @@ class Plot(object):
         leg.SetBorderSize(0)
         leg.SetFillStyle(0)
         leg.SetTextFont(42)
-        leg.SetTextSize(0.04 if self.wideCanvas else 0.05)
-        if noRatio : leg.SetTextSize(0.035)
+        leg.SetTextSize(0.04 if self.wideCanvas else 0.04)
+        if noRatio : leg.SetTextSize(0.025)
         nlegCols = 0
 
         if self.dataH is not None:
@@ -438,7 +442,7 @@ class Plot(object):
             frame.GetXaxis().SetTitleSize(0.045)
             frame.GetXaxis().SetLabelSize(0.04)
         if noRatio:
-            frame.GetXaxis().SetTitleSize(0.045)
+            frame.GetXaxis().SetTitleSize(0.05)
             frame.GetXaxis().SetLabelSize(0.04)
         if self.wideCanvas and totalMC is None :
             frame.GetXaxis().SetLabelSize(0.03)
@@ -494,34 +498,41 @@ class Plot(object):
         txt.SetNDC(True)
         txt.SetTextFont(42)
         txt.SetTextAlign(12)
-        iniy=0.88 if self.wideCanvas else 0.88
  
         xcms,ycms=0.2,0.89
         if noRatio or self.dataH is None or len(self.mc)==0: xcms,ycms=0.18,0.88
+        if 'splitline' in self.cmsLabel : ycms-=0.02
         txt.SetTextSize(0.06)
         txt.DrawLatex(xcms,ycms,self.cmsLabel)
         txt.SetTextSize(0.05)
+        startypps=ycms-0.35
+        if 'splitline' in self.cmsLabel :ycms-=0.04
+        secshift=0
         if self.name.find('neg')>=0 and self.name.find('csi')>=0:
-            txt.DrawLatex(xcms,ycms-0.08,'sector 56 (R, z-)')
+            txt.DrawLatex(xcms,startypps,'sector 56 (R, z-)')
+            secshift+=0.1
         if self.name.find('pos')>=0 and self.name.find('csi')>=0:
-            txt.DrawLatex(xcms,ycms-0.08,'sector 45 (L, z+)')
+            txt.DrawLatex(xcms,startypps,'sector 45 (L, z+)')
+            secshift+=0.1
         if self.name.find('eerpin')>=0:
-            txt.DrawLatex(xcms,ycms-0.14,'ee events')
+            txt.DrawLatex(xcms,startypps-secshift,'ee events')
         if self.name.find('mmrpin')>=0:
-            txt.DrawLatex(xcms,ycms-0.14,'#mu#mu events')
+            txt.DrawLatex(xcms,startypps-secshift,'#mu#mu events')
         if self.name.find('emrpin')>=0:
-            txt.DrawLatex(xcms,ycms-0.14,'e#mu events')
+            txt.DrawLatex(xcms,startypps-secshift,'e#mu events')
         if self.name.find('arpin')>=0:
-            txt.DrawLatex(xcms,ycms-0.14,'#gamma events')
+            txt.DrawLatex(xcms,startypps-secshift,'#gamma events')
 
         txt.SetTextAlign(ROOT.kHAlignRight+ROOT.kVAlignCenter)
+        txt.SetTextSize(0.06)
         if lumi<1:
-            txt.DrawLatex(0.95,0.97,'%3.1f nb^{-1} (%s)' % (lumi*1000.,self.com) )
+            txt.DrawLatex(0.95,0.965,'%3.1f nb^{-1} (%s)' % (lumi*1000.,self.com) )
         elif lumi<100:
-            txt.DrawLatex(0.95,0.97,'%3.1f pb^{-1} (%s)' % (lumi,self.com) )
+            txt.DrawLatex(0.95,0.965,'%3.1f pb^{-1} (%s)' % (lumi,self.com) )
         else:
-            txt.DrawLatex(0.95,0.97,'%3.1f fb^{-1} (%s)' % (lumi/1000.,self.com) )
+            txt.DrawLatex(0.95,0.965,'%3.1f fb^{-1} (%s)' % (lumi/1000.,self.com) )
 
+        iniy=startypps
         try:
             
             if self.doChi2 and totalMC and self.dataH:
@@ -591,6 +602,9 @@ class Plot(object):
                     self._garbageList.append(ratio)
                     ratio.Divide(self.mc[title])
                     ratioGrs.append( ROOT.TGraphAsymmErrors(ratio) )
+                    for i in range(ratioGrs[-1].GetN()):
+                        ratioGrs[-1].SetPointEXlow(i,0.)
+                        ratioGrs[-1].SetPointEXhigh(i,0.)
                     ratioGrs[-1].SetMarkerStyle(self.data.GetMarkerStyle())
                     ratioGrs[-1].SetMarkerSize(self.data.GetMarkerSize())
                     ci=self.mc[title].GetLineColor()
@@ -634,6 +648,9 @@ class Plot(object):
                     self._garbageList.append(ratio)
                     ratio.Divide(totalMCnoUnc)
                     gr=ROOT.TGraphAsymmErrors(ratio)
+                    for i in range(gr.GetN()):
+                        gr.SetPointEXlow(i,0.)
+                        gr.SetPointEXhigh(i,0.)
                     gr.SetMarkerStyle(self.data.GetMarkerStyle())
                     gr.SetMarkerSize(self.data.GetMarkerSize())
                     gr.SetMarkerColor(self.data.GetMarkerColor())
